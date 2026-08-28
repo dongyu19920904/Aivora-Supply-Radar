@@ -57,7 +57,7 @@ Phase 6：发布和线上验证
 
 - [x] 创建 GitHub 仓库并使用 SSH 推送
 - [x] 创建 Cloudflare 部署代理和隔离管理入口
-- [x] 配置正式域名及部署工作流
+- [x] 配置首发 workers.dev 域名及部署工作流
 - [ ] 等待 Actions/Worker 部署完成并检查日志
 - [ ] 验证线上状态码、数据、页面、移动端、缓存和回滚路径
 - **Status:** pending
@@ -100,6 +100,7 @@ Phase 6：发布和线上验证
 | GitHub Actions 类型检查缺少 Node 内置模块声明 | 1 | 显式添加与 CI Node 22 对齐的 `@types/node@^22.20.1`，不依赖本地间接类型 |
 | 首次发布在 D1 资源检查前返回 Cloudflare `Authentication error [code 10000]` | 1 | 确认 Token 的 Worker 部署权限正常但无 D1 API 权限；改用官方 SQLite Durable Object，失败运行未创建资源、未迁移、未生产同步 |
 | 空缓存首页/商机页同步等待远端 GitHub | 1 | 页面改为只读缓存；部署后受保护地组合同步一次，后续由 Cron 更新，远端失败不阻塞页面 |
+| Worker 上传后无法绑定 `supply.aivora.cn` | 1 | 权威 NS 是 DNSPod，不是 Cloudflare Zone；首发改用 workers.dev，正式子域待 DNSPod CNAME 权限后走 Pages 外部子域方案，不迁移整个主域 DNS |
 
 ## Notes
 

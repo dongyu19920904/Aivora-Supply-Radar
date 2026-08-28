@@ -88,6 +88,7 @@
 | 2026-08-29 01:12 | GitHub CI 找不到 `node:fs/promises` 与 `node:url` 类型 | 1 | 添加显式 Node 22 类型依赖，本地复验后推送最小修复 |
 | 2026-08-29 01:32 | 部署代理调用 D1 API 返回 Cloudflare code 10000 | 1 | 运行在创建资源、部署和同步之前停止；改为 SQLite Durable Object，避免扩大 Token 权限且保留关系功能 |
 | 2026-08-29 01:41 | 空缓存首页和商机页可能同步等待 GitHub | 1 | 页面移除远端写操作；首次组合同步放到部署后受保护步骤，回归测试确保页面不调用远端 |
+| 2026-08-29 01:57 | Worker 上传成功后 Custom Domain 报找不到 `supply.aivora.cn` Zone | 1 | DNS 核验显示权威 NS 为 DNSPod；先启用 workers.dev 完成上线，正式子域保留为 Pages+CNAME 后续切换 |
 
 ## 5-Question Reboot Check
 

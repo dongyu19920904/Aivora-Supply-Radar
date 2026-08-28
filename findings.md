@@ -26,7 +26,7 @@
 - 账号商机工作流严格按 `Asia/Shanghai` 计算日期，并在无合格信号时允许质量跳过，因此新站需要“最近成功一期”回退，不能把缺日当系统故障。
 - 当前 GitHub CLI 已登录 `dongyu19920904`，具有 `repo` 与 `workflow` 权限；Git 协议默认 HTTPS，但新仓库推送将显式使用 SSH。
 - 本机没有进程级 Cloudflare Token，Wrangler OAuth 已失效；既有后端仓库 Actions 中存在 Cloudflare Account ID/API Token Secret 名称，可作为隔离部署代理。
-- `supply.aivora.cn` 当前没有 DNS 记录，尚未占用。
+- `supply.aivora.cn` 当前没有 DNS 记录；`aivora.cn` 权威 NS 为 DNSPod，因此不是现有 Cloudflare 账户中的可绑定 Zone。
 - 已把四个可公开获取的参考仓库浅克隆到 `D:\GitHub\_references\Aivora-Supply-Radar`：PlanTrack、AI Price Radar、OpenPrice、Flarum Framework。它们与产品仓库隔离，OpenPrice 仅用于研究，不进入发布代码。
 - AI Price Radar 的 MIT seed 与目录服务验证了可移植规则：标准商品与原始报价分离、只对可比较且有货的正价格计算最低价、按交付形态和币种计算中位数、来源失败保留最近快照、同款使用稳定指纹分组。
 - PlanTrack 的 MIT `data/platforms.json` 是版本化官方价格目录，包含官方 URL、价格、币种、计费口径、核验日期和历史；首发只移植与爱窝啦商品直接相关且能复核官方入口的条目，完整上游代码保存在参考目录。
@@ -54,6 +54,7 @@
 | OpenPrice 许可不允许直接商业竞品化 | 只研究能力与公开接口；实现同等功能时使用新代码和统一数据模型 |
 | 本机 Wrangler 未登录 | 使用既有后端仓库 Secrets 执行只负责新站的部署代理工作流 |
 | 既有 Cloudflare Token 调用 D1 返回 code 10000 | 不申请或输出新 Token；按官方新项目路径改为 SQLite Durable Object，首次失败未创建资源或触发采集 |
+| `aivora.cn` 由 DNSPod 托管，Workers Custom Domain 无法绑定 | 首发使用 workers.dev；正式子域采用 Pages 外部 CNAME，需先在 Pages 关联域名再由 DNSPod 增加记录 |
 
 ## Resources
 

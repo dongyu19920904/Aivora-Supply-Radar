@@ -3,12 +3,13 @@
   "name": "aivora-supply-radar",
   "main": "src/index.ts",
   "compatibility_date": "2026-08-28",
+  "workers_dev": true,
   "observability": {
     "enabled": true,
     "head_sampling_rate": 1
   },
   "vars": {
-    "SITE_URL": "https://supply.aivora.cn",
+    "SITE_URL": "https://aivora-supply-radar.sabrinamisan090.workers.dev",
     "SOURCE_REPO": "dongyu19920904/Hextra-AI-Insight-Daily"
   },
   "durable_objects": {
@@ -27,11 +28,5 @@
   ],
   "triggers": {
     "crons": ["17 2 * * *", "47 */6 * * *"]
-  },
-  "routes": [
-    {
-      "pattern": "supply.aivora.cn",
-      "custom_domain": true
-    }
-  ]
+  }
 }

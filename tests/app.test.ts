@@ -25,12 +25,12 @@ describe("request isolation", () => {
     vi.stubGlobal("fetch", remoteFetch);
     const env: Env = {
       DB: seededEmptyDatabase(),
-      SITE_URL: "https://supply.aivora.cn",
+      SITE_URL: "https://aivora-supply-radar.sabrinamisan090.workers.dev",
     };
 
     const [home, opportunities] = await Promise.all([
-      app.fetch(new Request("https://supply.aivora.cn/"), env),
-      app.fetch(new Request("https://supply.aivora.cn/opportunities"), env),
+      app.fetch(new Request(`${env.SITE_URL}/`), env),
+      app.fetch(new Request(`${env.SITE_URL}/opportunities`), env),
     ]);
 
     expect(home.status).toBe(200);

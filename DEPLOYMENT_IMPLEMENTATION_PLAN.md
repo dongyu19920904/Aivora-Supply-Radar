@@ -6,7 +6,9 @@
 
 项目目录：`D:\GitHub\Aivora-Supply-Radar`
 
-目标域名：`https://supply.aivora.cn/`
+首发域名：`https://aivora-supply-radar.sabrinamisan090.workers.dev/`
+
+正式域名：`https://supply.aivora.cn/`（DNSPod 增加外部 CNAME 后切换）
 
 ## 1. 项目目标
 
@@ -271,7 +273,8 @@ Aivora-Supply-Radar/
 - 可选 R2：`aivora-supply-radar-assets`
 - 可选 Queue：`aivora-supply-radar-ingest`
 - Cron：每日多次轻量 Feed 同步；账号商机在日报生成后同步；每天生成清理和健康快照。
-- Custom Domain：`supply.aivora.cn`
+- 首发域名：`aivora-supply-radar.sabrinamisan090.workers.dev`
+- 正式域名：`supply.aivora.cn`；当前 Zone 由 DNSPod 托管，不能直接使用 Workers Custom Domain，后续采用 Cloudflare Pages 代理并在 DNSPod 增加 CNAME
 
 本机 Wrangler OAuth 当前失效，但既有日报后端仓库保存了 `CLOUDFLARE_ACCOUNT_ID` 和 `CLOUDFLARE_API_TOKEN` 两个 Actions Secret。优先方案：
 
@@ -279,7 +282,7 @@ Aivora-Supply-Radar/
 2. 工作流使用后端仓库现有 Secret，checkout 新仓库指定 SHA，生成临时 Wrangler 配置并部署；`new_sqlite_classes` 随 Worker 版本创建 SQLite Durable Object。
 3. 部署代理每 15 分钟只读解析新仓库 `main` 的精确 SHA，并以 GitHub Actions 缓存记录已成功发布的 SHA；也支持手动指定 SHA。这样不需要把跨仓库 GitHub Token 写入新项目。
 4. 代理在固定 SHA 上重新运行完整测试，设置独立 `ADMIN_API_KEY` Worker Secret，并用单独管理工作流执行投稿审核或手动同步；Secret 不进入源码或日志。
-5. 新站稳定后，可把 Cloudflare Secret 迁移到新仓库并删除部署代理。
+5. 新站稳定后，可把 Cloudflare Secret 迁移到新仓库并删除部署代理；取得 DNSPod 记录管理权限后再完成正式子域，避免迁移整个主域 nameserver。
 
 该代理只承担发布，不参与 AI 日报定时任务和运行时，因此部署失败不会影响日报生产。
 
@@ -290,9 +293,9 @@ Aivora-Supply-Radar/
 3. `npm ci`、lint、类型、测试和构建复跑。
 4. 生成只注入 Account ID、不含 Secret 的临时 Wrangler 配置。
 5. `wrangler deploy` 创建/升级 Worker 与 SQLite Durable Object，记录版本和部署 URL。
-6. 写入独立 `ADMIN_API_KEY` Worker Secret，等待自定义域健康接口就绪。
+6. 写入独立 `ADMIN_API_KEY` Worker Secret，等待 `workers.dev` 健康接口就绪。
 7. 首发仅调用一次受保护的组合同步；账号商机、单个 Feed 失败按来源隔离，爱窝啦自有商品同步必须成功。
-8. 复查 `supply.aivora.cn` 健康、内容和移动端；成功后按 SHA 写部署标记。
+8. 复查首发 URL 健康、内容和移动端；成功后按 SHA 写部署标记。
 9. 线上验证失败则停止并保留失败证据；必要时回滚上一成功 Worker 版本。
 
 ## 13. 回滚
