@@ -101,6 +101,7 @@ Phase 6：发布和线上验证
 | 首次发布在 D1 资源检查前返回 Cloudflare `Authentication error [code 10000]` | 1 | 确认 Token 的 Worker 部署权限正常但无 D1 API 权限；改用官方 SQLite Durable Object，失败运行未创建资源、未迁移、未生产同步 |
 | 空缓存首页/商机页同步等待远端 GitHub | 1 | 页面改为只读缓存；部署后受保护地组合同步一次，后续由 Cron 更新，远端失败不阻塞页面 |
 | Worker 上传后无法绑定 `supply.aivora.cn` | 1 | 权威 NS 是 DNSPod，不是 Cloudflare Zone；首发改用 workers.dev，正式子域待 DNSPod CNAME 权限后走 Pages 外部子域方案，不迁移整个主域 DNS |
+| Worker 已部署但 Cloudflare Cron 超过免费账户 5 个上限 | 1 | 移除新 Worker Cron，沿用隔离管理工作流每 6 小时调用同一受保护组合同步，功能不删减 |
 
 ## Notes
 

@@ -55,6 +55,7 @@
 | 本机 Wrangler 未登录 | 使用既有后端仓库 Secrets 执行只负责新站的部署代理工作流 |
 | 既有 Cloudflare Token 调用 D1 返回 code 10000 | 不申请或输出新 Token；按官方新项目路径改为 SQLite Durable Object，首次失败未创建资源或触发采集 |
 | `aivora.cn` 由 DNSPod 托管，Workers Custom Domain 无法绑定 | 首发使用 workers.dev；正式子域采用 Pages 外部 CNAME，需先在 Pages 关联域名再由 DNSPod 增加记录 |
+| Cloudflare 免费账户已有 5 个 Cron 触发器 | 新站定时同步由 GitHub Actions 调用受保护接口，保持 6 小时频率且不影响 AI 日报现有触发器 |
 
 ## Resources
 

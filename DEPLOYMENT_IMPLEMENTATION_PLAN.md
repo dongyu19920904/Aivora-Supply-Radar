@@ -78,7 +78,7 @@ Cloudflare Worker（SSR HTML + JSON API + 静态资源）
         │
         ├── SQLite Durable Object：商品、报价、商家、快照、商机、投稿、审核
         ├── Cache API：目录页、详情页和远端只读内容缓存
-        ├── Cron：账号商机同步、Feed 拉取、快照、来源健康
+        ├── GitHub Actions Cron：账号商机同步、Feed 拉取、快照、来源健康
         └── 可选 Queue/R2：大规模采集与图片证据（后续启用）
 
 独立账号商机同步器 ──只读──► GitHub raw/origin-main Markdown
@@ -272,7 +272,7 @@ Aivora-Supply-Radar/
 - SQLite Durable Object：`SupplyRadarStore`，固定命名实例 `primary`
 - 可选 R2：`aivora-supply-radar-assets`
 - 可选 Queue：`aivora-supply-radar-ingest`
-- Cron：每日多次轻量 Feed 同步；账号商机在日报生成后同步；每天生成清理和健康快照。
+- GitHub Actions Cron：每 6 小时调用受保护的组合同步；避免占用已达上限的 Cloudflare Cron，来源仍按任务隔离。
 - 首发域名：`aivora-supply-radar.sabrinamisan090.workers.dev`
 - 正式域名：`supply.aivora.cn`；当前 Zone 由 DNSPod 托管，不能直接使用 Workers Custom Domain，后续采用 Cloudflare Pages 代理并在 DNSPod 增加 CNAME
 
