@@ -1,6 +1,6 @@
 import { type Context, Hono } from "hono";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
-import type { Env, SubmissionInput } from "./domain/types";
+import type { Env, RuntimeEnv, SubmissionInput } from "./domain/types";
 import { syncAivoraCatalog } from "./ingest/aivora";
 import { syncMerchantFeeds } from "./ingest/feed";
 import { syncLatestOpportunity } from "./ingest/opportunity";
@@ -30,6 +30,7 @@ import {
   listProductTypes,
   moderateSubmission,
 } from "./services/database";
+import { createD1CompatibilityDatabase, initializeSqliteStorage } from "./services/sqlite-d1";
 import { layout, SITE_CSS, SITE_JS } from "./ui/layout";
 import {
   changesPage,
@@ -134,15 +135,7 @@ app.get("/", async (c) => {
     listProducts(c.env.DB),
     listPriceChanges(c.env.DB, 12),
   ]);
-  let opportunities = await listOpportunities(c.env.DB, 1);
-  if (!opportunities.length) {
-    try {
-      await syncLatestOpportunity(c.env.DB, c.env.SOURCE_REPO);
-      opportunities = await listOpportunities(c.env.DB, 1);
-    } catch {
-      opportunities = [];
-    }
-  }
+  const opportunities = await listOpportunities(c.env.DB, 1);
   c.header("Cache-Control", "public, max-age=120, s-maxage=300, stale-while-revalidate=600");
   return html(c, homePage({ products, opportunity: opportunities[0] ?? null, changes }), {
     title: "爱窝啦 AI 货源雷达",
@@ -298,15 +291,7 @@ app.get("/changes", async (c) =>
 );
 
 app.get("/opportunities", async (c) => {
-  let opportunities = await listOpportunities(c.env.DB);
-  if (!opportunities.length) {
-    try {
-      await syncLatestOpportunity(c.env.DB, c.env.SOURCE_REPO);
-      opportunities = await listOpportunities(c.env.DB);
-    } catch {
-      opportunities = [];
-    }
-  }
+  const opportunities = await listOpportunities(c.env.DB);
   return html(c, opportunitiesPage(opportunities), {
     title: "AI 账号商机日报",
     description: "把海外 AI 账号、订阅、API、支付、额度与平台政策变化关联到货源、价格和卖家行动。",
@@ -505,6 +490,11 @@ app.post("/api/v1/admin/sync/feeds", async (c) => {
     return c.json({ error: "unauthorized" }, 401);
   return c.json(await syncMerchantFeeds(c.env.DB));
 });
+app.post("/api/v1/admin/sync", async (c) => {
+  if (!(await isAdminAuthorized(c.req.header("Authorization"), c.env.ADMIN_API_KEY)))
+    return c.json({ error: "unauthorized" }, 401);
+  return c.json(await scheduledRun(c.env));
+});
 app.post("/api/v1/admin/submissions/:id/:action", async (c) => {
   if (!(await isAdminAuthorized(c.req.header("Authorization"), c.env.ADMIN_API_KEY)))
     return c.json({ error: "unauthorized" }, 401);
@@ -579,21 +569,76 @@ app.onError((error, c) => {
   );
 });
 
-async function scheduledRun(env: Env): Promise<void> {
+function settledResult(result: PromiseSettledResult<unknown>): {
+  status: "fulfilled" | "rejected";
+  value?: unknown;
+  error?: string;
+} {
+  if (result.status === "fulfilled") return { status: result.status, value: result.value };
+  return {
+    status: result.status,
+    error: result.reason instanceof Error ? result.reason.message.slice(0, 120) : "sync_failed",
+  };
+}
+
+async function scheduledRun(env: Env): Promise<Record<string, unknown>> {
   await ensureSeed(env.DB);
-  const tasks = [
+  const [opportunity, aivora, feeds] = await Promise.allSettled([
     syncLatestOpportunity(env.DB, env.SOURCE_REPO),
     syncAivoraCatalog(env.DB),
     syncMerchantFeeds(env.DB),
-  ];
-  await Promise.allSettled(tasks);
+  ]);
+  return {
+    opportunity: settledResult(opportunity),
+    aivora: settledResult(aivora),
+    feeds: settledResult(feeds),
+  };
+}
+
+const INTERNAL_SCHEDULE_PATH = "/__aivora_internal_scheduled_v1";
+
+export class SupplyRadarStore {
+  private readonly appEnv: Env;
+
+  constructor(state: DurableObjectState, env: RuntimeEnv) {
+    this.appEnv = {
+      DB: createD1CompatibilityDatabase(state),
+      SITE_URL: env.SITE_URL,
+      SOURCE_REPO: env.SOURCE_REPO,
+      ADMIN_API_KEY: env.ADMIN_API_KEY,
+    };
+    state.blockConcurrencyWhile(async () => initializeSqliteStorage(state));
+  }
+
+  async fetch(request: Request): Promise<Response> {
+    const url = new URL(request.url);
+    if (url.pathname === INTERNAL_SCHEDULE_PATH && url.hostname === "radar.internal") {
+      await scheduledRun(this.appEnv);
+      return new Response("ok");
+    }
+    return app.fetch(request, this.appEnv);
+  }
 }
 
 export default {
-  fetch: app.fetch,
-  scheduled(_event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
-    ctx.waitUntil(scheduledRun(env));
+  fetch(request: Request, env: RuntimeEnv): Promise<Response> {
+    if (new URL(request.url).pathname === INTERNAL_SCHEDULE_PATH) {
+      return Promise.resolve(new Response("Not Found", { status: 404 }));
+    }
+    const id = env.RADAR.idFromName("primary");
+    return env.RADAR.get(id).fetch(request);
   },
-};
+  scheduled(_event: ScheduledController, env: RuntimeEnv, ctx: ExecutionContext) {
+    const id = env.RADAR.idFromName("primary");
+    const request = new Request(`https://radar.internal${INTERNAL_SCHEDULE_PATH}`, {
+      method: "POST",
+    });
+    ctx.waitUntil(
+      env.RADAR.get(id)
+        .fetch(request)
+        .then(() => undefined),
+    );
+  },
+} satisfies ExportedHandler<RuntimeEnv>;
 
 export { app, scheduledRun, submissionFromBody };

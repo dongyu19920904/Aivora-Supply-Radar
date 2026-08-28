@@ -24,7 +24,7 @@
 
 ### Phase 2：详细方案和项目骨架
 
-- **Status:** in_progress
+- **Status:** complete
 - Actions taken:
   - 初始化独立 Git 仓库，默认分支 `main`，任务分支 `codex/initial-supply-radar`。
   - 完成详细部署实施方案和统一数据模型。
@@ -49,11 +49,13 @@
 - **Status:** complete
 - Actions taken:
   - 单元测试 16/16 通过，TypeScript 严格检查通过。
-  - D1 两个迁移在本地成功执行。
+  - 原始 D1 两个迁移在本地成功执行；部署权限预检失败后，等价 schema 已迁移为 SQLite Durable Object 并实际本地启动。
   - Worker dry-run 打包成功，首次产物 170.34 KiB、gzip 42.25 KiB。
   - 种子与内容 dry-run 为 `publishable`；账号商机 2026-08-28 正文 2096 字符、7 个标题、3 个链接。
   - Playwright 检查桌面日/夜、390px 日/夜和商品详情图，均无横向溢出、坏图或控制台错误。
   - 在日报后端最新 `origin/main` 独立 worktree 准备固定 SHA 自动部署与管理工作流。
+  - SQLite Durable Object 本地实际启动，seed 后健康接口返回 48 商品、24 报价；账号商机受保护同步写入 2026-08-28，关联 2 个商品。
+  - 空缓存首页与商机列表响应分别约 58ms/13ms，不再在页面请求中等待远端采集。
 
 ## Test Results
 
@@ -66,6 +68,8 @@
 | GitHub 权限 | `gh auth status` | 可建仓和配置工作流 | 登录有效，具备 repo/workflow | 通过 |
 | Cloudflare 本机登录 | `wrangler whoami` | 可直接部署或明确替代路径 | OAuth 失效；改用 Actions Secret 部署代理 | 已规划替代 |
 | DNS 基线 | `supply.aivora.cn` | 未占用或识别现有服务 | 当前无 DNS 记录 | 通过 |
+| SQLite Durable Object | 本地 Worker 与真实 schema | 初始化、查询、写入均可用 | 48 商品、24 报价、商机 2026-08-28、2 个关联商品 | 通过 |
+| 页面失败隔离 | 空商机缓存首页/列表 | 不发起远端请求 | 200，新增回归测试验证 0 次远端 fetch | 通过 |
 
 ## Error Log
 
@@ -82,12 +86,14 @@
 | 2026-08-29 00:49 | 商品详情页内联间距触发 CSP 控制台错误 | 1 | 改用 `.stack-panel` 外部 CSS，不添加 `unsafe-inline` |
 | 2026-08-29 01:05 | 最终并行矩阵中的 GitHub raw dry-run 15 秒中止 | 1 | 验证脚本改为 30 秒并单独重跑；不改变生产失败隔离策略 |
 | 2026-08-29 01:12 | GitHub CI 找不到 `node:fs/promises` 与 `node:url` 类型 | 1 | 添加显式 Node 22 类型依赖，本地复验后推送最小修复 |
+| 2026-08-29 01:32 | 部署代理调用 D1 API 返回 Cloudflare code 10000 | 1 | 运行在创建资源、部署和同步之前停止；改为 SQLite Durable Object，避免扩大 Token 权限且保留关系功能 |
+| 2026-08-29 01:41 | 空缓存首页和商机页可能同步等待 GitHub | 1 | 页面移除远端写操作；首次组合同步放到部署后受保护步骤，回归测试确保页面不调用远端 |
 
 ## 5-Question Reboot Check
 
 | Question | Answer |
 |----------|--------|
-| Where am I? | Phase 5：最终验证与发布准备 |
+| Where am I? | Phase 6：发布和线上验证 |
 | Where am I going? | 方案、实现、测试、发布和线上验证 |
 | What's the goal? | 上线独立且不影响 AI 日报的爱窝啦 AI 货源雷达 |
 | What have I learned? | 见 `findings.md` |

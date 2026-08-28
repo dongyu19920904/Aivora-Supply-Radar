@@ -1,3 +1,6 @@
+export const STORAGE_SCHEMA_VERSION = "2026-08-29-v2";
+
+export const STORAGE_SCHEMA = `
 PRAGMA foreign_keys = ON;
 
 CREATE TABLE IF NOT EXISTS products (
@@ -66,8 +69,7 @@ CREATE TABLE IF NOT EXISTS offer_snapshots (
   stock_status TEXT NOT NULL,
   stock_count INTEGER,
   observed_at TEXT NOT NULL,
-  fingerprint TEXT NOT NULL,
-  UNIQUE (offer_id, fingerprint)
+  fingerprint TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS official_prices (
@@ -164,8 +166,9 @@ CREATE TABLE IF NOT EXISTS settings (
 CREATE INDEX IF NOT EXISTS idx_products_visible_sort ON products(is_visible, sort_order, id);
 CREATE INDEX IF NOT EXISTS idx_offers_product_public ON offers(product_id, active, approved, stock_status, price);
 CREATE INDEX IF NOT EXISTS idx_offers_merchant ON offers(merchant_id, active, updated_at);
-CREATE INDEX IF NOT EXISTS idx_offer_snapshots_offer_time ON offer_snapshots(offer_id, observed_at DESC);
+CREATE INDEX IF NOT EXISTS idx_offer_snapshots_offer_time ON offer_snapshots(offer_id, observed_at DESC, id DESC);
 CREATE INDEX IF NOT EXISTS idx_merchants_visible_status ON merchants(is_visible, status, source_score DESC);
 CREATE INDEX IF NOT EXISTS idx_opportunities_date ON opportunities(report_date DESC);
 CREATE INDEX IF NOT EXISTS idx_submissions_status_time ON submissions(status, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_source_runs_source_time ON source_runs(source_key, started_at DESC);
+`;

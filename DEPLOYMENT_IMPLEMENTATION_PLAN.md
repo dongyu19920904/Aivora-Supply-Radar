@@ -74,7 +74,7 @@
         ▼
 Cloudflare Worker（SSR HTML + JSON API + 静态资源）
         │
-        ├── D1：商品、报价、商家、快照、商机、投稿、审核
+        ├── SQLite Durable Object：商品、报价、商家、快照、商机、投稿、审核
         ├── Cache API：目录页、详情页和远端只读内容缓存
         ├── Cron：账号商机同步、Feed 拉取、快照、来源健康
         └── 可选 Queue/R2：大规模采集与图片证据（后续启用）
@@ -90,7 +90,7 @@ Cloudflare Worker（SSR HTML + JSON API + 静态资源）
 - 不引入 Docker、常驻服务器或额外流程编排平台；
 - 与用户现有 Cloudflare 运维方式一致；
 - SSR 可以为商品详情提供稳定 canonical、Product/Offer/Article schema；
-- D1 足以支撑首发目录、快照和审核数据；
+- SQLite Durable Object 提供关系查询、事务和强一致性，且随 Worker 脚本迁移创建；
 - 采集和展示可在同一 TypeScript 代码库内共享分类与校验逻辑；
 - 避免新站依赖 Next/OpenNext 适配器变化，同时保留未来迁移 React/Vinext 的空间。
 
@@ -104,8 +104,8 @@ Aivora-Supply-Radar/
 │  ├─ services/                查询、利润、异动、来源健康
 │  ├─ ingest/                  Feed、HTML、账号商机适配器
 │  ├─ security/                管理鉴权、限流、URL 安全
-│  └─ ui/                      SSR 页面、CSS 和渐进增强 JS
-├─ migrations/                D1 迁移
+│  ├─ ui/                      SSR 页面、CSS 和渐进增强 JS
+│  └─ services/storage-schema.ts  SQLite 初始化结构与版本
 ├─ scripts/                    dry-run、内容和视觉检查
 ├─ tests/                      单元与数据契约测试
 ├─ .github/workflows/          CI
@@ -267,7 +267,7 @@ Aivora-Supply-Radar/
 ### 11.2 Cloudflare 资源
 
 - Worker：`aivora-supply-radar`
-- D1：`aivora-supply-radar-db`
+- SQLite Durable Object：`SupplyRadarStore`，固定命名实例 `primary`
 - 可选 R2：`aivora-supply-radar-assets`
 - 可选 Queue：`aivora-supply-radar-ingest`
 - Cron：每日多次轻量 Feed 同步；账号商机在日报生成后同步；每天生成清理和健康快照。
@@ -276,7 +276,7 @@ Aivora-Supply-Radar/
 本机 Wrangler OAuth 当前失效，但既有日报后端仓库保存了 `CLOUDFLARE_ACCOUNT_ID` 和 `CLOUDFLARE_API_TOKEN` 两个 Actions Secret。优先方案：
 
 1. 在日报后端最新 `origin/main` 的独立 worktree 增加仅负责部署新仓库固定 SHA 的 `deploy-supply-radar.yml`。
-2. 工作流使用后端仓库现有 Secret，checkout 新仓库指定 SHA，创建/发现 D1、生成临时 Wrangler 配置、执行迁移并部署。
+2. 工作流使用后端仓库现有 Secret，checkout 新仓库指定 SHA，生成临时 Wrangler 配置并部署；`new_sqlite_classes` 随 Worker 版本创建 SQLite Durable Object。
 3. 部署代理每 15 分钟只读解析新仓库 `main` 的精确 SHA，并以 GitHub Actions 缓存记录已成功发布的 SHA；也支持手动指定 SHA。这样不需要把跨仓库 GitHub Token 写入新项目。
 4. 代理在固定 SHA 上重新运行完整测试，设置独立 `ADMIN_API_KEY` Worker Secret，并用单独管理工作流执行投稿审核或手动同步；Secret 不进入源码或日志。
 5. 新站稳定后，可把 Cloudflare Secret 迁移到新仓库并删除部署代理。
@@ -288,18 +288,17 @@ Aivora-Supply-Radar/
 1. CI 通过并生成待部署 SHA。
 2. 部署代理从公开仓库 `main` 解析 40 位 SHA，或接收人工指定的不可变 SHA。
 3. `npm ci`、lint、类型、测试和构建复跑。
-4. 若 D1 不存在则创建；存在则读取 ID。
-5. 生成不含 Secret 的临时 Wrangler 配置。
-6. `wrangler d1 migrations apply --remote`。
-7. 首次部署前执行 seed；后续 seed 幂等。
-8. `wrangler deploy`，记录版本和部署 URL。
-9. 烟测 Worker URL，再绑定/验证 `supply.aivora.cn`。
-10. 线上验证失败则停止，不触发生产采集；必要时部署上一成功 SHA。
+4. 生成只注入 Account ID、不含 Secret 的临时 Wrangler 配置。
+5. `wrangler deploy` 创建/升级 Worker 与 SQLite Durable Object，记录版本和部署 URL。
+6. 写入独立 `ADMIN_API_KEY` Worker Secret，等待自定义域健康接口就绪。
+7. 首发仅调用一次受保护的组合同步；账号商机、单个 Feed 失败按来源隔离，爱窝啦自有商品同步必须成功。
+8. 复查 `supply.aivora.cn` 健康、内容和移动端；成功后按 SHA 写部署标记。
+9. 线上验证失败则停止并保留失败证据；必要时回滚上一成功 Worker 版本。
 
 ## 13. 回滚
 
 - 代码回滚：重新部署上一成功 Git SHA，不使用 `reset --hard`。
-- 数据库回滚：迁移只做向前兼容；破坏性变更先建新表、回填、切读，再延迟删除旧表。
+- 数据回滚：SQLite schema 只做向前兼容；破坏性变更先建新表、回填、切读，再延迟删除旧表，并使用 Durable Object 时间点恢复作为灾备。
 - 内容回滚：报价使用 `last_good_snapshot`，来源异常只标记过期。
 - 域名回滚：Custom Domain 可切回上一 Worker 版本。
 - 日报无需回滚：新站不修改其生成链路。
@@ -308,7 +307,7 @@ Aivora-Supply-Radar/
 
 - SSR 页面使用 Cache API，商品列表和商机页短时缓存，详情按更新时间失效。
 - Feed 采用条件请求、按域名节流和变化写入，避免无变化重复快照。
-- D1 查询使用覆盖索引和分页，首页不扫描完整历史。
+- SQLite 查询使用覆盖索引和分页，首页不扫描完整历史；单实例串行写入避免同一报价并发快照冲突。
 - 首发不使用大模型生成；账号商机直接消费现有成品，避免新增 Anthropic 调用。
 - 浏览器渲染、R2 图片代理和 Queue 只在数据量证明需要后启用。
 
@@ -317,7 +316,7 @@ Aivora-Supply-Radar/
 ### M1：可部署核心站
 
 - 首页、全部商品、详情、商家、异动、商机、提交、方法页可用；
-- D1、迁移、seed、健康接口、sitemap、robots 完成；
+- SQLite Durable Object、schema 初始化、seed、健康接口、sitemap、robots 完成；
 - CI、预览、正式 Worker 和域名可验证。
 
 ### M2：真实数据和经营闭环

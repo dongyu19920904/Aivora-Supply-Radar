@@ -5,6 +5,13 @@ export interface Env {
   ADMIN_API_KEY?: string;
 }
 
+export interface RuntimeEnv {
+  RADAR: DurableObjectNamespace;
+  SITE_URL?: string;
+  SOURCE_REPO?: string;
+  ADMIN_API_KEY?: string;
+}
+
 export interface ProductSeed {
   slug: string;
   platform: string;

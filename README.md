@@ -13,12 +13,10 @@
 
 & "$env:USERPROFILE\.codex\skills\project-cache-hygiene\scripts\Invoke-WithProjectCache.ps1" `
   -ProjectPath "D:\GitHub\Aivora-Supply-Radar" `
-  -Command @("npm", "run", "db:migrate:local")
-
-& "$env:USERPROFILE\.codex\skills\project-cache-hygiene\scripts\Invoke-WithProjectCache.ps1" `
-  -ProjectPath "D:\GitHub\Aivora-Supply-Radar" `
   -Command @("npm", "run", "dev")
 ```
+
+本地 `wrangler dev` 会自动创建 SQLite Durable Object 并初始化关系表，不需要单独迁移命令。
 
 ## 验证
 

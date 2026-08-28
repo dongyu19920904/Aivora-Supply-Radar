@@ -11,12 +11,18 @@
     "SITE_URL": "https://supply.aivora.cn",
     "SOURCE_REPO": "dongyu19920904/Hextra-AI-Insight-Daily"
   },
-  "d1_databases": [
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "RADAR",
+        "class_name": "SupplyRadarStore"
+      }
+    ]
+  },
+  "migrations": [
     {
-      "binding": "DB",
-      "database_name": "aivora-supply-radar-db",
-      "database_id": "00000000-0000-0000-0000-000000000000",
-      "migrations_dir": "migrations"
+      "tag": "v1",
+      "new_sqlite_classes": ["SupplyRadarStore"]
     }
   ],
   "triggers": {

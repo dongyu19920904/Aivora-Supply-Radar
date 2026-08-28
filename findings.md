@@ -37,11 +37,11 @@
 |----------|-----------|
 | 新仓库名 `Aivora-Supply-Radar` | 与 AI 日报解耦，名称直接表达品牌和用途 |
 | 目标域名 `supply.aivora.cn` | 与 `news.aivora.cn`、`www.aivora.cn` 构成清晰站群 |
-| TypeScript + Cloudflare Workers + D1/R2/Queues/Cron | 复用用户现有运维能力，避免 Docker，控制基础设施复杂度 |
+| TypeScript + Cloudflare Workers + SQLite Durable Objects/Cron | 复用用户现有运维能力，避免 Docker，控制基础设施复杂度 |
 | 前端采用 Workers 兼容 React/Next 路径 | 便于复用 PlanTrack 组件并保持 SEO/SSR/结构化数据 |
 | 核心实体统一为 Product/Offer/Merchant/Snapshot/Opportunity/Report/Post | 防止把多个参考项目的数据库和分类机械拼接 |
 | Flarum 作为独立可插拔社区 | 保留完整社区能力，同时不把 PHP 运行时塞入 Worker 核心链路 |
-| Worker 原生 SSR + D1 作为首发运行时 | 避免 Docker和适配器漂移，同时满足动态目录和 SEO；后续仍可迁移 React/Vinext |
+| Worker 原生 SSR + SQLite Durable Object 作为首发运行时 | 保留完整关系查询、事务、历史价和投稿能力；随 Worker 脚本部署，不依赖现有 Token 缺失的 D1 API scope |
 | 账号商机同步向前回看 14 天 | 现有工作流允许质量跳过，最近成功一期比空白或误触发生成更稳定 |
 | 标准商品与报价分表，原始标题永久保留 | 继承 MIT 项目中已经验证的目录边界，既能聚合又不丢货源细节 |
 
@@ -53,6 +53,7 @@
 | PriceAI 搜索索引仓库当前不可访问 | 不以不可验证代码为底座 |
 | OpenPrice 许可不允许直接商业竞品化 | 只研究能力与公开接口；实现同等功能时使用新代码和统一数据模型 |
 | 本机 Wrangler 未登录 | 使用既有后端仓库 Secrets 执行只负责新站的部署代理工作流 |
+| 既有 Cloudflare Token 调用 D1 返回 code 10000 | 不申请或输出新 Token；按官方新项目路径改为 SQLite Durable Object，首次失败未创建资源或触发采集 |
 
 ## Resources
 

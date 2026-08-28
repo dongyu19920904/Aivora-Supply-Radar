@@ -20,8 +20,6 @@
     "check:content": "tsx scripts/check-content.ts",
     "check:live-sources": "tsx scripts/check-live-sources.ts",
     "audit:visual": "tsx scripts/visual-audit.ts",
-    "db:migrate:local": "wrangler d1 migrations apply aivora-supply-radar-db --local",
-    "db:migrate:remote": "wrangler d1 migrations apply aivora-supply-radar-db --remote",
     "deploy": "wrangler deploy"
   },
   "dependencies": {

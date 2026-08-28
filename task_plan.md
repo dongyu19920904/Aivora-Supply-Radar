@@ -25,7 +25,7 @@ Phase 6：发布和线上验证
 - [x] 编写 `DEPLOYMENT_IMPLEMENTATION_PLAN.md`
 - [x] 确定站点信息架构、数据模型和失败隔离边界
 - [x] 初始化独立 Git 仓库和任务分支
-- [x] 搭建 Worker 原生 SSR、D1、Cron 和可选 Queue/R2 扩展边界
+- [x] 搭建 Worker 原生 SSR、SQLite Durable Object、Cron 和可选 Queue/R2 扩展边界
 - **Status:** complete
 
 ### Phase 3：核心货源与比价功能
@@ -55,9 +55,9 @@ Phase 6：发布和线上验证
 
 ### Phase 6：发布和线上验证
 
-- [ ] 创建 GitHub 仓库并使用 SSH 推送
-- [ ] 创建 Cloudflare 资源与非生产预览
-- [ ] 配置正式域名及部署工作流
+- [x] 创建 GitHub 仓库并使用 SSH 推送
+- [x] 创建 Cloudflare 部署代理和隔离管理入口
+- [x] 配置正式域名及部署工作流
 - [ ] 等待 Actions/Worker 部署完成并检查日志
 - [ ] 验证线上状态码、数据、页面、移动端、缓存和回滚路径
 - **Status:** pending
@@ -65,7 +65,7 @@ Phase 6：发布和线上验证
 ## Key Questions
 
 1. 现有账号商机日报是否已有稳定 JSON/Markdown 可只读消费？
-2. Cloudflare 账户能否直接创建 Worker、D1、R2、Queue 和 `supply.aivora.cn` 路由？（本机 OAuth 失效；可使用现有后端仓库 Actions Secret 作为部署代理）
+2. Cloudflare 账户能否直接创建 Worker、SQLite Durable Object 和 `supply.aivora.cn` 路由？（本机 OAuth 失效；现有后端仓库 Actions Secret 可部署 Worker，但无 D1 API 权限，因此存储改为随脚本部署的 SQLite Durable Object）
 3. 新 GitHub 仓库是否可由当前 `gh` 登录态创建？
 4. 哪些 MIT 代码可直接复用，哪些只能重做公开功能？
 5. 在禁止 Docker 的边界下，如何保留完整社区功能并避免首发阻塞？
@@ -80,6 +80,7 @@ Phase 6：发布和线上验证
 | 功能和商品范围不删减 | 满足用户明确要求，采用分阶段交付而非删功能 |
 | 仅直接合入许可允许商业使用的源码 | 确保部署成果可持续维护；受限项目只做功能重建 |
 | 使用后端仓库 Actions Secret 作为临时部署代理 | 本机 Wrangler OAuth 失效且新仓库没有 Cloudflare Secret；代理仅部署固定 SHA，不参与日报运行时 |
+| 使用单实例 SQLite Durable Object 持久化 | 现有 Token 的 D1 API 权限不足；SQLite Durable Object 随脚本迁移部署，保留完整 SQL、事务、历史价和投稿能力 |
 
 ## Errors Encountered
 
@@ -97,6 +98,8 @@ Phase 6：发布和线上验证
 | 商品详情视觉审计发现内联样式被 CSP 拦截 | 1 | 将间距迁移到外部站点 CSS 类，不放宽 `style-src` |
 | 7 个最终命令并行时账号商机 dry-run 在 15 秒超时 | 1 | dry-run 网络上限调整为 30 秒并改为单独复跑；生产逻辑仍保留短超时和 last-good 回退 |
 | GitHub Actions 类型检查缺少 Node 内置模块声明 | 1 | 显式添加与 CI Node 22 对齐的 `@types/node@^22.20.1`，不依赖本地间接类型 |
+| 首次发布在 D1 资源检查前返回 Cloudflare `Authentication error [code 10000]` | 1 | 确认 Token 的 Worker 部署权限正常但无 D1 API 权限；改用官方 SQLite Durable Object，失败运行未创建资源、未迁移、未生产同步 |
+| 空缓存首页/商机页同步等待远端 GitHub | 1 | 页面改为只读缓存；部署后受保护地组合同步一次，后续由 Cron 更新，远端失败不阻塞页面 |
 
 ## Notes
 
