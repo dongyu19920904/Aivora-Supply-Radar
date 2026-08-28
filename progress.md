@@ -81,6 +81,7 @@
 | 2026-08-29 00:48 | 新增视觉审计脚本后 `document` 缺少类型 | 1 | 为脚本加入 DOM 标准库，保持 Worker/WebWorker 类型与严格检查 |
 | 2026-08-29 00:49 | 商品详情页内联间距触发 CSP 控制台错误 | 1 | 改用 `.stack-panel` 外部 CSS，不添加 `unsafe-inline` |
 | 2026-08-29 01:05 | 最终并行矩阵中的 GitHub raw dry-run 15 秒中止 | 1 | 验证脚本改为 30 秒并单独重跑；不改变生产失败隔离策略 |
+| 2026-08-29 01:12 | GitHub CI 找不到 `node:fs/promises` 与 `node:url` 类型 | 1 | 添加显式 Node 22 类型依赖，本地复验后推送最小修复 |
 
 ## 5-Question Reboot Check
 

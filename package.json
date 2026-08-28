@@ -31,6 +31,7 @@
     "@biomejs/biome": "^2.2.4",
     "@cloudflare/workers-types": "^5.20260828.1",
     "@playwright/test": "^1.62.1",
+    "@types/node": "^22.20.1",
     "tsx": "^4.20.5",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4",

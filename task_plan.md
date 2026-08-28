@@ -96,6 +96,7 @@ Phase 6：发布和线上验证
 | 浏览器审计脚本加入后 TypeScript 缺少 DOM 类型 | 1 | 在同一严格配置中加入 `DOM` lib，Cloudflare Worker 类型仍由专用 types 提供 |
 | 商品详情视觉审计发现内联样式被 CSP 拦截 | 1 | 将间距迁移到外部站点 CSS 类，不放宽 `style-src` |
 | 7 个最终命令并行时账号商机 dry-run 在 15 秒超时 | 1 | dry-run 网络上限调整为 30 秒并改为单独复跑；生产逻辑仍保留短超时和 last-good 回退 |
+| GitHub Actions 类型检查缺少 Node 内置模块声明 | 1 | 显式添加与 CI Node 22 对齐的 `@types/node@^22.20.1`，不依赖本地间接类型 |
 
 ## Notes
 
