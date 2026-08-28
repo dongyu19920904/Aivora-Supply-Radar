@@ -6,7 +6,7 @@
 
 ## Current Phase
 
-Phase 6：发布和线上验证
+完成
 
 ## Phases
 
@@ -58,9 +58,9 @@ Phase 6：发布和线上验证
 - [x] 创建 GitHub 仓库并使用 SSH 推送
 - [x] 创建 Cloudflare 部署代理和隔离管理入口
 - [x] 配置首发 workers.dev 域名及部署工作流
-- [ ] 等待 Actions/Worker 部署完成并检查日志
-- [ ] 验证线上状态码、数据、页面、移动端、缓存和回滚路径
-- **Status:** pending
+- [x] 等待 Actions/Worker 部署完成并检查日志
+- [x] 验证线上状态码、数据、页面、移动端、缓存和回滚路径
+- **Status:** complete
 
 ## Key Questions
 

@@ -2,6 +2,8 @@
 
 面向 AI 账号买家、卖家和货源商的货源目录、报价追踪、官方价格、账号商机与商家投稿站点。
 
+线上站点：[https://aivora-supply-radar.sabrinamisan090.workers.dev/](https://aivora-supply-radar.sabrinamisan090.workers.dev/)
+
 ## 本地开发
 
 所有项目命令应通过 D 盘缓存包装器运行：

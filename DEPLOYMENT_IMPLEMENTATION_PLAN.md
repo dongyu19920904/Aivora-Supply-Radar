@@ -2,6 +2,8 @@
 
 版本：1.0
 
+执行状态：已完成首发部署与线上验收；正式子域等待 DNSPod CNAME 权限。
+
 基线日期：2026-08-29（Asia/Shanghai）
 
 项目目录：`D:\GitHub\Aivora-Supply-Radar`

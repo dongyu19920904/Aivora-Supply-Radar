@@ -57,6 +57,17 @@
   - SQLite Durable Object 本地实际启动，seed 后健康接口返回 48 商品、24 报价；账号商机受保护同步写入 2026-08-28，关联 2 个商品。
   - 空缓存首页与商机列表响应分别约 58ms/13ms，不再在页面请求中等待远端采集。
 
+### Phase 6：发布和线上验证
+
+- **Status:** complete
+- Actions taken:
+  - 创建公开仓库 `dongyu19920904/Aivora-Supply-Radar`，通过 SSH 推送 main 与任务分支。
+  - 部署 SQLite Durable Object Worker，设置独立管理 Secret，并执行唯一一次首发组合同步。
+  - 使用 GitHub Actions 每 6 小时执行隔离同步，不占用已满的 Cloudflare Cron 配额。
+  - 部署运行 `33198123784` 成功，Worker 健康检查、同步和不可变 SHA 标记全部通过。
+  - 线上验证运行 `33198287750` 成功：14 个页面/API 路由、canonical、JSON-LD、品牌、48 商品、24 报价、2026-08-28 商机、未授权管理 401、内部路由 404 均通过。
+  - 线上视觉审计 5/5 通过：桌面日/夜、390px 日/夜、商品详情均为 200，无溢出、坏图或控制台错误；截图 Artifact 保存 14 天。
+
 ## Test Results
 
 | Test | Input | Expected | Actual | Status |
@@ -96,7 +107,7 @@
 
 | Question | Answer |
 |----------|--------|
-| Where am I? | Phase 6：发布和线上验证 |
+| Where am I? | 已完成发布和线上验证 |
 | Where am I going? | 方案、实现、测试、发布和线上验证 |
 | What's the goal? | 上线独立且不影响 AI 日报的爱窝啦 AI 货源雷达 |
 | What have I learned? | 见 `findings.md` |

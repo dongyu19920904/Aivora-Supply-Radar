@@ -30,6 +30,7 @@
 - 已把四个可公开获取的参考仓库浅克隆到 `D:\GitHub\_references\Aivora-Supply-Radar`：PlanTrack、AI Price Radar、OpenPrice、Flarum Framework。它们与产品仓库隔离，OpenPrice 仅用于研究，不进入发布代码。
 - AI Price Radar 的 MIT seed 与目录服务验证了可移植规则：标准商品与原始报价分离、只对可比较且有货的正价格计算最低价、按交付形态和币种计算中位数、来源失败保留最近快照、同款使用稳定指纹分组。
 - PlanTrack 的 MIT `data/platforms.json` 是版本化官方价格目录，包含官方 URL、价格、币种、计费口径、核验日期和历史；首发只移植与爱窝啦商品直接相关且能复核官方入口的条目，完整上游代码保存在参考目录。
+- 正式部署与线上视觉审计已通过；首发 URL 为 `https://aivora-supply-radar.sabrinamisan090.workers.dev/`，当前健康数据为 48 商品、24 报价、最近账号商机 2026-08-28。
 
 ## Technical Decisions
 
