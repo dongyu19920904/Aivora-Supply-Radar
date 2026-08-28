@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.wrangler/
+.dev.vars
+.env
+.env.*
+!.env.example
+coverage/
+playwright-report/
+test-results/
+artifacts/
+*.log
+*.sqlite*
+*.db
+.DS_Store
+Thumbs.db
