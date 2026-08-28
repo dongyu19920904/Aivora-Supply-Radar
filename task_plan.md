@@ -102,6 +102,7 @@ Phase 6：发布和线上验证
 | 空缓存首页/商机页同步等待远端 GitHub | 1 | 页面改为只读缓存；部署后受保护地组合同步一次，后续由 Cron 更新，远端失败不阻塞页面 |
 | Worker 上传后无法绑定 `supply.aivora.cn` | 1 | 权威 NS 是 DNSPod，不是 Cloudflare Zone；首发改用 workers.dev，正式子域待 DNSPod CNAME 权限后走 Pages 外部子域方案，不迁移整个主域 DNS |
 | Worker 已部署但 Cloudflare Cron 超过免费账户 5 个上限 | 1 | 移除新 Worker Cron，沿用隔离管理工作流每 6 小时调用同一受保护组合同步，功能不删减 |
+| 设置 Worker Secret 后立即同步返回 401 | 1 | Secret 发布成功但 Durable Object 实例存在短暂版本传播；部署工作流仅对无副作用的 401 等待重试，任何其他状态立即停止，避免重复生产同步 |
 
 ## Notes
 

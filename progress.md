@@ -90,6 +90,7 @@
 | 2026-08-29 01:41 | 空缓存首页和商机页可能同步等待 GitHub | 1 | 页面移除远端写操作；首次组合同步放到部署后受保护步骤，回归测试确保页面不调用远端 |
 | 2026-08-29 01:57 | Worker 上传成功后 Custom Domain 报找不到 `supply.aivora.cn` Zone | 1 | DNS 核验显示权威 NS 为 DNSPod；先启用 workers.dev 完成上线，正式子域保留为 Pages+CNAME 后续切换 |
 | 2026-08-29 02:05 | Worker 部署成功后 Cron 返回账户已达 5 个免费触发器上限 | 1 | Wrangler 移除 Cron；GitHub 管理工作流增加每 6 小时 `sync-all`，不占 Cloudflare Cron 配额 |
+| 2026-08-29 02:08 | Worker Secret 写入后首个同步请求返回 401 | 1 | Secret 值未泄露；只对确定无副作用的 401 等待传播后重试，其他 HTTP/网络结果禁止自动重试 |
 
 ## 5-Question Reboot Check
 
