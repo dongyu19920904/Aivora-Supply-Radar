@@ -26,7 +26,6 @@ jobs:
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       LEGACY_RADAR_API_URL: https://supply.aivora.cn
       PRICEAI_API_URL: https://priceai.cc
-      PRICEAI_SNAPSHOT_CACHE_DIR: ${{ runner.temp }}/aivora-priceai-snapshot
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -43,5 +42,7 @@ jobs:
         run: pnpm import:legacy
       - name: Sync authorized PriceAI snapshot
         run: pnpm import:priceai
+        env:
+          PRICEAI_SNAPSHOT_CACHE_DIR: ${{ runner.temp }}/aivora-priceai-snapshot
       - name: Audit the published dataset
         run: pnpm audit:data
