@@ -47,6 +47,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.145 0 0);
@@ -81,6 +82,49 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(0.269 0 0);
   --sidebar-ring: oklch(0.439 0 0);
+}
+
+/* The authorized public templates predate full Tailwind dark variants. These
+   scoped compatibility rules preserve their hierarchy without restyling every
+   imported component before the V2 cutover. */
+.dark body {
+  background: #09090b;
+  color: #f4f4f5;
+}
+
+.dark [class*="bg-white"],
+.dark [class*="bg-gray-50"],
+.dark [class*="bg-gray-100"] {
+  background-color: #18181b !important;
+}
+
+.dark [class*="text-gray-950"],
+.dark [class*="text-gray-900"],
+.dark [class*="text-gray-800"] {
+  color: #fafafa !important;
+}
+
+.dark [class*="text-gray-700"],
+.dark [class*="text-gray-600"] {
+  color: #d4d4d8 !important;
+}
+
+.dark [class*="text-gray-500"],
+.dark [class*="text-gray-400"] {
+  color: #a1a1aa !important;
+}
+
+.dark [class*="border-gray-"],
+.dark [class*="ring-gray-"] {
+  border-color: #3f3f46 !important;
+  --tw-ring-color: #3f3f46 !important;
+}
+
+.dark input,
+.dark select,
+.dark textarea {
+  background-color: #18181b !important;
+  color: #fafafa !important;
 }
 
 

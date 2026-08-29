@@ -22,7 +22,7 @@ export const OFFICIAL_APP_CONFIGS: Record<string, OfficialAppConfig> = {
       'ChatGPT Pro 20x（月付）',
     ],
     seo: {
-      title: 'ChatGPT Plus 各区价格对比｜Go、Pro App Store 订阅低价区 - OpenPrice',
+      title: 'ChatGPT Plus 各区价格对比｜Go、Pro App Store 订阅低价区 - 爱窝啦·货源雷达',
       description: '查看 ChatGPT Go、Plus、Pro 5x 和 Pro 20x 在不同 App Store 国家和地区的官方月付、年付价格与低价排行，快速了解 ChatGPT Plus 哪个区更便宜。',
       keywords: ['ChatGPT Plus 价格', 'ChatGPT Plus 哪个区便宜', 'ChatGPT App Store 价格', 'ChatGPT Go 价格', 'ChatGPT Pro 价格', 'ChatGPT 各区价格'],
     },
@@ -37,7 +37,7 @@ export const OFFICIAL_APP_CONFIGS: Record<string, OfficialAppConfig> = {
       'Claude Max 20x（月付）',
     ],
     seo: {
-      title: 'Claude Pro 各区价格对比｜Max 5x、20x App Store 低价区 - OpenPrice',
+      title: 'Claude Pro 各区价格对比｜Max 5x、20x App Store 低价区 - 爱窝啦·货源雷达',
       description: '查看 Claude Pro、Max 5x 和 Max 20x 在不同 App Store 国家和地区的官方月付、年付价格与低价排行，快速了解 Claude 订阅哪个区更便宜。',
       keywords: ['Claude Pro 价格', 'Claude 哪个区便宜', 'Claude App Store 价格', 'Claude Max 价格', 'Claude Max 5x', 'Claude Max 20x'],
     },
@@ -52,7 +52,7 @@ export const OFFICIAL_APP_CONFIGS: Record<string, OfficialAppConfig> = {
       'SuperGrok Heavy（月付）',
     ],
     seo: {
-      title: 'Grok 各区价格对比｜SuperGrok Lite、Heavy 订阅低价区 - OpenPrice',
+      title: 'Grok 各区价格对比｜SuperGrok Lite、Heavy 订阅低价区 - 爱窝啦·货源雷达',
       description: '查看 Grok AI 的 SuperGrok Lite、SuperGrok 和 SuperGrok Heavy 在不同 App Store 国家和地区的官方订阅价格与低价排行，快速了解 Grok 哪个区更便宜。',
       keywords: ['Grok 价格', 'Grok 哪个区便宜', 'Grok App Store 价格', 'SuperGrok 价格', 'SuperGrok Lite', 'SuperGrok Heavy 价格'],
     },

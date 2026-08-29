@@ -6,7 +6,7 @@ import { ChannelsClient } from './ChannelsClient';
 export const revalidate = 300; // 每5分钟刷新一次静态缓存
 
 export const metadata: Metadata = {
-  title: '渠道商 - OpenPrice',
+  title: '渠道商 - 爱窝啦·货源雷达',
   description: '查看所有收录的活跃的爬取渠道，获取最新的AI订阅和充值账号来源。',
   alternates: { canonical: '/channels' },
 };

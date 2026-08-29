@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Search, Store, Zap, ArrowRight, Sparkles, TrendingDown } from 'lucide-react';
+import { Search, Store, Zap, ArrowRight, Sparkles, TrendingDown, Newspaper, Activity } from 'lucide-react';
 import { PlatformCountBadge } from '../components/PlatformCountBadge';
 import { SubmitChannelButton } from '../components/SubmitChannelButton';
 import { getChannelProviderCount } from './actions';
@@ -8,8 +8,8 @@ import type { Metadata } from 'next';
 import { DEFAULT_SHARE_IMAGE } from '@/lib/site';
 import { JsonLd } from '@/components/JsonLd';
 
-const homeTitle = 'OpenPrice | AI订阅比价与卡网渠道价格聚合平台';
-const homeDescription = 'OpenPrice 聚合 ChatGPT Plus、Claude Pro、Gemini、Grok、Cursor 等 AI 订阅的官方价格与卡网渠道报价，支持查询 AI 订阅价格、卡网渠道比价和实时低价。';
+const homeTitle = '爱窝啦·货源雷达 | AI账号货源、全网比价与每日商机';
+const homeDescription = '聚合 AI 账号与数字商品货源、渠道报价、官方地区价格、价格异动和账号商机日报，让买家更快比价，让卖家更快找到可执行的利润机会。';
 
 export const metadata: Metadata = {
   title: homeTitle,
@@ -36,7 +36,7 @@ export const revalidate = 300; // 5分钟静态重生成
 const faqItems = [
   {
     question: 'ChatGPT Plus 代充价格怎么查询？',
-    answer: '可以在 OpenPrice 的卡网商品聚合页查看 ChatGPT Plus 代充相关报价。页面按价格排序，并展示库存、更新时间和渠道信息，方便对比不同卡网渠道的 AI 订阅价格。',
+    answer: '可以在 爱窝啦·货源雷达 的卡网商品聚合页查看 ChatGPT Plus 代充相关报价。页面按价格排序，并展示库存、更新时间和渠道信息，方便对比不同卡网渠道的 AI 订阅价格。',
   },
   {
     question: 'Claude Pro 成品号和代充有什么区别？',
@@ -44,19 +44,19 @@ const faqItems = [
   },
   {
     question: 'AI 订阅比价应该看哪些信息？',
-    answer: '除了价格，还应该看商品类型、订阅来源和售后说明。OpenPrice 只聚合公开报价，不参与交易，用户需要自行甄别渠道和商品规则。',
+    answer: '除了价格，还应该看商品类型、订阅来源和售后说明。爱窝啦·货源雷达 只聚合公开报价，不参与交易，用户需要自行甄别渠道和商品规则。',
   },
   {
     question: '官方订阅不同地区价格在哪里看？',
-    answer: 'OpenPrice 的官方订阅价格页会对比 ChatGPT、Claude、Grok 等应用在不同 App Store 国家和地区的订阅价格，适合对自己的账号进行充值的场景。',
+    answer: '爱窝啦·货源雷达 的官方订阅价格页会对比 ChatGPT、Claude、Grok 等应用在不同 App Store 国家和地区的订阅价格，适合对自己的账号进行充值的场景。',
   },
   {
     question: '卡网渠道报价会实时变化吗？',
-    answer: '会。卡网渠道商品的价格、库存和上下架状态可能频繁变化，OpenPrice 会持续聚合公开 AI 订阅产品的渠道报价，展示最新的渠道报价。',
+    answer: '会。卡网渠道商品的价格、库存和上下架状态可能频繁变化，爱窝啦·货源雷达 会持续聚合公开 AI 订阅产品的渠道报价，展示最新的渠道报价。',
   },
   {
-    question: 'OpenPrice 会销售 AI 订阅或账号吗？',
-    answer: '不会。OpenPrice 只做公开价格整理、聚合和比价展示，不销售任何商品，也不参与用户与第三方渠道之间的交易。',
+    question: '爱窝啦·货源雷达 会销售 AI 订阅或账号吗？',
+    answer: '货源雷达本身只做公开价格整理、聚合和比价展示，不处理第三方交易；爱窝啦自营商品会以独立入口清楚标注，不参与全网报价排序。',
   },
 ];
 
@@ -64,7 +64,7 @@ export default async function HomePage() {
   const platformCount = await getChannelProviderCount();
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
+    <main className="min-h-screen bg-gray-50/50">
       <JsonLd data={{
         '@context': 'https://schema.org',
         '@type': 'FAQPage',
@@ -88,14 +88,14 @@ export default async function HomePage() {
           <div className="text-center max-w-4xl mx-auto mb-20 pt-8">
             <div className="inline-flex items-center justify-center rounded-full bg-emerald-100/80 px-4 py-1.5 text-sm font-semibold text-emerald-800 mb-8 shadow-sm backdrop-blur-sm border border-emerald-200">
               <Sparkles className="mr-2 h-4 w-4 text-emerald-600" />
-              AI 订阅比价与卡网渠道报价聚合平台
+              AI 账号货源、比价、异动与商机平台
             </div>
             <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl lg:text-6xl mb-7 leading-[1.15]">
-              AI 订阅全网比价<br className="hidden sm:block" />
-              <span className="bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">聚合全网渠道的 AI 订阅价格</span>
+              找货源、看行情、抓商机<br className="hidden sm:block" />
+              <span className="bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">把价格信息变成今天能做的生意</span>
             </h1>
             <p className="text-xl text-gray-600 mb-8 leading-relaxed max-w-2xl mx-auto">
-              OpenPrice 聚合 ChatGPT、Claude、Gemini、Grok、Cursor 等 AI 订阅的全渠道公开报价，覆盖代充、成品号、Team、K12等多种形式的 AI 产品。并收录 app store 各个低价区的官方订阅价格。
+              聚合 ChatGPT、Claude、Gemini、Grok、Cursor 等 AI 产品的公开货源和官方地区价格，再结合价格异动与账号商机日报，帮助买家少花冤枉钱，也帮助卖家判断什么值得卖、怎么卖、什么时候停止。
             </p>
             <div className="bg-amber-50 border border-amber-200 text-amber-800 text-sm px-5 py-4 rounded-2xl mb-10 max-w-2xl mx-auto flex items-start text-left shadow-sm">
               <span className="text-xl mr-3 leading-none">⚠️</span>
@@ -106,7 +106,13 @@ export default async function HomePage() {
                 href="/card-products" 
                 className="w-full sm:w-auto inline-flex items-center justify-center rounded-full bg-emerald-600 px-8 py-4 text-base font-semibold text-white shadow-lg shadow-emerald-200 transition-all hover:bg-emerald-700 hover:shadow-xl hover:-translate-y-0.5"
               >
-                开始浏览商品 <ArrowRight className="ml-2 h-5 w-5" />
+                浏览全网货源 <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
+              <Link
+                href="/opportunities"
+                className="w-full sm:w-auto inline-flex items-center justify-center rounded-full bg-blue-600 px-8 py-4 text-base font-semibold text-white shadow-lg shadow-blue-100 transition-all hover:bg-blue-700 hover:shadow-xl hover:-translate-y-0.5"
+              >
+                看今日账号商机 <Newspaper className="ml-2 h-5 w-5" />
               </Link>
               <SubmitChannelButton 
                 className="w-full sm:w-auto inline-flex items-center justify-center rounded-full bg-white px-8 py-4 text-base font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-all hover:bg-gray-50 hover:shadow-md hover:-translate-y-0.5"
@@ -157,21 +163,21 @@ export default async function HomePage() {
               </div>
             </div>
 
-            {/* Card 3: For Sellers */}
+            {/* Card 3: Opportunities */}
             <div className="group relative overflow-hidden rounded-3xl bg-white p-8 shadow-sm ring-1 ring-gray-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
               <div className="absolute top-0 right-0 p-8 opacity-5 transition-opacity group-hover:opacity-10">
-                <Store className="h-24 w-24" />
+                <Newspaper className="h-24 w-24" />
               </div>
               <div className="relative z-10">
                 <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600 mb-6 group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300">
-                  <Store className="h-7 w-7" />
+                  <Newspaper className="h-7 w-7" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-4">购买方式与风险说明</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-4">账号商机日报</h3>
                 <p className="text-gray-500 leading-relaxed mb-6">
-                  了解官方订阅与卡网渠道售卖的 AI 订阅产品的差异，包括使用方式、价格、售后方式和风险等。
+                  把当天 AI 账号、订阅、API、支付和政策信号转成可执行动作，写清证据、买家需求、售后边界和停止条件。
                 </p>
-                <Link href="/guide/official-vs-card-products" className="inline-flex items-center text-sm font-semibold text-emerald-600 hover:text-emerald-700">
-                  查看购买指南 <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                <Link href="/opportunities" className="inline-flex items-center text-sm font-semibold text-emerald-600 hover:text-emerald-700">
+                  查看今日商机 <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Link>
               </div>
             </div>
@@ -198,6 +204,34 @@ export default async function HomePage() {
             </div>
 
           </div>
+
+          <section className="mt-16 rounded-3xl border border-gray-200 bg-gray-950 px-6 py-9 text-white shadow-xl sm:px-10">
+            <div className="grid gap-8 lg:grid-cols-[1.1fr_1fr] lg:items-center">
+              <div>
+                <span className="inline-flex items-center gap-2 text-sm font-semibold text-emerald-300"><Activity className="h-4 w-4" />真正能赚钱的闭环</span>
+                <h2 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl">不是堆几千条链接，而是让每条数据回答下一步</h2>
+                <p className="mt-4 leading-7 text-gray-300">先从货源市场确认供给与成本，再看价格和库存异动，接着用账号商机判断真实需求，最后把可售动作、毛利、售后和停止条件落到当天。</p>
+                <div className="mt-6 flex flex-wrap gap-3">
+                  <Link href="/changes" className="inline-flex items-center gap-1.5 rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-gray-950 hover:bg-gray-100">查看价格异动 <ArrowRight className="h-4 w-4" /></Link>
+                  <Link href="/opportunities" className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-400">查看账号商机 <ArrowRight className="h-4 w-4" /></Link>
+                </div>
+              </div>
+              <ol className="grid gap-3 sm:grid-cols-2">
+                {[
+                  ['1', '找货源', '确认商品、渠道、库存与公开原文'],
+                  ['2', '算空间', '比较成本、官方价与全网报价'],
+                  ['3', '看信号', '核验需求、政策、额度和价格变化'],
+                  ['4', '做动作', '上架、优化、观察或明确停止'],
+                ].map(([step, title, description]) => (
+                  <li key={step} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <span className="text-xs font-bold text-emerald-300">STEP {step}</span>
+                    <h3 className="mt-1 font-bold">{title}</h3>
+                    <p className="mt-1 text-sm leading-6 text-gray-400">{description}</p>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </section>
 
           <section className="mt-16 border-t border-gray-200 pt-12">
             <div className="max-w-3xl">
@@ -226,7 +260,7 @@ export default async function HomePage() {
               <div className="border-t border-gray-200 py-6 md:border-t-0 md:pl-8">
                 <h3 className="font-semibold text-gray-900 mb-2">渠道报价不同</h3>
                 <p className="text-sm leading-relaxed text-gray-500">
-                  不同卡网商家的进货成本、库存和促销活动不同，报价也会随之变化。OpenPrice 将公开报价按价格排序，并展示库存和更新时间，方便进行
+                  不同卡网商家的进货成本、库存和促销活动不同，报价也会随之变化。爱窝啦·货源雷达 将公开报价按价格排序，并展示库存和更新时间，方便进行
                   <Link href="/card-products" className="font-medium text-emerald-600 hover:text-emerald-700">AI 订阅多渠道比价</Link>。
                 </p>
               </div>
@@ -253,6 +287,6 @@ export default async function HomePage() {
           </section>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

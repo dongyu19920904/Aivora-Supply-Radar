@@ -1,7 +1,7 @@
 # Cloudflare Worker configuration for OpenNext
-name = "awesome-openprice"
+name = "aivora-supply-radar-v2-preview"
 main = "cloudflare-worker.mjs"
-compatibility_date = "2026-03-01"
+compatibility_date = "2026-08-28"
 compatibility_flags = ["nodejs_compat"]
 assets = { directory = ".open-next/assets", binding = "ASSETS" }
 minify = true
@@ -13,15 +13,15 @@ keep_vars = true
 binding = "IMAGES"
 
 # OpenNext ISR/data cache. Create once with:
-# pnpm exec wrangler r2 bucket create awesome-openprice-next-cache
+# pnpm exec wrangler r2 bucket create aivora-supply-radar-v2-next-cache
 [[r2_buckets]]
 binding = "NEXT_INC_CACHE_R2_BUCKET"
-bucket_name = "awesome-openprice-next-cache"
+bucket_name = "aivora-supply-radar-v2-next-cache"
 
 # OpenNext uses a self-reference to perform background revalidation.
 [[services]]
 binding = "WORKER_SELF_REFERENCE"
-service = "awesome-openprice"
+service = "aivora-supply-radar-v2-preview"
 
 [[durable_objects.bindings]]
 name = "NEXT_CACHE_DO_QUEUE"

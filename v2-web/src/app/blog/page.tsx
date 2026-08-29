@@ -6,20 +6,20 @@ import { DEFAULT_SHARE_IMAGE } from '@/lib/site';
 import { blogCoverThumbnailUrl } from '@/lib/blog-cover';
 
 export const metadata: Metadata = {
-  title: '博客 | OpenPrice',
-  description: 'OpenPrice 官方博客 - 为您提供最新、最全的 AI 订阅教程、买号避坑指南及防封号攻略。全面涵盖 ChatGPT Plus 充值、Claude Pro 防封、AI 工具使用技巧等前沿动态。每天五分钟，跟上最新技术。',
+  title: '博客 | 爱窝啦·货源雷达',
+  description: '爱窝啦·货源雷达 官方博客 - 为您提供最新、最全的 AI 订阅教程、买号避坑指南及防封号攻略。全面涵盖 ChatGPT Plus 充值、Claude Pro 防封、AI 工具使用技巧等前沿动态。每天五分钟，跟上最新技术。',
   alternates: { canonical: '/blog' },
   openGraph: {
-    title: 'OpenPrice 博客｜AI 订阅教程与购买指南',
-    description: '获取 AI 订阅教程、购买指南、避坑建议和 OpenPrice 平台动态。',
+    title: '爱窝啦·货源雷达 博客｜AI 订阅教程与购买指南',
+    description: '获取 AI 订阅教程、购买指南、避坑建议和 爱窝啦·货源雷达 平台动态。',
     type: 'website',
     url: '/blog',
     images: [DEFAULT_SHARE_IMAGE],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'OpenPrice 博客｜AI 订阅教程与购买指南',
-    description: '获取 AI 订阅教程、购买指南、避坑建议和 OpenPrice 平台动态。',
+    title: '爱窝啦·货源雷达 博客｜AI 订阅教程与购买指南',
+    description: '获取 AI 订阅教程、购买指南、避坑建议和 爱窝啦·货源雷达 平台动态。',
     images: [DEFAULT_SHARE_IMAGE],
   },
 };

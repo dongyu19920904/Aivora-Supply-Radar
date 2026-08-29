@@ -22,11 +22,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     .single();
 
   if (!channel) {
-    return { title: '渠道未找到 - OpenPrice' };
+    return { title: '渠道未找到 - 爱窝啦·货源雷达' };
   }
 
   return {
-    title: `${channel.name} 渠道收录详情 - OpenPrice`,
+    title: `${channel.name} 渠道收录详情 - 爱窝啦·货源雷达`,
     description: `查看 ${channel.name} 渠道收录的所有商品、分类及价格信息。`,
     alternates: { canonical: `/channels/${id}` },
     robots: {
@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       follow: true,
     },
     openGraph: {
-      title: `${channel.name} 渠道收录详情 - OpenPrice`,
+      title: `${channel.name} 渠道收录详情 - 爱窝啦·货源雷达`,
       description: `查看 ${channel.name} 渠道收录的所有商品、分类及价格信息。`,
       url: `/channels/${id}`,
       type: 'website',

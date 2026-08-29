@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { FilterBar } from '../../../components/FilterBar';
 import { CustomDropdown } from '../../../components/CustomDropdown';
 import { BackButton } from '../../../components/BackButton';
@@ -9,11 +9,9 @@ import { FeedbackModal } from '../../../components/FeedbackModal';
 import { BuyDisclaimerModal } from '../../../components/BuyDisclaimerModal';
 import { YoufenkAffiliateBanner } from '../../../components/YoufenkAffiliateAd';
 import { useBuyAction } from '../../../hooks/useBuyAction';
-import { useLoadMore } from '../../../hooks/useLoadMore';
 import { DetailTable } from '../../../components/DetailTable';
 import type { ProductDetail } from '../../../data';
 import { useUrlState } from '../../../hooks/useUrlState';
-import { matchesSearchQuery } from '../../../lib/search-query';
 
 export interface OfferItem {
   id: string;
@@ -33,6 +31,15 @@ export interface CategoryFilterOption {
   name: string;
   platform: string;
   sortOrder: number;
+  platformSortOrder: number;
+}
+
+interface OffersPageResponse {
+  items: OfferItem[];
+  pageInfo: {
+    hasMore: boolean;
+    nextCursor: string | null;
+  };
 }
 
 interface AllProductsClientProps {
@@ -42,6 +49,10 @@ interface AllProductsClientProps {
 export const AllProductsClient: React.FC<AllProductsClientProps> = ({ initialCategories }) => {
   const [initialItems, setInitialItems] = useState<OfferItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [loadError, setLoadError] = useState('');
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(false);
   
   const [searchQuery, setSearchQuery] = useUrlState('q', '');
   const [selectedPlatform, setSelectedPlatform] = useUrlState('platform', '');
@@ -56,35 +67,84 @@ export const AllProductsClient: React.FC<AllProductsClientProps> = ({ initialCat
     handleBuyClick(item.url, item.shopName);
   };
 
+  const buildRequestUrl = useCallback((cursor?: string | null) => {
+    const params = new URLSearchParams({ limit: '50' });
+    if (searchQuery.trim()) params.set('q', searchQuery.trim());
+    if (selectedPlatform) params.set('platform', selectedPlatform);
+    if (selectedCategory) params.set('category', selectedCategory);
+    if (cursor) params.set('cursor', cursor);
+    return `/api/offers/all?${params.toString()}`;
+  }, [searchQuery, selectedPlatform, selectedCategory]);
+
   useEffect(() => {
-    const fetchAllData = async () => {
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      setLoading(true);
+      setLoadError('');
+
       try {
-        const response = await fetch('/api/offers/all');
-        if (!response.ok) {
-          throw new Error('Failed to fetch data');
+        const response = await fetch(buildRequestUrl(), { signal: controller.signal });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const result = await response.json() as OffersPageResponse;
+        setInitialItems(Array.isArray(result.items) ? result.items : []);
+        setNextCursor(result.pageInfo?.nextCursor || null);
+        setHasMore(Boolean(result.pageInfo?.hasMore));
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          console.error('Error fetching product page:', error);
+          setInitialItems([]);
+          setNextCursor(null);
+          setHasMore(false);
+          setLoadError('货源数据暂时无法加载，请稍后重试。');
         }
-        const data = await response.json();
-        setInitialItems(data);
-      } catch (e) {
-        console.error('Error fetching all items:', e);
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
+    }, 250);
+
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
     };
-    
-    fetchAllData();
-  }, []);
+  }, [buildRequestUrl]);
+
+  const loadMore = useCallback(async () => {
+    if (!nextCursor || loadingMore) return;
+    setLoadingMore(true);
+    setLoadError('');
+
+    try {
+      const response = await fetch(buildRequestUrl(nextCursor));
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+      const result = await response.json() as OffersPageResponse;
+      setInitialItems((current) => {
+        const knownIds = new Set(current.map((item) => item.id));
+        return [...current, ...result.items.filter((item) => !knownIds.has(item.id))];
+      });
+      setNextCursor(result.pageInfo?.nextCursor || null);
+      setHasMore(Boolean(result.pageInfo?.hasMore));
+    } catch (error) {
+      console.error('Error fetching the next product page:', error);
+      setLoadError('下一页加载失败，请重试。');
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [buildRequestUrl, loadingMore, nextCursor]);
+
   const availablePlatforms = useMemo(() => {
     const platformMap = new Map<string, number>();
-    initialItems.forEach(p => {
-      if (!platformMap.has(p.platform)) {
-        platformMap.set(p.platform, p.platformSortOrder ?? 9999);
+    initialCategories.forEach(category => {
+      const currentOrder = platformMap.get(category.platform);
+      if (currentOrder === undefined || category.platformSortOrder < currentOrder) {
+        platformMap.set(category.platform, category.platformSortOrder);
       }
     });
     return Array.from(platformMap.entries())
       .sort((a, b) => a[1] - b[1])
       .map(entry => entry[0]);
-  }, [initialItems]);
+  }, [initialCategories]);
 
   const availableCategories = useMemo(() => {
     const seenCategories = new Set<string>();
@@ -105,45 +165,8 @@ export const AllProductsClient: React.FC<AllProductsClientProps> = ({ initialCat
     setSelectedCategory('');
   };
 
-  const filteredItems = useMemo(() => {
-    return initialItems.filter(p => {
-      const matchSearch = matchesSearchQuery([p.title, p.shopName], searchQuery);
-      const matchPlatform = selectedPlatform ? p.platform === selectedPlatform : true;
-      const matchCategory = selectedCategory ? p.category === selectedCategory : true;
-      
-      return matchSearch && matchPlatform && matchCategory;
-    }).sort((a, b) => {
-      const getStatusPriority = (status: string) => {
-        if (status === 'in_stock') return 1;
-        if (status === 'out_of_stock') return 2;
-        if (status === 'offline') return 3;
-        return 99;
-      };
-      
-      const priorityA = getStatusPriority(a.status);
-      const priorityB = getStatusPriority(b.status);
-
-      if (priorityA !== priorityB) {
-        return priorityA - priorityB;
-      }
-
-      if (a.productSortOrder !== b.productSortOrder) {
-        return (a.productSortOrder || 9999) - (b.productSortOrder || 9999);
-      }
-      
-      if (a.category === b.category) {
-        return a.price - b.price;
-      }
-      
-      const categoryCompare = a.category.localeCompare(b.category);
-      if (categoryCompare !== 0) return categoryCompare;
-      
-      return a.title.localeCompare(b.title);
-    });
-  }, [searchQuery, selectedPlatform, selectedCategory, initialItems]);
-
   const productDetails: ProductDetail[] = useMemo(() => {
-    return filteredItems.map(item => ({
+    return initialItems.map(item => ({
       id: item.id,
       typeId: '',
       status: (item.status === 'in_stock' || item.status === 'out_of_stock' || item.status === 'offline') 
@@ -159,13 +182,7 @@ export const AllProductsClient: React.FC<AllProductsClientProps> = ({ initialCat
       platform: item.platform,
       category: item.category
     }));
-  }, [filteredItems]);
-
-  const { visibleCount, hasMore, loadMore } = useLoadMore({
-    itemCount: productDetails.length,
-    pageSize: 50,
-    resetKeys: [searchQuery, selectedPlatform, selectedCategory],
-  });
+  }, [initialItems]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -184,7 +201,7 @@ export const AllProductsClient: React.FC<AllProductsClientProps> = ({ initialCat
             所有渠道所有商品
           </h1>
           <p className="text-sm text-gray-500 max-w-2xl leading-relaxed">
-            查看 OpenPrice 收录的所有卡网渠道所有商品，涵盖 ChatGPT、Claude、Gemini、Cursor、Grok、Kiro等AI订阅，以及谷歌邮箱、outlook 邮箱以及苹果账号、telegram 账号以及接码服务等。支持多维度价格和平台筛选，快速找到全网最低价。
+            查看 爱窝啦·货源雷达 收录的所有卡网渠道所有商品，涵盖 ChatGPT、Claude、Gemini、Cursor、Grok、Kiro等AI订阅，以及谷歌邮箱、outlook 邮箱以及苹果账号、telegram 账号以及接码服务等。支持多维度价格和平台筛选，快速找到全网最低价。
           </p>
         </div>
       </div>
@@ -230,15 +247,20 @@ export const AllProductsClient: React.FC<AllProductsClientProps> = ({ initialCat
             </div>
           ) : (
             <div className="flex flex-col gap-8">
+              {loadError && (
+                <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800" role="status">
+                  {loadError}
+                </div>
+              )}
               <DetailTable 
-                details={productDetails.slice(0, visibleCount)}
+                details={productDetails}
                 mode="all"
                 onBuyClick={(detail) => {
-                  const item = filteredItems.find(i => i.id === detail.id);
+                  const item = initialItems.find(i => i.id === detail.id);
                   if (item) onBuyClick(item);
                 }}
                 onFeedbackClick={(detail) => {
-                  const item = filteredItems.find(i => i.id === detail.id);
+                  const item = initialItems.find(i => i.id === detail.id);
                   if (item) setFeedbackModalItem(item);
                 }}
               />
@@ -251,9 +273,10 @@ export const AllProductsClient: React.FC<AllProductsClientProps> = ({ initialCat
                     <button
                       type="button"
                       onClick={loadMore}
-                      className="rounded-lg border border-emerald-600 bg-white px-6 py-2.5 font-medium text-emerald-700 transition-colors hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+                      disabled={loadingMore}
+                      className="rounded-lg border border-emerald-600 bg-white px-6 py-2.5 font-medium text-emerald-700 transition-colors hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:cursor-wait disabled:opacity-60"
                     >
-                      加载更多
+                      {loadingMore ? '正在加载…' : `加载更多（已显示 ${productDetails.length} 条）`}
                     </button>
                   ) : (
                     `已显示全部 ${productDetails.length} 条商品`

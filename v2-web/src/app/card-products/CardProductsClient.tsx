@@ -92,7 +92,7 @@ export const CardProductsClient: React.FC<CardProductsClientProps> = ({ initialP
           </h1>
         </div>
         <p className="text-sm text-gray-500 max-w-3xl leading-relaxed">
-          OpenPrice 提供卡网渠道报价聚合与 AI 订阅比价，覆盖 ChatGPT、Claude、Gemini、Grok、Cursor 等 AI 订阅，以及代充、成品号、接码、邮箱和账号等数字产品，是一站式 AI 订阅多渠道比价平台。
+          爱窝啦·货源雷达 提供卡网渠道报价聚合与 AI 订阅比价，覆盖 ChatGPT、Claude、Gemini、Grok、Cursor 等 AI 订阅，以及代充、成品号、接码、邮箱和账号等数字产品，是一站式 AI 订阅多渠道比价平台。
         </p>
       </div>
 

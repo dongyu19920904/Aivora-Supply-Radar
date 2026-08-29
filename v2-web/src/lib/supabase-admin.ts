@@ -6,7 +6,12 @@ if (!env.SUPABASE_SERVICE_ROLE_KEY) {
 }
 
 // Client for backend admin operations (bypasses RLS)
-export const supabaseAdmin = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
+// Reserved placeholders keep build and public read-only pages alive when secrets are unavailable.
+// Admin operations still fail closed because the placeholder key has no database privileges.
+export const supabaseAdmin = createClient(
+  env.SUPABASE_URL || 'https://supabase.invalid',
+  env.SUPABASE_SERVICE_ROLE_KEY || 'missing-service-role-key',
+  {
   auth: {
     autoRefreshToken: false,
     persistSession: false,

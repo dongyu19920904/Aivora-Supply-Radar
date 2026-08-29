@@ -55,6 +55,7 @@ next-env.d.ts
 /.claude/
 /.codex/
 /.impeccable/
+/artifacts/
 /.trellis/
 /.omo/
 /AGENTS.md

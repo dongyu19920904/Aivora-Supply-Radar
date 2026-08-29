@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: { params: Promise<{ appId: st
   const appConfig = app ? getOfficialAppConfig(app.apple_app_id) : undefined;
   const appName = appConfig?.name || app?.name || 'AI 应用';
   const appSlug = app?.slug || appId;
-  const title = appConfig?.seo.title || `${appName} App Store 官方订阅价格 - OpenPrice`;
+  const title = appConfig?.seo.title || `${appName} App Store 官方订阅价格 - 爱窝啦·货源雷达`;
   const description = appConfig?.seo.description || `查看 ${appName} 在不同 App Store 国家和地区的官方订阅价格与低价排行。`;
 
   return {

@@ -1,11 +1,13 @@
 import React from 'react';
 import { Metadata } from 'next';
-import { Info, Search, Shield, Heart, Handshake, Github, Send, Store, Users } from 'lucide-react';
+import { Info, Search, Shield, Heart, Handshake, Github, Newspaper, Plus, Store, Users } from 'lucide-react';
 import Link from 'next/link';
+import { SubmitChannelButton } from '@/components/SubmitChannelButton';
+import { PROJECT_REPOSITORY_URL } from '@/lib/site';
 
 export const metadata: Metadata = {
-  title: '关于 | OpenPrice',
-  description: 'OpenPrice 是一个完全开源、中立的 AI 订阅全网比价聚合平台。我们致力于打破信息孤岛，通过自动追踪全网优质卡网渠道的实时底价与库存，帮你低价买到最靠谱的 ChatGPT、Claude 及 Cursor AI 订阅产品。',
+  title: '关于 | 爱窝啦·货源雷达',
+  description: '爱窝啦·货源雷达 是一个完全开源、中立的 AI 订阅全网比价聚合平台。我们致力于打破信息孤岛，通过自动追踪全网优质卡网渠道的实时底价与库存，帮你低价买到最靠谱的 ChatGPT、Claude 及 Cursor AI 订阅产品。',
   alternates: { canonical: '/about' },
 };
 
@@ -17,14 +19,14 @@ export default function AboutPage() {
         <div className="mx-auto max-w-3xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 text-sm font-medium mb-6">
             <Info className="w-4 h-4" />
-            <span>关于 OpenPrice 开源项目</span>
+            <span>关于 爱窝啦·货源雷达 开源项目</span>
           </div>
           <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl mb-6">
             打破信息茧房，<br className="hidden sm:block"/>
             <span className="text-emerald-600">做 AI订阅产品的搬运工</span>
           </h1>
           <p className="text-lg text-gray-600 leading-relaxed">
-            OpenPrice 顾名思义是“开放价格”。我们是一个依托于开源社区的项目，致力于收录全网卡网渠道的各种 AI 订阅及数字产品价格。我们不提供 AI 服务，只为拉进顾客与渠道商之间的距离。
+            爱窝啦·货源雷达 顾名思义是“开放价格”。我们是一个依托于开源社区的项目，致力于收录全网卡网渠道的各种 AI 订阅及数字产品价格。我们不提供 AI 服务，只为拉进顾客与渠道商之间的距离。
           </p>
         </div>
       </div>
@@ -100,14 +102,14 @@ export default function AboutPage() {
         {/* 社区与联系方式 */}
         <div className="max-w-4xl mx-auto bg-emerald-50 rounded-3xl p-8 sm:p-12 text-center border border-emerald-100">
           <Heart className="w-10 h-10 text-emerald-500 mx-auto mb-5" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">加入 OpenPrice 社区</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">参与爱窝啦货源生态</h2>
           <p className="text-emerald-800 mb-8 max-w-2xl mx-auto leading-relaxed">
             这个开源项目离不开每一位开发者的贡献、渠道的收录以及用户的反馈。如果这个项目帮助到了您，请在 GitHub 上为我们点亮 Star ⭐！
           </p>
           
           <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center gap-4">
             <a 
-              href="https://github.com/kawang01/awesome-OpenPrice" 
+              href={PROJECT_REPOSITORY_URL}
               target="_blank" 
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white rounded-xl font-medium transition-colors"
@@ -115,26 +117,19 @@ export default function AboutPage() {
               <Github className="w-5 h-5" />
               访问 GitHub 仓库
             </a>
-            <a 
-              href="https://t.me/openprice1" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 bg-[#2CA5E0] hover:bg-[#2CA5E0]/90 text-white rounded-xl font-medium transition-colors"
+            <Link
+              href="/opportunities"
+              className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-colors"
             >
-              <Send className="w-5 h-5" />
-              加入 Telegram 交流群
-            </a>
-            <a
-              href="https://qm.qq.com/q/2FdPYLVYjC"
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 bg-[#12B7F5] hover:bg-[#12B7F5]/90 text-white rounded-xl font-medium transition-colors"
+              <Newspaper className="w-5 h-5" />
+              查看账号商机
+            </Link>
+            <SubmitChannelButton
+              className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium transition-colors"
             >
-              <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
-                <path d="M21.395 15.035a40 40 0 0 0-.803-2.264l-1.079-2.695c.001-.032.014-.562.014-.836C19.526 4.632 17.351 0 12 0S4.474 4.632 4.474 9.241c0 .274.013.804.014.836l-1.08 2.695a39 39 0 0 0-.802 2.264c-1.021 3.283-.69 4.643-.438 4.673.54.065 2.103-2.472 2.103-2.472 0 1.469.756 3.387 2.394 4.771-.612.188-1.363.479-1.845.835-.434.32-.379.646-.301.778.343.578 5.883.369 7.482.189 1.6.18 7.14.389 7.483-.189.078-.132.132-.458-.301-.778-.483-.356-1.233-.646-1.846-.836 1.637-1.384 2.393-3.302 2.393-4.771 0 0 1.563 2.537 2.103 2.472.251-.03.581-1.39-.438-4.673"/>
-              </svg>
-              加入 QQ 交流群
-            </a>
+              <Plus className="w-5 h-5" />
+              提交货源渠道
+            </SubmitChannelButton>
           </div>
         </div>
         

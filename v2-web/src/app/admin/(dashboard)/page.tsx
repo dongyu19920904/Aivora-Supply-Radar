@@ -57,7 +57,7 @@ export default async function AdminDashboardPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">数据总览</h1>
-        <p className="text-gray-500 dark:text-zinc-400 mt-1">欢迎来到 OpenPrice 管理控制台，以下是您的系统实时运行状态。</p>
+        <p className="text-gray-500 dark:text-zinc-400 mt-1">欢迎来到 爱窝啦·货源雷达 管理控制台，以下是您的系统实时运行状态。</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

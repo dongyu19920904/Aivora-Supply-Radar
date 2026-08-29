@@ -7,13 +7,13 @@ import { CopyableText } from '@/components/CopyableText';
 import { CopyableAllFields } from '@/components/CopyableAllFields';
 
 export const metadata: Metadata = {
-  title: '如何被收录？(渠道接入指南) | OpenPrice',
-  description: '卡网怎么免费引流？如何被全网比价平台收录？OpenPrice 提供详细的渠道接入指南。无论您使用的是主流发卡系统还是自建商城，都能轻松完成对接，让您的 ChatGPT、Claude 等数字商品快速获取海量免费曝光。',
+  title: '如何被收录？(渠道接入指南) | 爱窝啦·货源雷达',
+  description: '卡网怎么免费引流？如何被全网比价平台收录？爱窝啦·货源雷达 提供详细的渠道接入指南。无论您使用的是主流发卡系统还是自建商城，都能轻松完成对接，让您的 ChatGPT、Claude 等数字商品快速获取海量免费曝光。',
   keywords: ['卡网免费引流', '发卡系统对接', '卡网推广', '渠道收录', 'AI订阅分销', 'JSON-LD'],
   alternates: { canonical: '/guide/getting-started' },
   openGraph: {
-    title: '如何被收录？(渠道接入指南) | OpenPrice',
-    description: '卡网怎么免费引流？如何被全网比价平台收录？OpenPrice 提供详细的渠道接入指南。无论您使用的是主流发卡系统还是自建商城，都能轻松完成对接，让您的 ChatGPT、Claude 等数字商品快速获取海量免费曝光。',
+    title: '如何被收录？(渠道接入指南) | 爱窝啦·货源雷达',
+    description: '卡网怎么免费引流？如何被全网比价平台收录？爱窝啦·货源雷达 提供详细的渠道接入指南。无论您使用的是主流发卡系统还是自建商城，都能轻松完成对接，让您的 ChatGPT、Claude 等数字商品快速获取海量免费曝光。',
     type: 'article',
   }
 };
@@ -70,14 +70,14 @@ export default function GuideOverviewPage() {
             2. 非标准建站(自建商城)
           </h2>
           <p>
-            如果你拥有自主研发的商城系统，或者使用的是小众的定制系统，为了能够被 OpenPrice 爬虫精准识别和收录，<strong className="text-gray-900">请务必在你的商品列表页嵌入 JSON-LD 结构化数据</strong>。
+            如果你拥有自主研发的商城系统，或者使用的是小众的定制系统，为了能够被 爱窝啦·货源雷达 爬虫精准识别和收录，<strong className="text-gray-900">请务必在你的商品列表页嵌入 JSON-LD 结构化数据</strong>。
           </p>
 
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start my-6">
             <Info className="h-5 w-5 text-amber-500 mr-2 shrink-0 mt-0.5" />
             <div className="text-amber-800 text-sm">
               <strong>为什么需要 JSON-LD？</strong><br/>
-              JSON-LD 是由 W3C 推荐、Google 官方极力主推的 <strong>国际标准结构化数据（Schema.org）规范</strong>。接入此规范，不仅能确保你的商品在 OpenPrice 上被 100% 精准解析，更是向全球搜索引擎提交了最标准的“官方档案”。它完全符合 Google 及 Bing 官方推荐的列表页结构化数据标准（Listings Rich Results），<strong>有助于你的站点获得搜索引擎富媒体卡片展示，提升 SEO 排名，极大提升搜索点击率与免费自然流量</strong>。
+              JSON-LD 是由 W3C 推荐、Google 官方极力主推的 <strong>国际标准结构化数据（Schema.org）规范</strong>。接入此规范，不仅能确保你的商品在 爱窝啦·货源雷达 上被 100% 精准解析，更是向全球搜索引擎提交了最标准的“官方档案”。它完全符合 Google 及 Bing 官方推荐的列表页结构化数据标准（Listings Rich Results），<strong>有助于你的站点获得搜索引擎富媒体卡片展示，提升 SEO 排名，极大提升搜索点击率与免费自然流量</strong>。
             </div>
           </div>
 

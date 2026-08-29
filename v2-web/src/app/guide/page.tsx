@@ -3,8 +3,8 @@ import type { Metadata } from 'next';
 import { ArrowRight, CheckCircle, Scale, Star, Store, UserRound } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'OpenPrice 指南｜用户购买指南与渠道商接入',
-  description: '按用户和渠道商分类查看 OpenPrice 指南，了解官方订阅与卡网渠道的区别、渠道收录方式和商品展示建议。',
+  title: '爱窝啦·货源雷达 指南｜用户购买指南与渠道商接入',
+  description: '按用户和渠道商分类查看 爱窝啦·货源雷达 指南，了解官方订阅与卡网渠道的区别、渠道收录方式和商品展示建议。',
   alternates: { canonical: '/guide' },
 };
 
@@ -25,7 +25,7 @@ const sections = [
   },
   {
     title: '渠道商指南',
-    description: '帮助渠道商接入 OpenPrice，并让商品被更准确地识别和展示。',
+    description: '帮助渠道商接入 爱窝啦·货源雷达，并让商品被更准确地识别和展示。',
     icon: Store,
     tone: 'blue',
     links: [
@@ -49,7 +49,7 @@ export default function GuidePage() {
   return (
     <div className="p-5 sm:p-8 lg:p-10">
       <header className="mb-8 border-b border-gray-100 pb-6">
-        <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">OpenPrice 指南</h1>
+        <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">爱窝啦·货源雷达 指南</h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-500">
           根据你的身份选择指南。普通用户可以先了解购买方式，渠道商可以查看收录和展示规则。
         </p>

@@ -30,7 +30,10 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit): Promise<
 };
 
 // Client for public / frontend usage (uses Anon Key)
-export const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, {
+export const supabase = createClient(
+  env.SUPABASE_URL || 'https://supabase.invalid',
+  env.SUPABASE_ANON_KEY || 'missing-anon-key',
+  {
   global: {
     fetch: customFetch,
   },

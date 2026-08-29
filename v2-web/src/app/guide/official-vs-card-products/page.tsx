@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { ArrowRight, BadgeCheck, Scale, ShieldCheck, ShoppingBag, TriangleAlert } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: '官方订阅和卡网渠道有什么区别？AI 订阅购买指南 | OpenPrice',
+  title: '官方订阅和卡网渠道有什么区别？AI 订阅购买指南 | 爱窝啦·货源雷达',
   description: '用通俗方式了解 AI 官方订阅与卡网渠道在购买来源、价格、账号归属、售后和风险方面的区别，购买前先看清商品类型。',
   keywords: ['官方订阅和卡网区别', 'AI 订阅购买指南', '卡网是什么', 'ChatGPT 官方订阅', '第三方 AI 订阅渠道'],
   alternates: { canonical: '/guide/official-vs-card-products' },
@@ -110,9 +110,9 @@ export default function OfficialVsCardProductsPage() {
         </section>
 
         <section className="rounded-2xl border border-gray-200 bg-gray-50 p-5">
-          <h2 className="font-bold text-gray-900">OpenPrice 展示的是什么？</h2>
+          <h2 className="font-bold text-gray-900">爱窝啦·货源雷达 展示的是什么？</h2>
           <p className="mt-2">
-            “官方订阅”展示 App Store 中的官方套餐地区价格；“卡网商品”聚合第三方渠道公开报价。OpenPrice 不直接销售这些商品，也不代表对某个渠道作出担保，购买前仍需自行核对商品说明。
+            “官方订阅”展示 App Store 中的官方套餐地区价格；“卡网商品”聚合第三方渠道公开报价。爱窝啦·货源雷达 不直接销售这些商品，也不代表对某个渠道作出担保，购买前仍需自行核对商品说明。
           </p>
           <div className="mt-4 flex flex-col gap-2 sm:flex-row">
             <Link href="/official-prices" className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">

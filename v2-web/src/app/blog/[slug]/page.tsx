@@ -24,14 +24,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { post } = await getSingleBlogPost(slug);
   
   if (!post) {
-    return { title: '未找到文章 | OpenPrice', robots: { index: false } };
+    return { title: '未找到文章 | 爱窝啦·货源雷达', robots: { index: false } };
   }
 
   const canonicalPath = `/blog/${post.slug}`;
-  const coverPath = blogCoverUrl(post) || '/openprice-share.jpg';
+  const coverPath = blogCoverUrl(post) || '/aivora-supply-share.png';
 
   return {
-    title: `${post.title} | OpenPrice 博客`,
+    title: `${post.title} | 爱窝啦·货源雷达 博客`,
     description: post.description,
     alternates: { canonical: canonicalPath },
     openGraph: {
@@ -75,8 +75,8 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           dateModified: post.date,
           inLanguage: 'zh-CN',
           mainEntityOfPage: absoluteUrl(canonicalPath),
-          image: absoluteUrl(coverPath || '/openprice-share.jpg'),
-          author: { '@type': 'Organization', name: 'OpenPrice', url: SITE_URL },
+          image: absoluteUrl(coverPath || '/aivora-supply-share.png'),
+          author: { '@type': 'Organization', name: '爱窝啦·货源雷达', url: SITE_URL },
           publisher: { '@id': `${SITE_URL}/#organization` },
           keywords: post.tags.join(', '),
         },

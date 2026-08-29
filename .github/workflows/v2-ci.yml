@@ -1,0 +1,52 @@
+name: Supply Radar V2 CI
+
+on:
+  push:
+    branches: [main, "codex/**"]
+    paths:
+      - "v2-web/**"
+      - ".github/workflows/v2-ci.yml"
+  pull_request:
+    paths:
+      - "v2-web/**"
+      - ".github/workflows/v2-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supply-radar-v2-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: v2-web
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      NEXT_PUBLIC_SITE_URL: https://supply.aivora.cn
+      NEXT_PUBLIC_SUPABASE_URL: https://example.com
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
+      SUPABASE_SERVICE_ROLE_KEY: ci-placeholder-service-role-key
+      ADMIN_PASSWORD: ci-placeholder-password
+      ADMIN_SESSION_SECRET: ci-placeholder-session-secret-is-long-enough
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.34.5
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: v2-web/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm build:cf

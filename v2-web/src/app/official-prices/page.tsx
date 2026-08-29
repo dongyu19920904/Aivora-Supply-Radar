@@ -5,7 +5,7 @@ import OfficialPricesClient from './OfficialPricesClient';
 import { DEFAULT_SHARE_IMAGE } from '@/lib/site';
 
 export const metadata: Metadata = {
-  title: 'ChatGPT、Claude、Grok 官方订阅价格对比 - OpenPrice',
+  title: 'ChatGPT、Claude、Grok 官方订阅价格对比 - 爱窝啦·货源雷达',
   description: '对比 ChatGPT Plus、Claude Pro、Claude Max、SuperGrok 等在 App Store 不同国家和地区的官方 AI订阅价格，查看各种 AI 订阅的低价区，查看玻利维亚、土耳其、菲律宾等地区的最新 AI 订阅价格。',
   keywords: [
     'AI 官方订阅价格',

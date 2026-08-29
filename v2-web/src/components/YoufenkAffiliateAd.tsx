@@ -1,13 +1,11 @@
 'use client';
 
-import Image from 'next/image';
 import { useSyncExternalStore } from 'react';
-import { ArrowUpRight, X } from 'lucide-react';
+import { ArrowUpRight, Store, X } from 'lucide-react';
+import { STORE_NAME, STORE_URL } from '@/lib/site';
 
-const YOUFENK_AFFILIATE_URL = 'https://www.youfenk.com/affiliate';
-const YOUFENK_HORIZONTAL_IMAGE = '/images/ads/youfenk-affiliate-horizontal.webp';
-const DISMISSED_STORAGE_KEY = 'openprice:youfenk-affiliate-ad-dismissed';
-const DISMISSED_EVENT = 'openprice:youfenk-affiliate-ad-dismissed';
+const DISMISSED_STORAGE_KEY = 'aivora:supply-promotion-dismissed';
+const DISMISSED_EVENT = 'aivora:supply-promotion-dismissed';
 const AD_SLOTS = [1, 2, 3] as const;
 
 let dismissedInMemory = false;
@@ -88,23 +86,22 @@ function AffiliateCard({ slot, showAction = false }: AffiliateCardProps) {
 
   return (
     <a
-      href={YOUFENK_AFFILIATE_URL}
+      href={STORE_URL}
       target="_blank"
-      rel="sponsored noopener noreferrer"
-      aria-label={`访问优粉库推广伙伴计划（广告位 ${slot}，在新窗口打开）`}
+      rel="noopener"
+      aria-label={`访问${STORE_NAME}（推荐位 ${slot}，在新窗口打开）`}
       className="group block overflow-hidden rounded-xl border border-emerald-100 bg-white shadow-sm transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
     >
-      <Image
-        src={YOUFENK_HORIZONTAL_IMAGE}
-        width={1536}
-        height={1024}
-        sizes="(min-width: 1984px) 280px, (min-width: 768px) 33vw, calc(100vw - 2rem)"
-        alt=""
-        className="h-auto w-full bg-white"
-      />
+      <span className="flex aspect-[3/2] flex-col items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-amber-50 px-5 text-center">
+        <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-sm">
+          <Store className="h-6 w-6" aria-hidden="true" />
+        </span>
+        <strong className="mt-4 text-base text-gray-900">{STORE_NAME}</strong>
+        <span className="mt-1 text-xs leading-5 text-gray-500">需要现货时查看爱窝啦当前公开商品与服务说明</span>
+      </span>
       {showAction && (
         <span className="flex items-center justify-between border-t border-emerald-100 px-3 py-2 text-xs font-semibold text-gray-800 transition-colors group-hover:bg-emerald-50 group-hover:text-emerald-700">
-          访问优粉库
+          查看爱窝啦现货
           <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
         </span>
       )}
@@ -121,12 +118,12 @@ function AffiliateHeader({ dismissAd }: AffiliateHeaderProps) {
     <div className="mb-2 flex items-center justify-between px-1 text-[11px] font-medium text-gray-400">
       <span>合作推广</span>
       <span className="flex items-center gap-1.5">
-        优粉库
+        爱窝啦自营入口
         <button
           type="button"
           onClick={dismissAd}
-          aria-label="关闭优粉库推广广告"
-          title="关闭广告"
+          aria-label="关闭爱窝啦推荐入口"
+          title="关闭推荐"
           className="rounded p-0.5 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
         >
           <X className="h-3.5 w-3.5" aria-hidden="true" />
@@ -143,7 +140,7 @@ export function YoufenkAffiliateAd({ className = '' }: YoufenkAffiliateAdProps) 
 
   return (
     <aside
-      aria-label="优粉库合作推广"
+      aria-label="爱窝啦账号店推荐"
       className={`max-w-[320px] ${className}`}
     >
       <div className="sticky top-28">
@@ -155,7 +152,7 @@ export function YoufenkAffiliateAd({ className = '' }: YoufenkAffiliateAdProps) 
         </div>
 
         <p className="mt-2 px-1 text-center text-[10px] leading-relaxed text-gray-400">
-          推广内容，与 OpenPrice 比价结果无关
+          自营商品与全网比价数据分开标注，不参与价格排序
         </p>
       </div>
     </aside>
@@ -169,7 +166,7 @@ export function YoufenkAffiliateBanner({ className = '' }: YoufenkAffiliateAdPro
 
   return (
     <aside
-      aria-label="优粉库合作推广横幅"
+      aria-label="爱窝啦账号店推荐横幅"
       className={`youfenk-affiliate-banner w-full ${className}`}
     >
       <AffiliateHeader dismissAd={dismissAd} />

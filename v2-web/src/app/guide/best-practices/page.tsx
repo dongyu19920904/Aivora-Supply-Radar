@@ -8,13 +8,13 @@ import { CopyButton } from '@/components/CopyButton';
 import { ShareLinkButton } from '@/components/ShareLinkButton';
 
 export const metadata: Metadata = {
-  title: '如何更好的展示商品？(渠道商最佳实践) | OpenPrice',
-  description: '了解如何在 OpenPrice 开源比价平台上获得更好的商品展示效果。通过简单的类目 ID 映射，帮助爬虫引擎更精准地分类您的 ChatGPT、Claude 等商品，让买家更容易找到您的优质渠道。',
-  keywords: ['OpenPrice接入', '商品类目映射', '卡网收录规范', '渠道商指南', '开源比价平台'],
+  title: '如何更好的展示商品？(渠道商最佳实践) | 爱窝啦·货源雷达',
+  description: '了解如何在 爱窝啦·货源雷达 开源比价平台上获得更好的商品展示效果。通过简单的类目 ID 映射，帮助爬虫引擎更精准地分类您的 ChatGPT、Claude 等商品，让买家更容易找到您的优质渠道。',
+  keywords: ['爱窝啦·货源雷达接入', '商品类目映射', '卡网收录规范', '渠道商指南', '开源比价平台'],
   alternates: { canonical: '/guide/best-practices' },
   openGraph: {
-    title: '如何更好的展示商品？(渠道商最佳实践) | OpenPrice',
-    description: '了解如何在 OpenPrice 开源比价平台上获得更好的商品展示效果。通过简单的类目 ID 映射，帮助爬虫引擎更精准地分类您的 ChatGPT、Claude 等商品，让买家更容易找到您的优质渠道。',
+    title: '如何更好的展示商品？(渠道商最佳实践) | 爱窝啦·货源雷达',
+    description: '了解如何在 爱窝啦·货源雷达 开源比价平台上获得更好的商品展示效果。通过简单的类目 ID 映射，帮助爬虫引擎更精准地分类您的 ChatGPT、Claude 等商品，让买家更容易找到您的优质渠道。',
     type: 'article',
   }
 };
@@ -26,7 +26,7 @@ export default async function BestPracticesPage() {
     .eq('is_active', true)
     .order('sort_order', { ascending: true });
 
-  const categoriesTextToCopy = `OpenPrice 官方类目 ID 映射表\n------------------------\n` + 
+  const categoriesTextToCopy = `爱窝啦·货源雷达 官方类目 ID 映射表\n------------------------\n` +
     (categories || []).map(cat => `${cat.name} : ${cat.display_id || '-'}`).join('\n');
 
   return (
@@ -45,7 +45,7 @@ export default async function BestPracticesPage() {
 
       <div className="prose prose-amber max-w-none prose-p:text-gray-600 prose-p:leading-relaxed">
         <p className="text-sm sm:text-base">
-          在 OpenPrice 平台上，我们会对全网的卡网商品进行客观的聚合与排序。为了让你的商品和渠道能获得更多的点击和更高的转化，建议你遵循以下最佳实践：
+          在 爱窝啦·货源雷达 平台上，我们会对全网的卡网商品进行客观的聚合与排序。为了让你的商品和渠道能获得更多的点击和更高的转化，建议你遵循以下最佳实践：
         </p>
 
         <div id="category-id" className="bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-100 rounded-2xl p-4 sm:p-8 shadow-sm mb-8 sm:mb-12 relative overflow-hidden scroll-mt-24">
@@ -84,7 +84,7 @@ export default async function BestPracticesPage() {
                   <span className="flex items-center gap-2 sm:gap-3">
                     <span className="flex items-center gap-1.5 sm:gap-2">
                       <Star className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-300 fill-yellow-300 shrink-0" />
-                      <span className="break-all">【必看】OpenPrice 类目 ID 映射表</span>
+                      <span className="break-all">【必看】爱窝啦·货源雷达 类目 ID 映射表</span>
                     </span>
                     <ShareLinkButton hashId="category-id" />
                   </span>

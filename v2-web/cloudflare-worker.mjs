@@ -10,9 +10,14 @@ const PUBLIC_HTML_ROUTES = [
   '/about',
   '/blog',
   '/card-products',
+  '/changes',
   '/channels',
+  '/community',
   '/guide',
+  '/methodology',
   '/official-prices',
+  '/opportunities',
+  '/submit',
 ];
 const EDGE_CACHE_SECONDS = 300;
 
@@ -52,7 +57,7 @@ function cacheBypassReason(request, url) {
 
 function withCacheStatus(response, status) {
   const result = new Response(response.body, response);
-  result.headers.set('x-openprice-edge-cache', status);
+  result.headers.set('x-aivora-edge-cache', status);
   return result;
 }
 

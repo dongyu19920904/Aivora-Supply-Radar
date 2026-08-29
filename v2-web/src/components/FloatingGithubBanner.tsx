@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Github, X } from 'lucide-react';
+import { PROJECT_REPOSITORY_URL } from '@/lib/site';
 
 export function FloatingGithubBanner() {
   const [showBanner, setShowBanner] = useState(false);
@@ -9,7 +10,7 @@ export function FloatingGithubBanner() {
 
   useEffect(() => {
     setMounted(true);
-    const isDismissed = localStorage.getItem('github_banner_dismissed');
+    const isDismissed = localStorage.getItem('aivora_supply_github_banner_dismissed');
     if (!isDismissed) {
       setShowBanner(true);
     }
@@ -17,7 +18,7 @@ export function FloatingGithubBanner() {
 
   const handleClose = () => {
     setShowBanner(false);
-    localStorage.setItem('github_banner_dismissed', 'true');
+    localStorage.setItem('aivora_supply_github_banner_dismissed', 'true');
   };
 
   if (!mounted || !showBanner) return null;
@@ -26,7 +27,7 @@ export function FloatingGithubBanner() {
     <div className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-8 duration-700 hidden sm:block">
       <div className="group relative rounded-2xl bg-white p-4 shadow-xl border-2 border-emerald-700 transition-all hover:-translate-y-1 hover:shadow-2xl pr-10">
         <a 
-          href="https://github.com/kawang01/awesome-OpenPrice" 
+          href={PROJECT_REPOSITORY_URL}
           target="_blank" 
           rel="noopener noreferrer"
           className="flex items-center gap-3"

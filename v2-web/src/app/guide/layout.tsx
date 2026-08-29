@@ -3,8 +3,8 @@ import { GuideSidebar } from './GuideSidebar';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: '指南 | OpenPrice',
-  description: 'OpenPrice 用户与渠道商指南：了解官方订阅和卡网渠道的区别，以及渠道收录和商品展示方法。',
+  title: '指南 | 爱窝啦·货源雷达',
+  description: '爱窝啦·货源雷达 用户与渠道商指南：了解官方订阅和卡网渠道的区别，以及渠道收录和商品展示方法。',
 };
 
 export default function GuideLayout({

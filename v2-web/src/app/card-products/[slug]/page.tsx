@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!product) {
     return {
-      title: '商品未找到 - OpenPrice',
+      title: '商品未找到 - 爱窝啦·货源雷达',
     };
   }
 
@@ -55,10 +55,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const shortDesc = String(product.short_desc || '').trim();
   const descriptionSubject = (shortDesc || `查看 ${product.name} 的实时渠道报价`).replace(/[。.!！]+$/, '');
 
-  const title = `${product.name}价格对比｜AI订阅卡网渠道比价 - OpenPrice`;
+  const title = `${product.name}价格对比｜AI订阅卡网渠道比价 - 爱窝啦·货源雷达`;
   const description = channelCount > 0 && lowestPrice > 0
-    ? `${descriptionSubject}。OpenPrice 当前收录 ${channelCount} 个在售渠道报价，最低价约 ¥${lowestPrice}，按价格排序展示库存和更新时间，不参与交易。`
-    : `${descriptionSubject}。OpenPrice 聚合公开渠道价格，支持 AI 订阅和数字产品多渠道比价，不参与交易。`;
+    ? `${descriptionSubject}。爱窝啦·货源雷达 当前收录 ${channelCount} 个在售渠道报价，最低价约 ¥${lowestPrice}，按价格排序展示库存和更新时间，不参与交易。`
+    : `${descriptionSubject}。爱窝啦·货源雷达 聚合公开渠道价格，支持 AI 订阅和数字产品多渠道比价，不参与交易。`;
 
   return {
     title,
