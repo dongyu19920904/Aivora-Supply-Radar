@@ -1,0 +1,284 @@
+"use client";
+
+import React, { useState, useMemo, useEffect } from 'react';
+import { FilterBar } from '../../../components/FilterBar';
+import { CustomDropdown } from '../../../components/CustomDropdown';
+import { BackButton } from '../../../components/BackButton';
+import { StickyHeaderAddon } from '../../../components/StickyHeaderAddon';
+import { FeedbackModal } from '../../../components/FeedbackModal';
+import { BuyDisclaimerModal } from '../../../components/BuyDisclaimerModal';
+import { YoufenkAffiliateBanner } from '../../../components/YoufenkAffiliateAd';
+import { useBuyAction } from '../../../hooks/useBuyAction';
+import { useLoadMore } from '../../../hooks/useLoadMore';
+import { DetailTable } from '../../../components/DetailTable';
+import type { ProductDetail } from '../../../data';
+import { useUrlState } from '../../../hooks/useUrlState';
+import { matchesSearchQuery } from '../../../lib/search-query';
+
+export interface OfferItem {
+  id: string;
+  title: string;
+  price: number;
+  status: string;
+  url: string;
+  updatedAt: string;
+  shopName: string;
+  category: string;
+  platform: string;
+  platformSortOrder: number;
+  productSortOrder: number;
+}
+
+export interface CategoryFilterOption {
+  name: string;
+  platform: string;
+  sortOrder: number;
+}
+
+interface AllProductsClientProps {
+  initialCategories: CategoryFilterOption[];
+}
+
+export const AllProductsClient: React.FC<AllProductsClientProps> = ({ initialCategories }) => {
+  const [initialItems, setInitialItems] = useState<OfferItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  const [searchQuery, setSearchQuery] = useUrlState('q', '');
+  const [selectedPlatform, setSelectedPlatform] = useUrlState('platform', '');
+  const [selectedCategory, setSelectedCategory] = useUrlState('category', '');
+  
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [feedbackModalItem, setFeedbackModalItem] = useState<OfferItem | null>(null);
+  
+  const { isBuyModalOpen, handleBuyClick, handleBuyConfirm, handleBuyCancel } = useBuyAction();
+
+  const onBuyClick = (item: OfferItem) => {
+    handleBuyClick(item.url, item.shopName);
+  };
+
+  useEffect(() => {
+    const fetchAllData = async () => {
+      try {
+        const response = await fetch('/api/offers/all');
+        if (!response.ok) {
+          throw new Error('Failed to fetch data');
+        }
+        const data = await response.json();
+        setInitialItems(data);
+      } catch (e) {
+        console.error('Error fetching all items:', e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchAllData();
+  }, []);
+  const availablePlatforms = useMemo(() => {
+    const platformMap = new Map<string, number>();
+    initialItems.forEach(p => {
+      if (!platformMap.has(p.platform)) {
+        platformMap.set(p.platform, p.platformSortOrder ?? 9999);
+      }
+    });
+    return Array.from(platformMap.entries())
+      .sort((a, b) => a[1] - b[1])
+      .map(entry => entry[0]);
+  }, [initialItems]);
+
+  const availableCategories = useMemo(() => {
+    const seenCategories = new Set<string>();
+
+    return initialCategories
+      .filter(category => !selectedPlatform || category.platform === selectedPlatform)
+      .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name))
+      .filter(category => {
+        if (seenCategories.has(category.name)) return false;
+        seenCategories.add(category.name);
+        return true;
+      })
+      .map(category => category.name);
+  }, [initialCategories, selectedPlatform]);
+
+  const handlePlatformChange = (platform: string) => {
+    setSelectedPlatform(platform);
+    setSelectedCategory('');
+  };
+
+  const filteredItems = useMemo(() => {
+    return initialItems.filter(p => {
+      const matchSearch = matchesSearchQuery([p.title, p.shopName], searchQuery);
+      const matchPlatform = selectedPlatform ? p.platform === selectedPlatform : true;
+      const matchCategory = selectedCategory ? p.category === selectedCategory : true;
+      
+      return matchSearch && matchPlatform && matchCategory;
+    }).sort((a, b) => {
+      const getStatusPriority = (status: string) => {
+        if (status === 'in_stock') return 1;
+        if (status === 'out_of_stock') return 2;
+        if (status === 'offline') return 3;
+        return 99;
+      };
+      
+      const priorityA = getStatusPriority(a.status);
+      const priorityB = getStatusPriority(b.status);
+
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB;
+      }
+
+      if (a.productSortOrder !== b.productSortOrder) {
+        return (a.productSortOrder || 9999) - (b.productSortOrder || 9999);
+      }
+      
+      if (a.category === b.category) {
+        return a.price - b.price;
+      }
+      
+      const categoryCompare = a.category.localeCompare(b.category);
+      if (categoryCompare !== 0) return categoryCompare;
+      
+      return a.title.localeCompare(b.title);
+    });
+  }, [searchQuery, selectedPlatform, selectedCategory, initialItems]);
+
+  const productDetails: ProductDetail[] = useMemo(() => {
+    return filteredItems.map(item => ({
+      id: item.id,
+      typeId: '',
+      status: (item.status === 'in_stock' || item.status === 'out_of_stock' || item.status === 'offline') 
+        ? item.status 
+        : 'in_stock',
+      channel: item.shopName,
+      operateTime: item.updatedAt,
+      originalName: item.title,
+      price: item.price,
+      url: item.url,
+      updateTime: item.updatedAt,
+      risk: 'low',
+      platform: item.platform,
+      category: item.category
+    }));
+  }, [filteredItems]);
+
+  const { visibleCount, hasMore, loadMore } = useLoadMore({
+    itemCount: productDetails.length,
+    pageSize: 50,
+    resetKeys: [searchQuery, selectedPlatform, selectedCategory],
+  });
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 120);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  return (
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 relative">
+      <div className="mb-6 flex flex-col md:flex-row items-start gap-4 md:gap-6 mt-4">
+        <BackButton href="/card-products" />
+        <div className="flex-1 w-full">
+          <h1 className="text-xl font-bold tracking-tight text-gray-900 sm:text-2xl mb-2 flex items-center gap-3">
+            所有渠道所有商品
+          </h1>
+          <p className="text-sm text-gray-500 max-w-2xl leading-relaxed">
+            查看 OpenPrice 收录的所有卡网渠道所有商品，涵盖 ChatGPT、Claude、Gemini、Cursor、Grok、Kiro等AI订阅，以及谷歌邮箱、outlook 邮箱以及苹果账号、telegram 账号以及接码服务等。支持多维度价格和平台筛选，快速找到全网最低价。
+          </p>
+        </div>
+      </div>
+
+      <div className="flex flex-col relative space-y-4">
+        <FilterBar
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          onReset={() => {
+            setSearchQuery("");
+            setSelectedPlatform("");
+            setSelectedCategory("");
+          }}
+          searchPlaceholder="搜索商品或店铺（-关键词可排除）"
+          searchHelp="排除不想看的结果：在词语前加“-”。例如输入“-共享”，就不会显示含“共享”的商品。"
+          isExpanded={isScrolled}
+          collapsedWidth="wide"
+          leftAddon={<StickyHeaderAddon title="所有渠道商品" />}
+        >
+          <CustomDropdown
+            value={selectedPlatform}
+            onChange={handlePlatformChange}
+            options={availablePlatforms.map(platform => ({ value: platform, label: platform }))}
+            placeholder="所有平台"
+            allOptionLabel="所有平台"
+          />
+          <div className="hidden lg:block">
+            <CustomDropdown
+              value={selectedCategory}
+              onChange={setSelectedCategory}
+              options={availableCategories.map(cat => ({ value: cat, label: cat }))}
+              placeholder="所有类目"
+              allOptionLabel="所有类目"
+            />
+          </div>
+        </FilterBar>
+        
+        <div className="min-h-[400px] relative">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center h-64 space-y-4 text-gray-500">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+              <p>正在努力加载海量商品数据，请稍候...</p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-8">
+              <DetailTable 
+                details={productDetails.slice(0, visibleCount)}
+                mode="all"
+                onBuyClick={(detail) => {
+                  const item = filteredItems.find(i => i.id === detail.id);
+                  if (item) onBuyClick(item);
+                }}
+                onFeedbackClick={(detail) => {
+                  const item = filteredItems.find(i => i.id === detail.id);
+                  if (item) setFeedbackModalItem(item);
+                }}
+              />
+              {productDetails.length > 0 && (
+                <div
+                  className="py-6 flex justify-center items-center text-gray-500 text-sm"
+                  aria-live="polite"
+                >
+                  {hasMore ? (
+                    <button
+                      type="button"
+                      onClick={loadMore}
+                      className="rounded-lg border border-emerald-600 bg-white px-6 py-2.5 font-medium text-emerald-700 transition-colors hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+                    >
+                      加载更多
+                    </button>
+                  ) : (
+                    `已显示全部 ${productDetails.length} 条商品`
+                  )}
+                </div>
+              )}
+              <YoufenkAffiliateBanner className="mx-auto" />
+            </div>
+          )}
+        </div>
+      </div>
+
+      <FeedbackModal
+        isOpen={!!feedbackModalItem}
+        onClose={() => setFeedbackModalItem(null)}
+        offerId={feedbackModalItem?.id || ''}
+        productName={feedbackModalItem?.title || ''}
+        channelName={feedbackModalItem?.shopName || ''}
+      />
+
+      <BuyDisclaimerModal 
+        isOpen={isBuyModalOpen}
+        onClose={handleBuyCancel}
+        onConfirm={handleBuyConfirm}
+      />
+    </div>
+  );
+};
