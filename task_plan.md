@@ -28,7 +28,7 @@ V2 Phase 1-3：授权版 Web/Admin 基线与大数据查询改造
 
 - [x] 导入并构建 OpenPrice 授权代码
 - [x] 完成爱窝啦品牌、域名和 URL 兼容
-- [x] 建立 V2 自动测试基线
+- [x] 建立 V2 自动测试基线，Ubuntu `build:cf` 已通过
 - [ ] 部署独立预览 Worker，不切正式域名
 - **Status:** in progress
 

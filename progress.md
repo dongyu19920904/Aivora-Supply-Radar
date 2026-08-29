@@ -36,6 +36,9 @@
   - 无 secrets 的 Next 生产构建通过，共 33 条路由记录（含动态和静态）。
   - 7 个视觉用例全部 `publishable`：桌面/390px、日/夜、全报价分页样本，无溢出、坏图和控制台错误。
   - Windows OpenNext 在完成 Next 编译后，仅在依赖 symlink 阶段 EPERM；交由 Linux CI 验证完整 bundle。
+  - GitHub V2 CI `33245320797` 成功，Ubuntu 完成 frozen install、测试、类型、lint 和 `build:cf`，耗时 1 分 14 秒。
+  - GitHub V1 CI `33245320761` 成功，原站 lint、类型、测试、内容校验、seed dry-run 和构建均通过。
+  - 推送后只读线上复核：正式首页、`/products`、`/opportunities`、`/api/v1/health` 均为 200；数据库 `ok`，仍为 48 商品、24 报价、1 商户、最新商机 2026-08-29。
 - Production impact:
   - 无；未部署 V2、未迁移生产数据库、未触发生产采集，`supply.aivora.cn` 仍运行 V1。
 
