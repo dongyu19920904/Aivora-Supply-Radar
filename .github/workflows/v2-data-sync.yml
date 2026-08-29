@@ -24,7 +24,7 @@ jobs:
       SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
       SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-      LEGACY_RADAR_API_URL: https://supply.aivora.cn
+      LEGACY_RADAR_API_URL: https://aivora-supply-radar.sabrinamisan090.workers.dev
       PRICEAI_API_URL: https://priceai.cc
     steps:
       - uses: actions/checkout@v4
