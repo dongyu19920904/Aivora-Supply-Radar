@@ -1,12 +1,41 @@
 # 爱窝啦 AI 货源雷达进度日志
 
+## V2 Production Completion: 2026-08-30
+
+### Phase 6-7：正式切流、账号商机恢复与最终验收
+
+- **Status:** complete
+- Release:
+  - Aivora V2 release SHA：`64e87811f315db77efb198fcfa2d71f1be628d33`
+  - 部署代理 merge SHA：`c2a9fa64355f5372236848d772194a3d7421f548`
+  - 正式地址：`https://supply.aivora.cn/`
+  - V1 回滚 SHA：`37c275116d47d6498d9b4c4b0e272e5df4975cb7`
+- Actions taken:
+  - 正式 V2 Worker 与 Pages edge service binding 已上线；首次传播窗口失败发生在切流前，随后用 `promote-existing` 模式安全切换。
+  - 最终放弃不稳定的运行时 Worker-to-Worker 日报读取；新增第 12 个 migration，将账号商机与已确认异动同步到 RLS 只读 Supabase 表。
+  - 数据同步继续先读 V1 成品再读 PriceAI，不触发 AI 日报或大模型；可选信号失败只 warning/跳过，不阻塞核心目录。
+  - 修复 V1 API 主机变化导致的 target 身份漂移，精确合并 1 个重复 target 和其 24 条重复报价，PriceAI 数据未被选择或删除。
+- Final data audit:
+  - 13 平台、71 商品、379 来源、5,372 报价、54 个有报价商品。
+  - PriceAI 5,348 + V1 24；有货 4,919、缺货 453；0 非 HTTPS、0 孤儿、0 重复。
+  - ChatGPT Plus 1,093 条实时报价；账号商机 2 期（2026-08-29、2026-08-28）。
+- Verification:
+  - 21/21 Node tests、TypeScript、Linux OpenNext 构建通过；ESLint 0 errors（继承 106 warnings）。
+  - Supabase migration dry-run 精确命中 1 个 migration，随后成功应用；数据同步运行 `33268129845` 3 分 31 秒通过。
+  - 预览部署 `33268323795`、预览视觉审计 `33268437208`、正式部署 `33268543457`、正式视觉审计 `33268642773` 均成功。
+  - 正式视觉 9/9 publishable：桌面/390px、日/夜、0 溢出、0 坏图、0 控制台错误；截图保留 14 天。
+  - canonical、JSON-LD、robots、sitemap、最新日报导航与证据链接均已线上验证。
+- Rollback:
+  - V1 直连 Worker 仍健康：数据库 `ok`、48 商品、24 报价、最新日报 2026-08-29。
+  - 手动回滚工作流要求 `ROLLBACK_TO_V1`，正式部署后置检查失败仍会自动恢复 V1 binding。
+
 ## V2 Session: 2026-08-30
 
 ### Phase 4-5：真实数据库、全网快照与规模化详情
 
 - **Status:** complete
 - Actions taken:
-  - 完成 Supabase CLI 登录，创建 PostgreSQL 17 新加坡 V2 项目；应用基础 schema、权限收紧、登录限流、App Store 和规模索引共 11 个 migration。
+  - 完成 Supabase CLI 登录，创建 PostgreSQL 17 新加坡 V2 项目；应用基础 schema、权限收紧、登录限流、App Store、规模索引和只读信号表共 12 个 migration。
   - 将数据库恢复密码、匿名/服务密钥和后台随机密钥写入 GitHub Secrets/Variables；未输出或写入仓库。
   - 导入 V1 48 商品、24 报价、1 商家并严格对账。
   - 从 PriceAI 授权公开 API 抓取 44 个 AI/账号目录、5,463 条原始报价；分组写入 5,352 条、378 来源，拒绝 56 条不合格记录。
