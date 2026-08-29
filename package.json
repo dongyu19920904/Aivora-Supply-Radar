@@ -9,8 +9,8 @@
   },
   "scripts": {
     "dev": "wrangler dev --local",
-    "lint": "biome check src tests scripts",
-    "lint:fix": "biome check --write src tests scripts",
+    "lint": "biome check src tests scripts pages-edge",
+    "lint:fix": "biome check --write src tests scripts pages-edge",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
