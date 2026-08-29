@@ -3,12 +3,16 @@ import { createClient } from '@supabase/supabase-js';
 import {
   buildLegacyOfferTags,
   buildLegacySearchKeywords,
+  normalizeLegacyOpportunity,
+  normalizeLegacyPriceChange,
   normalizeLegacyStockStatus,
   type LegacyOfferForImport,
+  type LegacyOpportunityForImport,
+  type LegacyPriceChangeForImport,
   type LegacyProductForImport,
 } from '../src/lib/legacy-baseline-import';
 
-const DEFAULT_LEGACY_API_URL = 'https://supply.aivora.cn';
+const DEFAULT_LEGACY_API_URL = 'https://aivora-supply-radar.sabrinamisan090.workers.dev';
 const MAX_RESPONSE_BYTES = 4 * 1024 * 1024;
 const REQUEST_TIMEOUT_MS = 15_000;
 const FETCH_CONCURRENCY = 4;
@@ -106,6 +110,10 @@ async function main() {
   const supabase = createClient(requiredEnv('SUPABASE_URL'), requiredEnv('SUPABASE_SERVICE_ROLE_KEY'), {
     auth: { persistSession: false, autoRefreshToken: false },
   });
+  const optionalFeeds = Promise.allSettled([
+    fetchData<LegacyOpportunityForImport>(`${sourceBase}/api/v1/opportunities`),
+    fetchData<LegacyPriceChangeForImport>(`${sourceBase}/api/v1/changes`),
+  ]);
 
   const [products, merchants] = await Promise.all([
     fetchData<LegacyProduct>(`${sourceBase}/api/v1/products`),
@@ -208,6 +216,46 @@ async function main() {
     if (offerError) throw offerError;
   }
 
+  const [opportunityResult, changeResult] = await optionalFeeds;
+  let opportunityCount = 0;
+  let changeCount = 0;
+
+  if (opportunityResult.status === 'fulfilled') {
+    const rows = opportunityResult.value
+      .slice(0, 100)
+      .map(normalizeLegacyOpportunity)
+      .filter((row): row is NonNullable<typeof row> => row !== null);
+    if (rows.length) {
+      const { error } = await supabase.from('account_opportunities').upsert(rows, { onConflict: 'report_date' });
+      if (error) console.warn(`optional_opportunity_sync_failed:${error.message}`);
+      else opportunityCount = rows.length;
+    }
+    if (rows.length !== Math.min(opportunityResult.value.length, 100)) {
+      console.warn(`optional_opportunity_rows_rejected:${Math.min(opportunityResult.value.length, 100) - rows.length}`);
+    }
+  } else {
+    console.warn(`optional_opportunity_fetch_failed:${opportunityResult.reason instanceof Error ? opportunityResult.reason.message : 'unknown'}`);
+  }
+
+  if (changeResult.status === 'fulfilled') {
+    const rows = changeResult.value
+      .slice(0, 1000)
+      .map(normalizeLegacyPriceChange)
+      .filter((row): row is NonNullable<typeof row> => row !== null);
+    if (rows.length) {
+      const { error } = await supabase
+        .from('market_price_changes')
+        .upsert(rows, { onConflict: 'product_slug,merchant_name,source_url,observed_at' });
+      if (error) console.warn(`optional_price_change_sync_failed:${error.message}`);
+      else changeCount = rows.length;
+    }
+    if (rows.length !== Math.min(changeResult.value.length, 1000)) {
+      console.warn(`optional_price_change_rows_rejected:${Math.min(changeResult.value.length, 1000) - rows.length}`);
+    }
+  } else {
+    console.warn(`optional_price_change_fetch_failed:${changeResult.reason instanceof Error ? changeResult.reason.message : 'unknown'}`);
+  }
+
   const [catalogCount, targetCount, offerCount] = await Promise.all([
     supabase.from('product_catalog').select('id', { count: 'exact', head: true }),
     supabase.from('crawler_targets').select('id', { count: 'exact', head: true }),
@@ -228,6 +276,8 @@ async function main() {
     productsWithOffers: productsWithOffers.length,
     merchants: merchants.length,
     offers: offers.length,
+    opportunities: opportunityCount,
+    priceChanges: changeCount,
     validation: 'passed',
   }));
 }
