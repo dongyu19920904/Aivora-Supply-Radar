@@ -6,9 +6,49 @@
 
 ## Current Phase
 
-完成
+V2 Phase 0：OpenPrice 商业授权资产与生产基线固化
 
-## Phases
+## V2 Plan
+
+完整计划见 `AUTHORIZED_OPENPRICE_V2_PLAN.md`。V1 保留为已经上线的生产基线，V2 在独立 worktree、任务分支和预览 Worker 中实施，正式切流前不覆盖当前站点。
+
+### V2 Phase 0：授权资产与基线固化
+
+- [x] 核对当前生产基线为 `origin/main@37c2751`
+- [x] 核对 OpenPrice 授权源码参考版本为 `387d6b2`
+- [x] 创建 `D:\GitHub\_worktrees\authorized-openprice-v2`
+- [x] 创建 `codex/authorized-openprice-v2` 分支
+- [x] 编写 `AUTHORIZED_OPENPRICE_V2_PLAN.md`
+- [x] 建立授权交付资产清单和迁移映射
+- [ ] 确认授权方是否另行交付私有采集器、渠道配置和数据库数据
+- [x] 记录线上数据、Worker、Pages edge 和公开 URL 基线
+- **Status:** in progress
+
+### V2 Phase 1：授权版 Web/Admin 基线
+
+- [ ] 导入并构建 OpenPrice 授权代码
+- [ ] 完成爱窝啦品牌、域名和 URL 兼容
+- [ ] 建立 V2 自动测试基线
+- [ ] 部署独立预览 Worker，不切正式域名
+- **Status:** pending
+
+### V2 Phase 2-5：数据、采集与差异化模块
+
+- [ ] 迁移 Supabase schema 并扩展历史、异动、商机、社区和曝光
+- [ ] 完成服务端分页、聚合读模型和 30,000 条性能基线
+- [ ] 接入授权采集器和 Cloudflare Queue/R2 调度
+- [ ] 合并账号商机、利润、社区、避坑、收藏和提醒
+- **Status:** pending
+
+### V2 Phase 6-7：验证、灰度和切流
+
+- [ ] 通过完整测试、性能、安全、SEO 和视觉矩阵
+- [ ] 部署 V2 预览并完成数据对账
+- [ ] 切换 Pages service binding
+- [ ] 验证正式域名并保留 V1 回滚入口
+- **Status:** pending
+
+## V1 Historical Phases
 
 ### Phase 1：真实基线与部署前置核查
 
@@ -78,7 +118,7 @@
 | 原日报脏目录不直接修改 | 两仓均严重分叉且含用户未提交改动 |
 | 首期只读消费账号商机产物 | 页面可以迁移到新站，同时保持原定时生成链路稳定 |
 | 功能和商品范围不删减 | 满足用户明确要求，采用分阶段交付而非删功能 |
-| 仅直接合入许可允许商业使用的源码 | 确保部署成果可持续维护；受限项目只做功能重建 |
+| OpenPrice 授权代码作为 V2 行情前台和后台核心 | 项目所有者已确认取得商业授权；保留当前 V1 作为切流与回滚基线 |
 | 使用后端仓库 Actions Secret 作为临时部署代理 | 本机 Wrangler OAuth 失效且新仓库没有 Cloudflare Secret；代理仅部署固定 SHA，不参与日报运行时 |
 | 使用单实例 SQLite Durable Object 持久化 | 现有 Token 的 D1 API 权限不足；SQLite Durable Object 随脚本迁移部署，保留完整 SQL、事务、历史价和投稿能力 |
 

@@ -1,5 +1,25 @@
 # 爱窝啦 AI 货源雷达进度日志
 
+## V2 Session: 2026-08-29
+
+### Phase 0：OpenPrice 商业授权资产与生产基线固化
+
+- **Status:** in progress
+- Actions taken:
+  - 项目所有者确认已取得 OpenPrice 代码商业授权，可以移植全部授权模块。
+  - 执行 superpowers bootstrap，读取 `ai-daily-maintenance`、`site-architecture`、`project-cache-hygiene` 和项目 `AGENTS.md`。
+  - 核对当前生产基线为 `origin/main@37c275116d47d6498d9b4c4b0e272e5df4975cb7`。
+  - 核对 OpenPrice 本地参考副本与远端 main 一致，提交为 `387d6b2b5a7ab0a42acc42da2117c9fd0cf290bf`。
+  - 创建独立 worktree `D:\GitHub\_worktrees\authorized-openprice-v2` 和分支 `codex/authorized-openprice-v2`。
+  - 完成授权版 V2 架构、模块迁移、数据模型、采集、测试、灰度和回滚方案。
+- Files created/modified:
+  - `AUTHORIZED_OPENPRICE_V2_PLAN.md`
+  - `task_plan.md`
+  - `findings.md`
+  - `progress.md`
+- Production impact:
+  - 无；当前正式域名、V1 Worker、Pages edge 和生产数据未修改。
+
 ## Session: 2026-08-28 至 2026-08-29
 
 ### Phase 1：真实基线与部署前置核查
