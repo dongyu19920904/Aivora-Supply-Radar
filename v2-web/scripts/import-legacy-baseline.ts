@@ -143,30 +143,53 @@ async function main() {
   if (platformError) throw platformError;
   const platformIds = new Map((platforms || []).map((row) => [row.name, row.id]));
 
-  const targetRows = merchants.map((merchant) => ({
-    name: merchant.name,
-    site_url: merchant.site_url,
-    scrape_url: `${sourceBase}/api/v1/merchants?slug=${encodeURIComponent(merchant.slug)}`,
-    scraper_type: 'legacy-v1-api',
-    is_active: true,
-    is_verified: merchant.source_score >= 80,
-    operational_status: merchant.status || 'unknown',
-    last_valid_at: merchant.last_success_at,
-    last_attempt_at: merchant.last_checked_at,
-    error_streak: 0,
-    latest_error_msg: null,
-    remarks: `Imported from verified V1 merchant ${merchant.slug}`,
-  }));
-  const { data: targets, error: targetError } = await supabase
+  const { data: existingLegacyTargets, error: existingTargetError } = await supabase
     .from('crawler_targets')
-    .upsert(targetRows, { onConflict: 'scrape_url' })
-    .select('id,name,scrape_url');
-  if (targetError) throw targetError;
-  const targetIdsBySlug = new Map(merchants.map((merchant) => {
+    .select('id,name,scrape_url,remarks,created_at')
+    .eq('scraper_type', 'legacy-v1-api')
+    .order('created_at', { ascending: true });
+  if (existingTargetError) throw existingTargetError;
+
+  const targetIdsBySlug = new Map<string, string>();
+  let reconciledTargets = 0;
+  let removedDuplicateTargets = 0;
+  for (const merchant of merchants) {
+    const remarks = `Imported from verified V1 merchant ${merchant.slug}`;
     const scrapeUrl = `${sourceBase}/api/v1/merchants?slug=${encodeURIComponent(merchant.slug)}`;
-    const target = (targets || []).find((row) => row.scrape_url === scrapeUrl);
-    return [merchant.slug, target?.id || ''];
-  }));
+    const candidates = (existingLegacyTargets || []).filter((row) => row.remarks === remarks);
+    const duplicateIds = candidates.slice(1).map((row) => row.id);
+    if (duplicateIds.length) {
+      const { error: duplicateError } = await supabase
+        .from('crawler_targets')
+        .delete()
+        .eq('scraper_type', 'legacy-v1-api')
+        .in('id', duplicateIds);
+      if (duplicateError) throw duplicateError;
+      removedDuplicateTargets += duplicateIds.length;
+    }
+
+    const targetRow = {
+      name: merchant.name,
+      site_url: merchant.site_url,
+      scrape_url: scrapeUrl,
+      scraper_type: 'legacy-v1-api',
+      is_active: true,
+      is_verified: merchant.source_score >= 80,
+      operational_status: merchant.status || 'unknown',
+      last_valid_at: merchant.last_success_at,
+      last_attempt_at: merchant.last_checked_at,
+      error_streak: 0,
+      latest_error_msg: null,
+      remarks,
+    };
+    const targetQuery = candidates[0]
+      ? supabase.from('crawler_targets').update(targetRow).eq('id', candidates[0].id)
+      : supabase.from('crawler_targets').insert(targetRow);
+    const { data: target, error: targetError } = await targetQuery.select('id').single();
+    if (targetError) throw targetError;
+    targetIdsBySlug.set(merchant.slug, target.id);
+    reconciledTargets += 1;
+  }
 
   const catalogRows = products.map((product, index) => {
     const platformId = platformIds.get(product.platform);
@@ -278,6 +301,8 @@ async function main() {
     offers: offers.length,
     opportunities: opportunityCount,
     priceChanges: changeCount,
+    reconciledTargets,
+    removedDuplicateTargets,
     validation: 'passed',
   }));
 }
