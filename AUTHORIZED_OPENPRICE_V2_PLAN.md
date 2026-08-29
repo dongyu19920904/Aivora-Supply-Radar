@@ -1,11 +1,17 @@
 # 爱窝啦 AI 货源雷达：OpenPrice 商业授权版 V2 迁移实施方案
 
-> 状态：执行中  
-> 制定日期：2026-08-29（Asia/Shanghai）  
-> 生产基线：`Aivora-Supply-Radar@37c275116d47d6498d9b4c4b0e272e5df4975cb7`  
-> 授权源码基线：`awesome-OpenPrice@387d6b2b5a7ab0a42acc42da2117c9fd0cf290bf`  
-> 正式域名：<https://supply.aivora.cn/>  
-> 品牌：爱窝啦·AI账号店  
+> 状态：执行中
+>
+> 制定日期：2026-08-29（Asia/Shanghai）
+>
+> 生产基线：`Aivora-Supply-Radar@37c275116d47d6498d9b4c4b0e272e5df4975cb7`
+>
+> 授权源码基线：`awesome-OpenPrice@387d6b2b5a7ab0a42acc42da2117c9fd0cf290bf`
+>
+> 正式域名：<https://supply.aivora.cn/>
+>
+> 品牌：爱窝啦·AI账号店
+>
 > 主站：<https://www.aivora.cn/>
 
 ## 1. 项目目标
