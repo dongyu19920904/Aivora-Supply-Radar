@@ -1,6 +1,12 @@
+import { getCloudflareContext } from '@opennextjs/cloudflare';
+
 const DEFAULT_LEGACY_API_URL = 'https://aivora-supply-radar.sabrinamisan090.workers.dev';
 const MAX_RESPONSE_BYTES = 2 * 1024 * 1024;
 const MAX_ITEMS = 100;
+
+type LegacyRadarService = {
+  fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response>;
+};
 
 export interface AccountOpportunity {
   id: number;
@@ -52,12 +58,27 @@ function numberOrNull(value: unknown): number | null {
 }
 
 async function fetchPayload(path: string): Promise<unknown> {
-  const response = await fetch(`${legacyApiBase()}${path}`, {
+  const url = `${legacyApiBase()}${path}`;
+  const requestInit: RequestInit = {
     headers: { Accept: 'application/json' },
     redirect: 'error',
     signal: AbortSignal.timeout(7_000),
-    next: { revalidate: 300 },
-  });
+  };
+
+  let service: LegacyRadarService | undefined;
+  try {
+    service = (getCloudflareContext().env as unknown as { LEGACY_RADAR_SERVICE?: LegacyRadarService })
+      .LEGACY_RADAR_SERVICE;
+  } catch {
+    // Next.js development and Node tests do not have a Cloudflare context.
+  }
+
+  let response: Response;
+  if (service && typeof service.fetch === 'function') {
+    response = await service.fetch(url, requestInit);
+  } else {
+    response = await fetch(url, { ...requestInit, next: { revalidate: 300 } });
+  }
 
   if (!response.ok) throw new Error(`legacy_radar_http_${response.status}`);
   const contentType = response.headers.get('content-type') || '';

@@ -6,5 +6,9 @@ assets = { directory = ".open-next/assets", binding = "ASSETS" }
 minify = true
 keep_vars = true
 
+[[services]]
+binding = "LEGACY_RADAR_SERVICE"
+service = "aivora-supply-radar"
+
 [images]
 binding = "IMAGES"
