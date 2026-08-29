@@ -6,7 +6,7 @@
 
 ## Current Phase
 
-V2 Phase 0：OpenPrice 商业授权资产与生产基线固化
+V2 Phase 1-3：授权版 Web/Admin 基线与大数据查询改造
 
 ## V2 Plan
 
@@ -26,16 +26,17 @@ V2 Phase 0：OpenPrice 商业授权资产与生产基线固化
 
 ### V2 Phase 1：授权版 Web/Admin 基线
 
-- [ ] 导入并构建 OpenPrice 授权代码
-- [ ] 完成爱窝啦品牌、域名和 URL 兼容
-- [ ] 建立 V2 自动测试基线
+- [x] 导入并构建 OpenPrice 授权代码
+- [x] 完成爱窝啦品牌、域名和 URL 兼容
+- [x] 建立 V2 自动测试基线
 - [ ] 部署独立预览 Worker，不切正式域名
-- **Status:** pending
+- **Status:** in progress
 
 ### V2 Phase 2-5：数据、采集与差异化模块
 
-- [ ] 迁移 Supabase schema 并扩展历史、异动、商机、社区和曝光
-- [ ] 完成服务端分页、聚合读模型和 30,000 条性能基线
+- [x] 编写 Supabase 大数据读取 migration；实际迁移等待 V2 数据库
+- [x] 完成服务端游标分页和目录聚合读模型
+- [ ] 完成 30,000 条性能基线
 - [ ] 接入授权采集器和 Cloudflare Queue/R2 调度
 - [ ] 合并账号商机、利润、社区、避坑、收藏和提醒
 - **Status:** pending
@@ -143,6 +144,9 @@ V2 Phase 0：OpenPrice 商业授权资产与生产基线固化
 | Worker 上传后无法绑定 `supply.aivora.cn` | 1 | 权威 NS 是 DNSPod，不是 Cloudflare Zone；首发改用 workers.dev，正式子域待 DNSPod CNAME 权限后走 Pages 外部子域方案，不迁移整个主域 DNS |
 | Worker 已部署但 Cloudflare Cron 超过免费账户 5 个上限 | 1 | 移除新 Worker Cron，沿用隔离管理工作流每 6 小时调用同一受保护组合同步，功能不删减 |
 | 设置 Worker Secret 后立即同步返回 401 | 1 | Secret 发布成功但 Durable Object 实例存在短暂版本传播；部署工作流仅对无副作用的 401 等待重试，任何其他状态立即停止，避免重复生产同步 |
+| pnpm 11 无法按上游 lockfile frozen install | 1 | 使用上游生成 lockfile 对应的 pnpm 10.34.5，并在 package/workflow 固定版本 |
+| Windows OpenNext 完整打包创建依赖符号链接返回 EPERM | 1 | Next 构建已通过；新增 Ubuntu GitHub Actions 执行完整 `build:cf`，不在 Windows 放宽系统权限 |
+| 当前仓库没有 V2 Supabase/Cloudflare Secrets | 1 | CI 只使用无权限占位配置；正式预览保持阻断，避免把空数据 V2 覆盖生产 V1 |
 
 ## Notes
 

@@ -20,6 +20,25 @@
 - Production impact:
   - 无；当前正式域名、V1 Worker、Pages edge 和生产数据未修改。
 
+### Phase 1-3：授权 Web 基线与规模化读取
+
+- **Status:** in progress
+- Actions taken:
+  - 固定导入 `awesome-OpenPrice@387d6b2` 到 `v2-web/`，保留原始 LICENSE 和第三方声明。
+  - 固定 Node/pnpm 版本并补齐 Windows 可选依赖平台，使授权源码在本地可重复安装、lint、typecheck 和 Next build。
+  - 完成爱窝啦品牌、导航、日夜主题、OG 图、正式 canonical、旧 URL 重定向和公开模块入口。
+  - 以失败隔离的只读 API 接入 V1 账号商机和异动，不触发 AI 日报或生产任务。
+  - 将 `/api/offers/all` 从全量返回改成最多 100 条的服务端游标分页，支持商品、渠道、平台、类目和排除词筛选。
+  - 新增 PostgreSQL 索引和 `get_product_catalog_summary()` 聚合函数，商品目录不再在构建时读取全部报价。
+  - 新增 Linux V2 CI，验证 pnpm frozen install、单测、类型、lint 和 OpenNext Cloudflare 打包。
+- Verification:
+  - 单元测试 6/6；TypeScript 通过；ESLint 0 errors、110 inherited warnings。
+  - 无 secrets 的 Next 生产构建通过，共 33 条路由记录（含动态和静态）。
+  - 7 个视觉用例全部 `publishable`：桌面/390px、日/夜、全报价分页样本，无溢出、坏图和控制台错误。
+  - Windows OpenNext 在完成 Next 编译后，仅在依赖 symlink 阶段 EPERM；交由 Linux CI 验证完整 bundle。
+- Production impact:
+  - 无；未部署 V2、未迁移生产数据库、未触发生产采集，`supply.aivora.cn` 仍运行 V1。
+
 ## Session: 2026-08-28 至 2026-08-29
 
 ### Phase 1：真实基线与部署前置核查

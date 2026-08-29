@@ -36,9 +36,9 @@
 
 | 模块 | 主要路径 | 状态 |
 |---|---|---|
-| 首页和全局布局 | `src/app/page.tsx`、`src/app/layout.tsx` | 可移植、需品牌化 |
-| 标准商品 | `src/app/card-products` | 可移植、需映射到 `/products` |
-| 全部报价 | `src/app/card-products/all` | 可移植、上线前需服务端分页 |
+| 首页和全局布局 | `v2-web/src/app/page.tsx`、`v2-web/src/app/layout.tsx` | 已导入并完成爱窝啦品牌化 |
+| 标准商品 | `v2-web/src/app/card-products` | 已导入，`/products` 提供 301 兼容 |
+| 全部报价 | `v2-web/src/app/card-products/all` | 已导入并改为服务端游标分页 |
 | 商品详情 | `src/app/card-products/[slug]` | 可移植、需合并历史/商机 |
 | 渠道目录和详情 | `src/app/channels` | 可移植、映射到 `/merchants` |
 | 官方地区价格 | `src/app/official-prices` | 可直接移植 |
@@ -55,8 +55,8 @@
 
 | 模块 | 当前问题 | V2 动作 |
 |---|---|---|
-| 全量报价 API | 逐页读取后一次性返回全部报价 | 改游标分页、服务端筛选和响应上限 |
-| 商品列表聚合 | 读取和处理大量 `market_offers` | 建立 `product_stats` 读模型 |
+| 全量报价 API | 逐页读取后一次性返回全部报价 | 已改为服务端筛选、稳定游标和 100 条硬上限 |
+| 商品列表聚合 | 读取和处理大量 `market_offers` | 已新增数据库聚合函数和相应索引；待真实大数据压测 |
 | 渠道统计 | 运行时扫描报价 | 建立 `merchant_stats` 读模型 |
 | Admin 报价/来源 | 大数据量下缺少完整分页验证 | 服务端分页、搜索、批量操作审计 |
 | 公共 Supabase 查询 | 需要重新核对 RLS 和 anon 权限 | 最小 SELECT/INSERT 权限 |

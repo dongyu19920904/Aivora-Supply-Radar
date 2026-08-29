@@ -30,6 +30,10 @@
 - 已把四个参考仓库浅克隆到 `D:\GitHub\_references\Aivora-Supply-Radar`：PlanTrack、AI Price Radar、OpenPrice、Flarum Framework。参考目录继续保持只读隔离；OpenPrice 授权版将从固定提交导入 V2 worktree，不直接在参考副本开发。
 - OpenPrice 当前源码包含 Next.js/OpenNext 前台、Supabase schema、商品/报价/渠道/官方价、完整管理后台、投稿反馈和 App Store 价格任务；当前公开 `scraper` 只有 4 个 Python 文件，不含完整的多发卡系统采集引擎。
 - OpenPrice 当前公开报价接口存在全量读取路径，不能在 10,000-30,000 条数据规模下原样上线；V2 需要先改为服务端游标分页、聚合读模型和精确缓存失效。
+- 原 `/api/offers/all` 会循环下载数据库全部报价再一次性发给浏览器；原商品目录也会循环读取全部报价后逐类过滤，两个路径都会随报价量线性放大。
+- V2 已把公开报价改为 `status + updated_at + id` 稳定游标，单页硬上限 100；搜索、排除词、平台和类目在服务端处理，不再把几万条数据交给浏览器过滤。
+- V2 已增加 `market_offers` 游标/类目聚合索引和 trigram 搜索索引，并用 `get_product_catalog_summary()` 在 PostgreSQL 聚合最低价、最高价、渠道数和更新时间。
+- 当前 GitHub 仓库没有任何 V2 Supabase/Cloudflare Secret 或变量；这能防止误部署，但也意味着真实授权数据迁移和预览 Worker 在取得对应项目配置前不能安全进行。
 - 商业授权解决了代码移植限制，但代码授权是否同时包含私有采集器、渠道目标配置和生产数据仍需在 Phase 0 资产清单中逐项记录。
 - AI Price Radar 的 MIT seed 与目录服务验证了可移植规则：标准商品与原始报价分离、只对可比较且有货的正价格计算最低价、按交付形态和币种计算中位数、来源失败保留最近快照、同款使用稳定指纹分组。
 - PlanTrack 的 MIT `data/platforms.json` 是版本化官方价格目录，包含官方 URL、价格、币种、计费口径、核验日期和历史；首发只移植与爱窝啦商品直接相关且能复核官方入口的条目，完整上游代码保存在参考目录。
