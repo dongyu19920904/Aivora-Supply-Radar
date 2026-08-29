@@ -6,7 +6,7 @@
 
 ## Current Phase
 
-V2 Phase 6：真实数据预览部署与线上对账
+V2 Phase 7：正式切流、线上验收与 V1 回滚保留（已完成）
 
 ## V2 Plan
 
@@ -29,25 +29,26 @@ V2 Phase 6：真实数据预览部署与线上对账
 - [x] 导入并构建 OpenPrice 授权代码
 - [x] 完成爱窝啦品牌、域名和 URL 兼容
 - [x] 建立 V2 自动测试基线，Ubuntu `build:cf` 已通过
-- [ ] 部署独立预览 Worker，不切正式域名
-- **Status:** in progress
+- [x] 部署独立预览 Worker，不切正式域名
+- **Status:** complete
 
 ### V2 Phase 2-5：数据、采集与差异化模块
 
-- [x] 创建新加坡 Supabase V2 项目并应用 11 个 migration
+- [x] 创建新加坡 Supabase V2 项目并应用 12 个 migration
 - [x] 完成服务端游标分页和目录聚合读模型
 - [ ] 完成 30,000 条性能基线
 - [x] 接入 V1 与 PriceAI 授权采集器，GitHub Actions 每 30 分钟调度
 - [x] 合并账号商机、异动、社区、指南、投稿、后台与方法论入口
-- **Status:** in progress
+- **Status:** complete for current 5,000+ offer production scale; 30,000-row benchmark remains a future capacity task
 
 ### V2 Phase 6-7：验证、灰度和切流
 
 - [x] 通过本地完整测试、真实数据审计、SEO 构建和 9/9 生产视觉矩阵
-- [ ] 部署 V2 预览并完成数据对账
-- [ ] 切换 Pages service binding
-- [ ] 验证正式域名并保留 V1 回滚入口
-- **Status:** pending
+- [x] 部署 V2 预览并完成数据对账
+- [x] 切换 Pages service binding
+- [x] 验证正式域名并保留 V1 回滚入口
+- [x] 账号商机与异动改为 Supabase 只读副本，跨 Worker 失败不阻塞货源主体
+- **Status:** complete
 
 ## V1 Historical Phases
 
@@ -122,6 +123,8 @@ V2 Phase 6：真实数据预览部署与线上对账
 | OpenPrice 授权代码作为 V2 行情前台和后台核心 | 项目所有者已确认取得商业授权；保留当前 V1 作为切流与回滚基线 |
 | 使用后端仓库 Actions Secret 作为临时部署代理 | 本机 Wrangler OAuth 失效且新仓库没有 Cloudflare Secret；代理仅部署固定 SHA，不参与日报运行时 |
 | 使用单实例 SQLite Durable Object 持久化 | 现有 Token 的 D1 API 权限不足；SQLite Durable Object 随脚本迁移部署，保留完整 SQL、事务、历史价和投稿能力 |
+| V2 使用 Supabase PostgreSQL 承载目录、报价和只读信号副本 | 支持 5,000+ 报价、服务端分页，并让账号商机不依赖运行时跨 Worker 调用 |
+| Pages edge 绑定 V2，V1 Worker 常驻为回滚服务 | 正式域名可独立切换；V1 保留 48 商品、24 报价和最新日报健康检查 |
 
 ## Errors Encountered
 
@@ -147,6 +150,10 @@ V2 Phase 6：真实数据预览部署与线上对账
 | pnpm 11 无法按上游 lockfile frozen install | 1 | 使用上游生成 lockfile 对应的 pnpm 10.34.5，并在 package/workflow 固定版本 |
 | Windows OpenNext 完整打包创建依赖符号链接返回 EPERM | 1 | Next 构建已通过；新增 Ubuntu GitHub Actions 执行完整 `build:cf`，不在 Windows 放宽系统权限 |
 | 当前仓库最初没有 V2 Supabase/Cloudflare Secrets | 1 | 已把 Supabase 配置写入仓库 Secrets/Variables，并把部署所需值写入既有 Cloudflare 部署代理；值未输出或提交，预览仍需先通过 Linux CI |
+
+| 首次 V2 正式 Worker 上传后首页短暂 404 | 1 | 把首页、canonical 和数据 API 放入同一传播重试窗口，并增加 `promote-existing` 恢复模式；边缘切换前未影响 V1 |
+| 账号商机通过运行时 Worker-to-Worker 请求显示不可用 | 2 | 放弃运行时耦合；由既有数据同步将已生成日报成品写入 RLS 只读 Supabase 表，0 次新增模型调用 |
+| V1 API 主机切换产生 24 条同源重复报价 | 1 | 按已验证 merchant provenance 保留最早 target ID，仅移除 1 个同源重复 target；最终重复数为 0 |
 
 ## Notes
 

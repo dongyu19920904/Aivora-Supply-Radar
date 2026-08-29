@@ -12,6 +12,13 @@
 
 ## Research Findings
 
+- 2026-08-30 正式 V2 已上线 `https://supply.aivora.cn/`，发布 SHA 为 `64e87811f315db77efb198fcfa2d71f1be628d33`；V1 直连 Worker 常驻作为回滚入口。
+- 最终数据审计为 13 平台、71 商品、379 来源、5,372 报价；PriceAI 5,348、V1 24，0 非 HTTPS、0 孤儿、0 重复；ChatGPT Plus 当前 1,093 条。
+- 账号商机运行时跨 Worker 读取在 Cloudflare 上不够可靠；最终架构改为 GitHub 数据同步复制已生成日报成品到 RLS 只读 Supabase 表，前端按请求读取，不新增任何模型调用。
+- 账号商机已同步 2 期（2026-08-29、2026-08-28）；正式列表、详情、“30 秒结论”、原始 `news.aivora.cn` 证据链接与 sitemap 日期入口均为 200。
+- 正式域名和预览域名的 9 场景视觉审计均 publishable：桌面/390px、日夜主题、0 溢出、0 坏图、0 控制台错误。
+- V1 回滚服务仍为数据库 `ok`、48 商品、24 报价、最新日报 2026-08-29；AI 日报生产任务本轮触发次数为 0。
+
 - 2026-08-30 已创建独立 Supabase PostgreSQL 17 新加坡项目并应用 11 个 migration；匿名产品读取和目录聚合 RPC 均为 HTTP 200。
 - V1 可验证基线为 48 商品、24 报价、1 商家；已幂等迁入 V2，保留 `source:legacy-v1` 标签。
 - PriceAI 公开接口 `/api/explorer` 当前提供 45 个标准目录，详情接口 `/api/products/{slug}/offers` 支持分页；排除混合非 AI catch-all 后，首次抓取 44 类、5,463 条原始报价。
@@ -56,7 +63,7 @@
 | 新仓库名 `Aivora-Supply-Radar` | 与 AI 日报解耦，名称直接表达品牌和用途 |
 | 目标域名 `supply.aivora.cn` | 与 `news.aivora.cn`、`www.aivora.cn` 构成清晰站群 |
 | V1 使用 TypeScript + Cloudflare Worker + SQLite Durable Object | 作为现有生产和 V2 回滚基线保留 |
-| V2 使用 OpenNext Worker + Supabase PostgreSQL + Queue/R2 collector | 最大化复用已授权前台/后台并支持数万报价、服务端分页和独立采集 |
+| V2 使用 OpenNext Worker + Supabase PostgreSQL + GitHub 定时采集 | 最大化复用已授权前台/后台并支持数千至数万报价、服务端分页；现有 Token 无 R2 权限时不让 R2 阻塞上线 |
 | 前端采用 Workers 兼容 React/Next 路径 | 便于复用 PlanTrack 组件并保持 SEO/SSR/结构化数据 |
 | 核心实体统一为 Product/Offer/Merchant/Snapshot/Opportunity/Report/Post | 防止把多个参考项目的数据库和分类机械拼接 |
 | Flarum 作为独立可插拔社区 | 保留完整社区能力，同时不把 PHP 运行时塞入 Worker 核心链路 |
@@ -79,6 +86,8 @@
 | Windows PowerShell 5.1 直接返回 JSON 数组会聚合属性 | 先赋值再返回/枚举，避免把两个项目 ref 与状态拼在一起 |
 | PriceAI offset 分页遇到实时排序漂移 | 每页重叠 20 条按 ID 去重；大目录最多允许 0.2% 瞬时缺口，小目录仍要求 100% |
 | Node 强制 `Connection: close` 导致连接超时 | 单并发复用连接，并使用 D 盘逐目录检查点；成功验收后逐文件清理 |
+| Runtime service binding 仍无法稳定返回账号商机 | 改为同步日报成品到 Supabase；信号表 RLS 只读，失败不影响核心货源 |
+| V1 API 地址变化导致 target 唯一键漂移 | 以精确 provenance marker 复用最早 target ID，清除一次同源重复后 exact-count 审计通过 |
 
 ## Resources
 
