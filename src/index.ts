@@ -53,7 +53,7 @@ type Bindings = { Bindings: Env };
 const app = new Hono<Bindings>();
 
 function siteUrl(env: Env): string {
-  return env.SITE_URL || "https://aivora-supply-radar.sabrinamisan090.workers.dev";
+  return env.SITE_URL || "https://supply.aivora.cn";
 }
 
 function html(

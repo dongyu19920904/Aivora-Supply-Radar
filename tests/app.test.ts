@@ -25,7 +25,7 @@ describe("request isolation", () => {
     vi.stubGlobal("fetch", remoteFetch);
     const env: Env = {
       DB: seededEmptyDatabase(),
-      SITE_URL: "https://aivora-supply-radar.sabrinamisan090.workers.dev",
+      SITE_URL: "https://supply.aivora.cn",
     };
 
     const [home, opportunities] = await Promise.all([
@@ -35,7 +35,9 @@ describe("request isolation", () => {
 
     expect(home.status).toBe(200);
     expect(opportunities.status).toBe(200);
-    expect(await home.text()).toContain("爱窝啦 AI 货源雷达");
+    const homeHtml = await home.text();
+    expect(homeHtml).toContain("爱窝啦 AI 货源雷达");
+    expect(homeHtml).toContain('<link rel="canonical" href="https://supply.aivora.cn/">');
     expect(remoteFetch).not.toHaveBeenCalled();
   });
 });

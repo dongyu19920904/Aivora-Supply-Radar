@@ -2,15 +2,15 @@
 
 版本：1.0
 
-执行状态：已完成首发部署与线上验收；正式子域等待 DNSPod CNAME 权限。
+执行状态：已完成首发部署、正式子域绑定与线上验收。
 
 基线日期：2026-08-29（Asia/Shanghai）
 
 项目目录：`D:\GitHub\Aivora-Supply-Radar`
 
-首发域名：`https://aivora-supply-radar.sabrinamisan090.workers.dev/`
+Worker 回滚入口：`https://aivora-supply-radar.sabrinamisan090.workers.dev/`
 
-正式域名：`https://supply.aivora.cn/`（DNSPod 增加外部 CNAME 后切换）
+正式域名：`https://supply.aivora.cn/`
 
 ## 1. 项目目标
 
@@ -275,8 +275,8 @@ Aivora-Supply-Radar/
 - 可选 R2：`aivora-supply-radar-assets`
 - 可选 Queue：`aivora-supply-radar-ingest`
 - GitHub Actions Cron：每 6 小时调用受保护的组合同步；避免占用已达上限的 Cloudflare Cron，来源仍按任务隔离。
-- 首发域名：`aivora-supply-radar.sabrinamisan090.workers.dev`
-- 正式域名：`supply.aivora.cn`；当前 Zone 由 DNSPod 托管，不能直接使用 Workers Custom Domain，后续采用 Cloudflare Pages 代理并在 DNSPod 增加 CNAME
+- Worker 回滚入口：`aivora-supply-radar.sabrinamisan090.workers.dev`
+- 正式域名：`supply.aivora.cn`；Zone 继续由 DNSPod 托管，通过 CNAME 接入 Cloudflare Pages，再以 Service Binding 调用 Worker
 
 本机 Wrangler OAuth 当前失效，但既有日报后端仓库保存了 `CLOUDFLARE_ACCOUNT_ID` 和 `CLOUDFLARE_API_TOKEN` 两个 Actions Secret。优先方案：
 
@@ -284,7 +284,7 @@ Aivora-Supply-Radar/
 2. 工作流使用后端仓库现有 Secret，checkout 新仓库指定 SHA，生成临时 Wrangler 配置并部署；`new_sqlite_classes` 随 Worker 版本创建 SQLite Durable Object。
 3. 部署代理每 15 分钟只读解析新仓库 `main` 的精确 SHA，并以 GitHub Actions 缓存记录已成功发布的 SHA；也支持手动指定 SHA。这样不需要把跨仓库 GitHub Token 写入新项目。
 4. 代理在固定 SHA 上重新运行完整测试，设置独立 `ADMIN_API_KEY` Worker Secret，并用单独管理工作流执行投稿审核或手动同步；Secret 不进入源码或日志。
-5. 新站稳定后，可把 Cloudflare Secret 迁移到新仓库并删除部署代理；取得 DNSPod 记录管理权限后再完成正式子域，避免迁移整个主域 nameserver。
+5. 正式子域已绑定且未迁移主域 nameserver；新站稳定后，可把 Cloudflare Secret 迁移到新仓库并删除部署代理。
 
 该代理只承担发布，不参与 AI 日报定时任务和运行时，因此部署失败不会影响日报生产。
 
