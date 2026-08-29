@@ -19,7 +19,7 @@
   - 最大商品 1,088 条、最大单来源 200 条；0 非 HTTPS、0 孤儿、0 重复。
 - Production impact:
   - 正式 `supply.aivora.cn` 仍运行 V1；未触发 AI 日报生产任务、未切换域名。
-  - 首次 V2 预览运行 `33264161412` 在真实构建通过后因 R2 API 403 停止，未上传 Worker；新增无 R2 预览配置，生产 R2/DO 配置继续保留。
+  - 首次 V2 预览运行 `33264161412` 在真实构建通过后因 R2 API 403 停止，未上传 Worker；第二次运行 `33264603425` 上传成功但纯 dummy cache 的预渲染路由返回 404。预览改为 static-assets incremental cache，生产 R2/DO 配置继续保留。
 
 ### Phase 6：真实数据 dry-run
 
