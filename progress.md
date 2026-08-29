@@ -1,5 +1,35 @@
 # 爱窝啦 AI 货源雷达进度日志
 
+## V2 Session: 2026-08-30
+
+### Phase 4-5：真实数据库、全网快照与规模化详情
+
+- **Status:** complete
+- Actions taken:
+  - 完成 Supabase CLI 登录，创建 PostgreSQL 17 新加坡 V2 项目；应用基础 schema、权限收紧、登录限流、App Store 和规模索引共 11 个 migration。
+  - 将数据库恢复密码、匿名/服务密钥和后台随机密钥写入 GitHub Secrets/Variables；未输出或写入仓库。
+  - 导入 V1 48 商品、24 报价、1 商家并严格对账。
+  - 从 PriceAI 授权公开 API 抓取 44 个 AI/账号目录、5,463 条原始报价；分组写入 5,352 条、378 来源，拒绝 56 条不合格记录。
+  - 增加 D 盘可恢复逐目录检查点、网络重试、分页重叠去重、HTTPS/身份/价格校验和 stale 清理。
+  - 增加每 30 分钟 GitHub Actions 数据同步：先 V1、再 PriceAI、最后数据完整性审计；不使用 Cloudflare Cron。
+  - 商品详情由一次性 1,088 条改为首屏 50 条 SSR、服务端完整搜索/排除词/价格筛选与分页加载；渠道详情补齐 1,000 行以上分页。
+- Data audit:
+  - 13 平台、71 商品、379 来源、5,376 报价、54 个有报价商品。
+  - PriceAI 5,352 + V1 24；有货 4,967、缺货 409。
+  - 最大商品 1,088 条、最大单来源 200 条；0 非 HTTPS、0 孤儿、0 重复。
+- Production impact:
+  - 正式 `supply.aivora.cn` 仍运行 V1；未触发 AI 日报生产任务、未切换域名。
+
+### Phase 6：真实数据 dry-run
+
+- **Status:** complete locally; Linux/OpenNext CI pending
+- Verification:
+  - 单元测试 17/17；TypeScript 通过；ESLint 0 errors、107 inherited warnings。
+  - 真实数据库 `next build` 通过：编译 19.1 秒、TypeScript 49 秒、21 个静态页面 27.4 秒。
+  - Windows OpenNext 在 Next 构建后因 symlink EPERM 停止；保持 Linux CI 为完整 Cloudflare bundle 门槛。
+  - 生产模式视觉审计 9/9 publishable：桌面/390px、日/夜、全量列表、商品详情、商机、异动均为 200，无溢出、坏图或控制台错误。
+  - 商品详情 API：第 1/2 页各 50 条，总数 1,088，ID 重叠 0；`plus` 搜索 1,082 条且匹配；未知商品 404。
+
 ## V2 Session: 2026-08-29
 
 ### Phase 0：OpenPrice 商业授权资产与生产基线固化

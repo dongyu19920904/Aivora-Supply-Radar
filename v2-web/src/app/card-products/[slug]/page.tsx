@@ -10,21 +10,54 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
+interface ProductOfferRow {
+  id: string;
+  product_title: string;
+  price: number | string | null;
+  status: string;
+  url: string;
+  tags: string[] | null;
+  inventory_level: number | null;
+  updated_at: string;
+  canonical_product_id: string | null;
+  crawler_targets: { name: string; scraper_type: string | null; created_at: string } | { name: string; scraper_type: string | null; created_at: string }[] | null;
+}
+
+interface ProductSummaryRow {
+  id: string;
+  lowest_price: number | string;
+  warranty_price: number | string;
+  channel_count: number | string;
+  latest_offer_at: string | null;
+}
+
+async function getProductSummary(productId: string): Promise<ProductSummaryRow | null> {
+  const { data, error } = await supabase.rpc('get_product_catalog_summary');
+  if (error) throw error;
+  return ((data || []) as ProductSummaryRow[]).find((row) => row.id === productId) || null;
+}
+
+async function listInitialProductOffers(productId: string): Promise<{ rows: ProductOfferRow[]; total: number }> {
+  const { data, error, count } = await supabase
+    .from('market_offers')
+    .select(
+      'id, product_title, price, status, url, tags, inventory_level, updated_at, canonical_product_id, crawler_targets(name, scraper_type, created_at)',
+      { count: 'exact' },
+    )
+    .eq('canonical_product_id', productId)
+    .neq('status', 'blacklisted')
+    .order('status', { ascending: true })
+    .order('price', { ascending: true, nullsFirst: false })
+    .order('id', { ascending: true })
+    .range(0, 49);
+  if (error) throw error;
+  return { rows: (data || []) as unknown as ProductOfferRow[], total: count || 0 };
+}
+
 import { notFound } from 'next/navigation';
 import { ProductType, ProductDetail } from '../../../data';
 
 export const revalidate = 300; // 每5分钟刷新一次静态缓存
-
-export async function generateStaticParams() {
-  const { data: products } = await supabase
-    .from('product_catalog')
-    .select('slug')
-    .eq('is_active', true);
-
-  return (products || []).map((p) => ({
-    slug: p.slug,
-  }));
-}
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
@@ -41,17 +74,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
-  const { data: offers } = await supabase
-    .from('market_offers')
-    .select('price, status')
-    .eq('canonical_product_id', product.id)
-    .eq('status', 'in_stock');
-
-  const inStockPrices = (offers || [])
-    .map((offer) => Number(offer.price || 0))
-    .filter((price) => price > 0);
-  const lowestPrice = inStockPrices.length > 0 ? Math.min(...inStockPrices) : 0;
-  const channelCount = inStockPrices.length;
+  const summary = await getProductSummary(product.id);
+  const lowestPrice = Number(summary?.lowest_price || 0);
+  const channelCount = Number(summary?.channel_count || 0);
   const shortDesc = String(product.short_desc || '').trim();
   const descriptionSubject = (shortDesc || `查看 ${product.name} 的实时渠道报价`).replace(/[。.!！]+$/, '');
 
@@ -102,13 +127,12 @@ export default async function ProductDetailPage({ params }: PageProps) {
   }
 
   // 2. Fetch Offers
-  const { data: offersData } = await supabase
-    .from('market_offers')
-    .select('id, product_title, price, status, url, tags, inventory_level, updated_at, canonical_product_id, crawler_targets(name, scraper_type, created_at)')
-    .eq('canonical_product_id', productRow.id)
-    .neq('status', 'blacklisted');
+  const [initialOfferPage, summary] = await Promise.all([
+    listInitialProductOffers(productRow.id),
+    getProductSummary(productRow.id),
+  ]);
 
-  const marketQuotes = offersData || [];
+  const marketQuotes = initialOfferPage.rows;
 
   // 3. Map to ProductDetail
   const mappedDetails: ProductDetail[] = marketQuotes.map((row: any) => ({
@@ -128,21 +152,10 @@ export default async function ProductDetailPage({ params }: PageProps) {
   }));
 
   // 4. Map ProductType
-  const inStockDetails = mappedDetails.filter(d => d.status === 'in_stock' && d.price > 0);
-  const prices = inStockDetails.map(d => d.price);
-  const lowestPrice = prices.length > 0 ? Math.min(...prices) : 0;
-  const warrantyPrice = prices.length > 0 ? Math.max(...prices) : 0;
-  
-  const inStockQuotes = marketQuotes.filter((r: any) => r.status === 'in_stock');
-  const channelCount = inStockQuotes.length;
-  
-  let latestDate = 0;
-  marketQuotes.forEach((r: any) => {
-     const ts = new Date(r.updated_at).getTime();
-     if (ts > latestDate) latestDate = ts;
-  });
-  
-  const updatedAt = new Date(latestDate || Date.now()).toISOString();
+  const lowestPrice = Number(summary?.lowest_price || 0);
+  const warrantyPrice = Number(summary?.warranty_price || 0);
+  const channelCount = Number(summary?.channel_count || 0);
+  const updatedAt = summary?.latest_offer_at || new Date().toISOString();
 
   // Type workaround for Supabase relation inference
   const platformData: any = productRow.product_platforms;
@@ -164,7 +177,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
   };
   
   return (
-    <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+    <main className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
       <JsonLd data={{
         '@context': 'https://schema.org',
         '@type': 'BreadcrumbList',
@@ -173,8 +186,13 @@ export default async function ProductDetailPage({ params }: PageProps) {
           { '@type': 'ListItem', position: 2, name: productRow.name },
         ],
       }} />
-      <ProductDetailClient slug={slug} initialProduct={product} initialDetails={mappedDetails} />
+      <ProductDetailClient
+        slug={slug}
+        initialProduct={product}
+        initialDetails={mappedDetails}
+        initialTotal={initialOfferPage.total}
+      />
       <YoufenkAffiliateAd className="youfenk-affiliate-rail absolute bottom-0 top-12" />
-    </div>
+    </main>
   );
 }

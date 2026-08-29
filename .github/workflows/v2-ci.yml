@@ -6,10 +6,12 @@ on:
     paths:
       - "v2-web/**"
       - ".github/workflows/v2-ci.yml"
+      - ".github/workflows/v2-data-sync.yml"
   pull_request:
     paths:
       - "v2-web/**"
       - ".github/workflows/v2-ci.yml"
+      - ".github/workflows/v2-data-sync.yml"
   workflow_dispatch:
 
 permissions:

@@ -6,15 +6,20 @@ const baseUrl = process.env.AUDIT_BASE_URL || 'http://127.0.0.1:3001';
 const outputDir = new URL('../artifacts/visual-audit/', import.meta.url);
 await mkdir(outputDir, { recursive: true });
 
-const cases = [
+const allCases = [
   { name: 'home-desktop-light', path: '/', width: 1440, height: 1000, theme: 'light', mockOffers: false },
   { name: 'home-desktop-dark', path: '/', width: 1440, height: 1000, theme: 'dark', mockOffers: false },
   { name: 'products-mobile-light', path: '/card-products', width: 390, height: 844, theme: 'light', mockOffers: false },
   { name: 'products-mobile-dark', path: '/card-products', width: 390, height: 844, theme: 'dark', mockOffers: false },
-  { name: 'all-products-mobile-light', path: '/card-products/all', width: 390, height: 844, theme: 'light', mockOffers: true },
+  { name: 'all-products-mobile-light', path: '/card-products/all', width: 390, height: 844, theme: 'light', mockOffers: false },
+  { name: 'product-detail-desktop-light', path: '/card-products/chatgpt-plus', width: 1440, height: 1000, theme: 'light', mockOffers: false },
+  { name: 'product-detail-mobile-dark', path: '/card-products/chatgpt-plus', width: 390, height: 844, theme: 'dark', mockOffers: false },
   { name: 'opportunities-mobile-light', path: '/opportunities', width: 390, height: 844, theme: 'light', mockOffers: false },
   { name: 'changes-desktop-dark', path: '/changes', width: 1440, height: 1000, theme: 'dark', mockOffers: false },
 ] as const;
+const requestedCase = process.env.AUDIT_CASE?.trim();
+const cases = requestedCase ? allCases.filter((auditCase) => auditCase.name === requestedCase) : allCases;
+if (!cases.length) throw new Error(`Unknown visual audit case: ${requestedCase}`);
 
 const browser = await chromium.launch({ headless: true });
 const results: Array<Record<string, unknown>> = [];
@@ -59,12 +64,12 @@ try {
     }
     const consoleErrors: string[] = [];
     page.on('console', (message) => {
-      if (message.type() === 'error') consoleErrors.push(message.text().slice(0, 300));
+      if (message.type() === 'error') consoleErrors.push(message.text().slice(0, 6_000));
     });
 
     const response = await page.goto(`${baseUrl}${auditCase.path}`, {
       waitUntil: 'networkidle',
-      timeout: 30_000,
+      timeout: 45_000,
     });
     await page.evaluate(() => document.fonts.ready);
     const diagnostics = await page.evaluate(() => ({
@@ -77,7 +82,7 @@ try {
       mainText: document.querySelector('main')?.textContent?.trim().length ?? 0,
     }));
     const screenshot = fileURLToPath(new URL(`${auditCase.name}.png`, outputDir));
-    await page.screenshot({ path: screenshot, fullPage: true });
+    await page.screenshot({ path: screenshot, fullPage: true, caret: 'initial' });
 
     const status = response?.status() || 0;
     const themeMatches = diagnostics.dark === (auditCase.theme === 'dark');

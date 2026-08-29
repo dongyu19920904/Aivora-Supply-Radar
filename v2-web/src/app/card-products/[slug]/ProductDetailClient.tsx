@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import type { ProductType, ProductDetail } from '../../../data';
 import { DetailTable } from '../../../components/DetailTable';
 import { FilterBar } from '../../../components/FilterBar';
@@ -10,17 +10,21 @@ import { BuyDisclaimerModal } from '../../../components/BuyDisclaimerModal';
 import { FeedbackModal } from '../../../components/FeedbackModal';
 import { YoufenkAffiliateBanner } from '../../../components/YoufenkAffiliateAd';
 import { useBuyAction } from '../../../hooks/useBuyAction';
-import { useLoadMore } from '../../../hooks/useLoadMore';
 import { PlatformCountBadge } from '../../../components/PlatformCountBadge';
-import { matchesSearchQuery } from '../../../lib/search-query';
 
 interface ProductDetailClientProps {
   slug: string;
   initialProduct: ProductType;
   initialDetails: ProductDetail[];
+  initialTotal: number;
 }
 
-export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ slug, initialProduct, initialDetails }) => {
+interface ProductOfferPageResponse {
+  items: ProductDetail[];
+  pageInfo: { total: number; hasMore: boolean; nextOffset: number };
+}
+
+export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ slug, initialProduct, initialDetails, initialTotal }) => {
   const [feedbackModalItem, setFeedbackModalItem] = useState<ProductDetail | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
   const { isBuyModalOpen, handleBuyClick, handleBuyConfirm, handleBuyCancel } = useBuyAction();
@@ -40,49 +44,81 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ slug, 
   };
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedChannel, setSelectedChannel] = useState('');
   const [customMinPrice, setCustomMinPrice] = useState('');
   const [customMaxPrice, setCustomMaxPrice] = useState('');
+  const [currentDetails, setCurrentDetails] = useState(initialDetails);
+  const [total, setTotal] = useState(initialTotal);
+  const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [loadError, setLoadError] = useState('');
 
   const selectedProduct = initialProduct;
-  const currentDetails = initialDetails;
 
-  const filteredCurrentDetails = useMemo(() => {
-    const minPrice = customMinPrice ? parseFloat(customMinPrice) : 0;
-    const maxPrice = customMaxPrice ? parseFloat(customMaxPrice) : Infinity;
-    const filtered = currentDetails.filter(d => {
-      const matchSearch = matchesSearchQuery([d.originalName, d.channel], searchQuery);
-      const matchPrice = d.price >= minPrice && d.price <= maxPrice;
-      const matchChannel = selectedChannel ? d.channel === selectedChannel : true;
-      return matchSearch && matchPrice && matchChannel;
-    });
+  const buildRequestUrl = useCallback((offset: number) => {
+    const params = new URLSearchParams({ limit: '50', offset: String(offset) });
+    if (searchQuery.trim()) params.set('q', searchQuery.trim());
+    if (customMinPrice) params.set('min', customMinPrice);
+    if (customMaxPrice) params.set('max', customMaxPrice);
+    return `/api/products/${encodeURIComponent(slug)}/offers?${params.toString()}`;
+  }, [customMaxPrice, customMinPrice, searchQuery, slug]);
 
-    return filtered.sort((a, b) => {
-      // 1. 优先展示有货商品
-      const getStatusPriority = (status: string) => {
-        if (status === 'in_stock') return 1;
-        if (status === 'out_of_stock') return 2;
-        if (status === 'offline') return 3;
-        return 99;
-      };
-      
-      const priorityA = getStatusPriority(a.status);
-      const priorityB = getStatusPriority(b.status);
+  useEffect(() => {
+    if (!searchQuery.trim() && !customMinPrice && !customMaxPrice) {
+      const resetTimer = window.setTimeout(() => {
+        setCurrentDetails(initialDetails);
+        setTotal(initialTotal);
+        setLoadError('');
+      }, 0);
+      return () => window.clearTimeout(resetTimer);
+    }
 
-      if (priorityA !== priorityB) {
-        return priorityA - priorityB;
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      setLoading(true);
+      setLoadError('');
+      try {
+        const response = await fetch(buildRequestUrl(0), { signal: controller.signal });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const result = await response.json() as ProductOfferPageResponse;
+        setCurrentDetails(Array.isArray(result.items) ? result.items : []);
+        setTotal(Number(result.pageInfo?.total || 0));
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          console.error('Error filtering product offers:', error);
+          setLoadError('筛选暂时失败，请稍后重试。');
+        }
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
       }
-      
-      // 2. 状态相同的情况下，按价格从低到高排序
-      return a.price - b.price;
-    });
-  }, [currentDetails, searchQuery, selectedChannel, customMinPrice, customMaxPrice]);
+    }, 250);
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [buildRequestUrl, customMaxPrice, customMinPrice, initialDetails, initialTotal, searchQuery]);
 
-  const { visibleCount, hasMore, loadMore } = useLoadMore({
-    itemCount: filteredCurrentDetails.length,
-    pageSize: 30,
-    resetKeys: [slug, searchQuery, selectedChannel, customMinPrice, customMaxPrice],
-  });
+  const loadMore = useCallback(async () => {
+    if (loadingMore || currentDetails.length >= total) return;
+    setLoadingMore(true);
+    setLoadError('');
+    try {
+      const response = await fetch(buildRequestUrl(currentDetails.length));
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const result = await response.json() as ProductOfferPageResponse;
+      setCurrentDetails((current) => {
+        const knownIds = new Set(current.map((item) => item.id));
+        return [...current, ...result.items.filter((item) => !knownIds.has(item.id))];
+      });
+      setTotal(Number(result.pageInfo?.total || 0));
+    } catch (error) {
+      console.error('Error loading more product offers:', error);
+      setLoadError('下一页加载失败，请重试。');
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [buildRequestUrl, currentDetails.length, loadingMore, total]);
+
+  const hasMore = currentDetails.length < total;
 
   return (
     <>
@@ -109,7 +145,6 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ slug, 
             onSearchChange={setSearchQuery}
             onReset={() => {
               setSearchQuery("");
-              setSelectedChannel("");
               setCustomMinPrice("");
               setCustomMaxPrice("");
             }}
@@ -142,12 +177,13 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ slug, 
           </FilterBar>
           
           <div className="min-h-[400px] relative flex flex-col gap-8">
+            {loadError && <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">{loadError}</div>}
             <DetailTable
-              details={filteredCurrentDetails.slice(0, visibleCount)}
+              details={currentDetails}
               onBuyClick={onBuyClick}
               onFeedbackClick={(item) => setFeedbackModalItem(item)}
             />
-            {filteredCurrentDetails.length > 0 && (
+            {currentDetails.length > 0 && (
               <div
                 className="py-6 flex justify-center items-center text-gray-500 text-sm"
                 aria-live="polite"
@@ -156,12 +192,13 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ slug, 
                   <button
                     type="button"
                     onClick={loadMore}
-                    className="rounded-lg border border-emerald-600 bg-white px-6 py-2.5 font-medium text-emerald-700 transition-colors hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+                    disabled={loadingMore || loading}
+                    className="rounded-lg border border-emerald-600 bg-white px-6 py-2.5 font-medium text-emerald-700 transition-colors hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:cursor-wait disabled:opacity-60"
                   >
-                    加载更多
+                    {loadingMore ? '正在加载…' : `加载更多（已显示 ${currentDetails.length}/${total}）`}
                   </button>
                 ) : (
-                  `已显示全部 ${filteredCurrentDetails.length} 条报价`
+                  `已显示全部 ${total} 条报价`
                 )}
               </div>
             )}

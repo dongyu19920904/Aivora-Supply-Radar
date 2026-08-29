@@ -116,7 +116,7 @@ export async function listAccountOpportunities(): Promise<AccountOpportunity[]> 
     if (!isRecord(payload) || !Array.isArray(payload.data)) return [];
     return payload.data.slice(0, MAX_ITEMS).map(parseOpportunity).filter(Boolean) as AccountOpportunity[];
   } catch (error) {
-    console.error('Account opportunity feed unavailable:', error instanceof Error ? error.message : 'unknown');
+    console.warn('Account opportunity feed unavailable:', error instanceof Error ? error.message : 'unknown');
     return [];
   }
 }
@@ -127,7 +127,7 @@ export async function getAccountOpportunity(reportDate: string): Promise<Account
     const payload = await fetchPayload(`/api/v1/opportunities/${encodeURIComponent(reportDate)}`);
     return isRecord(payload) ? parseOpportunity(payload.data) : null;
   } catch (error) {
-    console.error('Account opportunity detail unavailable:', error instanceof Error ? error.message : 'unknown');
+    console.warn('Account opportunity detail unavailable:', error instanceof Error ? error.message : 'unknown');
     return null;
   }
 }
@@ -138,7 +138,7 @@ export async function listPriceChanges(): Promise<PriceChange[]> {
     if (!isRecord(payload) || !Array.isArray(payload.data)) return [];
     return payload.data.slice(0, MAX_ITEMS).map(parseChange).filter(Boolean) as PriceChange[];
   } catch (error) {
-    console.error('Price change feed unavailable:', error instanceof Error ? error.message : 'unknown');
+    console.warn('Price change feed unavailable:', error instanceof Error ? error.message : 'unknown');
     return [];
   }
 }

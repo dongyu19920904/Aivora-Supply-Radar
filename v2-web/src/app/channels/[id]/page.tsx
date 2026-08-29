@@ -5,12 +5,38 @@ import { supabaseAdmin } from '../../../lib/supabase-admin';
 import { ChannelDetailClient } from './ChannelDetailClient';
 import { JsonLd } from '@/components/JsonLd';
 import { absoluteUrl } from '@/lib/site';
+import { fetchAllSupabasePages } from '@/lib/supabase-pagination';
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
 export const revalidate = 300;
+
+interface ChannelOfferRow {
+  id: string;
+  product_title: string;
+  price: number | string | null;
+  status: string;
+  url: string;
+  updated_at: string;
+  product_catalog: { name: string; product_platforms: { name: string } | { name: string }[] | null } | { name: string; product_platforms: { name: string } | { name: string }[] | null }[] | null;
+}
+
+async function listChannelOffers(channelId: string): Promise<ChannelOfferRow[]> {
+  return fetchAllSupabasePages(async (from, to) => {
+    const { data, error } = await supabaseAdmin
+      .from('market_offers')
+      .select('id, product_title, price, status, url, updated_at, product_catalog(name, product_platforms(name))')
+      .eq('target_id', channelId)
+      .eq('status', 'in_stock')
+      .order('updated_at', { ascending: false })
+      .order('id', { ascending: false })
+      .range(from, to);
+    if (error) throw error;
+    return (data || []) as unknown as ChannelOfferRow[];
+  });
+}
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
@@ -56,17 +82,13 @@ export default async function ChannelDetailPage({ params }: PageProps) {
   }
 
   // Fetch offers for this channel
-  const { data: offersData } = await supabaseAdmin
-    .from('market_offers')
-    .select('id, product_title, price, status, url, updated_at, product_catalog(name, product_platforms(name))')
-    .eq('target_id', id)
-    .eq('status', 'in_stock')
-    .order('updated_at', { ascending: false });
+  const offersData = await listChannelOffers(id);
 
-  const mappedOffers = (offersData || []).map((offer: any) => {
-    const platformData = offer.product_catalog?.product_platforms;
+  const mappedOffers = offersData.map((offer) => {
+    const productData = Array.isArray(offer.product_catalog) ? offer.product_catalog[0] : offer.product_catalog;
+    const platformData = productData?.product_platforms;
     const platformName = Array.isArray(platformData) ? platformData[0]?.name : platformData?.name;
-    const category = offer.product_catalog?.name ? `${platformName || '未知平台'} - ${offer.product_catalog.name}` : '未分类';
+    const category = productData?.name ? `${platformName || '未知平台'} - ${productData.name}` : '未分类';
 
     return {
       id: offer.id,
