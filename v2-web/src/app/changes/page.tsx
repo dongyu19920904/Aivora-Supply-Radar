@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Activity, ExternalLink } from 'lucide-react';
 import { listPriceChanges } from '@/lib/legacy-radar';
 
-export const revalidate = 300;
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: '今日价格与库存异动 | 爱窝啦·货源雷达',

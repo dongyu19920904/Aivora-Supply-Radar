@@ -20,6 +20,8 @@
 - Production impact:
   - 正式 `supply.aivora.cn` 仍运行 V1；未触发 AI 日报生产任务、未切换域名。
   - 首次 V2 预览运行 `33264161412` 在真实构建通过后因 R2 API 403 停止，未上传 Worker；第二次运行 `33264603425` 上传成功但纯 dummy cache 的预渲染路由返回 404。预览改为 static-assets incremental cache，生产 R2/DO 配置继续保留。
+  - 预览部署 `33264989838` 成功；核心路由、品牌、canonical、JSON-LD 与 1,000+ 实时报价门禁通过。线上视觉运行 `33265250512` 为 9/9 publishable，截图保留 14 天。
+  - 切流前将 7 个市场数据页改为 force-dynamic，静态说明页继续走 Worker Assets；新增独立生产 Worker 配置和 V2 Pages service binding，尚未切换正式域名。
 
 ### Phase 6：真实数据 dry-run
 

@@ -3,7 +3,7 @@ import { Metadata } from 'next';
 import { supabaseAdmin } from '../../lib/supabase-admin';
 import { ChannelsClient } from './ChannelsClient';
 
-export const revalidate = 300; // 每5分钟刷新一次静态缓存
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: '渠道商 - 爱窝啦·货源雷达',

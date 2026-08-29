@@ -53,3 +53,4 @@ jobs:
       - run: pnpm lint
       - run: pnpm build:cf
       - run: pnpm bundle:cf:preview
+      - run: pnpm bundle:cf:production

@@ -4,7 +4,7 @@ import { ProductType } from '../../data';
 import { CardProductsClient } from './CardProductsClient';
 import { getChannelProviderCount } from '../actions';
 
-export const revalidate = 300; // 5分钟静态重生成
+export const dynamic = 'force-dynamic';
 
 interface CatalogSummaryRow {
   id: string;

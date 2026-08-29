@@ -20,8 +20,10 @@
     "audit:data": "tsx scripts/audit-supabase-snapshot.ts",
     "audit:visual": "tsx scripts/visual-audit.ts",
     "build:cf": "opennextjs-cloudflare build",
-    "build:cf:preview": "opennextjs-cloudflare build --config wrangler.preview.toml --openNextConfigPath open-next.preview.config.ts",
-    "bundle:cf:preview": "opennextjs-cloudflare build --skipNextBuild --config wrangler.preview.toml --openNextConfigPath open-next.preview.config.ts",
+    "build:cf:preview": "opennextjs-cloudflare build --config wrangler.preview.toml --openNextConfigPath open-next.static-assets.config.ts",
+    "bundle:cf:preview": "opennextjs-cloudflare build --skipNextBuild --config wrangler.preview.toml --openNextConfigPath open-next.static-assets.config.ts",
+    "build:cf:production": "opennextjs-cloudflare build --config wrangler.production.toml --openNextConfigPath open-next.static-assets.config.ts",
+    "bundle:cf:production": "opennextjs-cloudflare build --skipNextBuild --config wrangler.production.toml --openNextConfigPath open-next.static-assets.config.ts",
     "preview:cf": "pnpm build:cf && opennextjs-cloudflare preview",
     "deploy:cf": "pnpm build:cf && opennextjs-cloudflare deploy"
   },

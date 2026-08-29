@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   },
 };
 
-export const revalidate = 86400;
+export const dynamic = 'force-dynamic';
 
 function billingPeriodFromName(name: string): 'monthly' | 'annual' | null {
   if (/[（(]月付[）)]$/.test(name)) return 'monthly';

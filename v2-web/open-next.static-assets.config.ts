@@ -1,9 +1,9 @@
 import { defineCloudflareConfig } from '@opennextjs/cloudflare';
 import staticAssetsIncrementalCache from '@opennextjs/cloudflare/overrides/incremental-cache/static-assets-incremental-cache';
 
-// Preview serves build-time ISR/SSG entries from the Worker asset binding.
-// The cache is read-only, so preview stays isolated from production R2/KV
-// resources while dynamic APIs continue to read the live Supabase dataset.
+// Static editorial pages are served from the Worker asset binding. Market,
+// channel and opportunity pages opt into force-dynamic so synchronized data is
+// read at request time without requiring R2/KV permissions.
 export default defineCloudflareConfig({
   incrementalCache: staticAssetsIncrementalCache,
 });

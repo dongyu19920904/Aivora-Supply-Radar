@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { ArrowRight, CalendarDays, Newspaper } from 'lucide-react';
 import { listAccountOpportunities } from '@/lib/legacy-radar';
 
-export const revalidate = 300;
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'AI 账号商机日报 | 爱窝啦·货源雷达',

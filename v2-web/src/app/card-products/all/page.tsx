@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   },
 };
 
-export const revalidate = 300; // 5分钟静态重生成
+export const dynamic = 'force-dynamic';
 
 interface CatalogFilterRow {
   name: string;
