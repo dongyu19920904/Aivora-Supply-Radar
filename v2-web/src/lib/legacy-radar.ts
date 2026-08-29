@@ -67,7 +67,7 @@ async function fetchPayload(path: string): Promise<unknown> {
 
   let service: LegacyRadarService | undefined;
   try {
-    service = (getCloudflareContext().env as unknown as { LEGACY_RADAR_SERVICE?: LegacyRadarService })
+    service = ((await getCloudflareContext({ async: true })).env as unknown as { LEGACY_RADAR_SERVICE?: LegacyRadarService })
       .LEGACY_RADAR_SERVICE;
   } catch {
     // Next.js development and Node tests do not have a Cloudflare context.

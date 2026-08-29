@@ -9,7 +9,7 @@ const deploymentConfigs = [
 
 test('routes the optional V1 opportunity feed through a Cloudflare service binding', async () => {
   const source = await readFile(new URL('./legacy-radar.ts', import.meta.url), 'utf8');
-  assert.match(source, /getCloudflareContext\(\)/);
+  assert.match(source, /getCloudflareContext\(\{ async: true \}\)/);
   assert.match(source, /LEGACY_RADAR_SERVICE/);
 
   for (const config of deploymentConfigs) {
