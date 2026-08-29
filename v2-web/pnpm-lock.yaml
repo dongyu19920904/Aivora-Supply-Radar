@@ -86,9 +86,6 @@ importers:
         specifier: 1.3.8
         version: 1.3.8
     devDependencies:
-      '@ast-grep/napi-darwin-arm64':
-        specifier: 0.40.5
-        version: 0.40.5
       '@opennextjs/cloudflare':
         specifier: ^1.20.2
         version: 1.20.2(next@16.3.0(@babel/core@7.29.7)(@types/node@20.19.43)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(wrangler@4.119.0)
@@ -110,9 +107,6 @@ importers:
       eslint-config-next:
         specifier: ^16.3.0
         version: 16.3.0(@typescript-eslint/parser@8.66.0(eslint@9.39.5(jiti@1.21.7))(typescript@5.9.3))(eslint@9.39.5(jiti@1.21.7))(typescript@5.9.3)
-      lightningcss-darwin-arm64:
-        specifier: 1.32.0
-        version: 1.32.0
       postcss:
         specifier: ^8.5.26
         version: 8.5.26
@@ -3144,12 +3138,6 @@ packages:
     resolution: {integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==}
     engines: {node: '>= 0.8.0'}
 
-  lightningcss-darwin-arm64@1.32.0:
-    resolution: {integrity: sha512-RzeG9Ju5bag2Bv1/lwlVJvBE3q6TtXskdZLLCyfg5pt+HLz9BqlICO7LZM7VHNTTn/5PRhHFBSjk5lc4cmscPQ==}
-    engines: {node: '>= 12.0.0'}
-    cpu: [arm64]
-    os: [darwin]
-
   lilconfig@3.1.3:
     resolution: {integrity: sha512-/vlFKAoH5Cgt3Ie+JLhRbwOsCQePABiU3tJ1egGvyQ+33R/vcwM2Zl2QR/LzjsBeItPt3oSVXapn+m4nQDvpzw==}
     engines: {node: '>=14'}
@@ -4316,7 +4304,8 @@ snapshots:
 
   '@alloc/quick-lru@5.2.0': {}
 
-  '@ast-grep/napi-darwin-arm64@0.40.5': {}
+  '@ast-grep/napi-darwin-arm64@0.40.5':
+    optional: true
 
   '@ast-grep/napi-darwin-x64@0.40.5':
     optional: true
@@ -7724,8 +7713,6 @@ snapshots:
     dependencies:
       prelude-ls: 1.2.1
       type-check: 0.4.0
-
-  lightningcss-darwin-arm64@1.32.0: {}
 
   lilconfig@3.1.3: {}
 

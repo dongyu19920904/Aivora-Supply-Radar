@@ -1,10 +1,12 @@
 {
-  "name": "@figma/my-make-file",
+  "name": "@aivora/supply-radar-v2",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.1.0",
   "type": "module",
+  "packageManager": "pnpm@10.34.5",
   "engines": {
-    "node": ">=20.9.0"
+    "node": ">=20.9.0",
+    "pnpm": "10.34.5"
   },
   "scripts": {
     "dev": "next dev",
@@ -43,13 +45,11 @@
     "tw-animate-css": "1.3.8"
   },
   "devDependencies": {
-    "@ast-grep/napi-darwin-arm64": "0.40.5",
     "@opennextjs/cloudflare": "^1.20.2",
     "@types/node": "20.19.43",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "autoprefixer": "^10.5.3",
-    "lightningcss-darwin-arm64": "1.32.0",
     "eslint": "^9.39.2",
     "eslint-config-next": "^16.3.0",
     "postcss": "^8.5.26",
