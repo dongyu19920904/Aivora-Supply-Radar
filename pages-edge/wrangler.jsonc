@@ -6,7 +6,7 @@
   "services": [
     {
       "binding": "RADAR_SERVICE",
-      "service": "aivora-supply-radar"
+      "service": "aivora-supply-radar-v2"
     }
   ]
 }

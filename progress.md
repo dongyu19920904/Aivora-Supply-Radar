@@ -1,5 +1,80 @@
 # 爱窝啦 AI 货源雷达进度日志
 
+## V2 Session: 2026-08-30
+
+### Phase 4-5：真实数据库、全网快照与规模化详情
+
+- **Status:** complete
+- Actions taken:
+  - 完成 Supabase CLI 登录，创建 PostgreSQL 17 新加坡 V2 项目；应用基础 schema、权限收紧、登录限流、App Store 和规模索引共 11 个 migration。
+  - 将数据库恢复密码、匿名/服务密钥和后台随机密钥写入 GitHub Secrets/Variables；未输出或写入仓库。
+  - 导入 V1 48 商品、24 报价、1 商家并严格对账。
+  - 从 PriceAI 授权公开 API 抓取 44 个 AI/账号目录、5,463 条原始报价；分组写入 5,352 条、378 来源，拒绝 56 条不合格记录。
+  - 增加 D 盘可恢复逐目录检查点、网络重试、分页重叠去重、HTTPS/身份/价格校验和 stale 清理。
+  - 增加每 30 分钟 GitHub Actions 数据同步：先 V1、再 PriceAI、最后数据完整性审计；不使用 Cloudflare Cron。
+  - 商品详情由一次性 1,088 条改为首屏 50 条 SSR、服务端完整搜索/排除词/价格筛选与分页加载；渠道详情补齐 1,000 行以上分页。
+- Data audit:
+  - 13 平台、71 商品、379 来源、5,376 报价、54 个有报价商品。
+  - PriceAI 5,352 + V1 24；有货 4,967、缺货 409。
+  - 最大商品 1,088 条、最大单来源 200 条；0 非 HTTPS、0 孤儿、0 重复。
+- Production impact:
+  - 正式 `supply.aivora.cn` 仍运行 V1；未触发 AI 日报生产任务、未切换域名。
+  - 首次 V2 预览运行 `33264161412` 在真实构建通过后因 R2 API 403 停止，未上传 Worker；第二次运行 `33264603425` 上传成功但纯 dummy cache 的预渲染路由返回 404。预览改为 static-assets incremental cache，生产 R2/DO 配置继续保留。
+  - 预览部署 `33264989838` 成功；核心路由、品牌、canonical、JSON-LD 与 1,000+ 实时报价门禁通过。线上视觉运行 `33265250512` 为 9/9 publishable，截图保留 14 天。
+  - 切流前将 7 个市场数据页改为 force-dynamic，静态说明页继续走 Worker Assets；新增独立生产 Worker 配置和 V2 Pages service binding，尚未切换正式域名。
+
+### Phase 6：真实数据 dry-run
+
+- **Status:** complete locally; Linux/OpenNext CI pending
+- Verification:
+  - 单元测试 17/17；TypeScript 通过；ESLint 0 errors、107 inherited warnings。
+  - 真实数据库 `next build` 通过：编译 19.1 秒、TypeScript 49 秒、21 个静态页面 27.4 秒。
+  - Windows OpenNext 在 Next 构建后因 symlink EPERM 停止；保持 Linux CI 为完整 Cloudflare bundle 门槛。
+  - 生产模式视觉审计 9/9 publishable：桌面/390px、日/夜、全量列表、商品详情、商机、异动均为 200，无溢出、坏图或控制台错误。
+  - 商品详情 API：第 1/2 页各 50 条，总数 1,088，ID 重叠 0；`plus` 搜索 1,082 条且匹配；未知商品 404。
+
+## V2 Session: 2026-08-29
+
+### Phase 0：OpenPrice 商业授权资产与生产基线固化
+
+- **Status:** in progress
+- Actions taken:
+  - 项目所有者确认已取得 OpenPrice 代码商业授权，可以移植全部授权模块。
+  - 执行 superpowers bootstrap，读取 `ai-daily-maintenance`、`site-architecture`、`project-cache-hygiene` 和项目 `AGENTS.md`。
+  - 核对当前生产基线为 `origin/main@37c275116d47d6498d9b4c4b0e272e5df4975cb7`。
+  - 核对 OpenPrice 本地参考副本与远端 main 一致，提交为 `387d6b2b5a7ab0a42acc42da2117c9fd0cf290bf`。
+  - 创建独立 worktree `D:\GitHub\_worktrees\authorized-openprice-v2` 和分支 `codex/authorized-openprice-v2`。
+  - 完成授权版 V2 架构、模块迁移、数据模型、采集、测试、灰度和回滚方案。
+- Files created/modified:
+  - `AUTHORIZED_OPENPRICE_V2_PLAN.md`
+  - `task_plan.md`
+  - `findings.md`
+  - `progress.md`
+- Production impact:
+  - 无；当前正式域名、V1 Worker、Pages edge 和生产数据未修改。
+
+### Phase 1-3：授权 Web 基线与规模化读取
+
+- **Status:** in progress
+- Actions taken:
+  - 固定导入 `awesome-OpenPrice@387d6b2` 到 `v2-web/`，保留原始 LICENSE 和第三方声明。
+  - 固定 Node/pnpm 版本并补齐 Windows 可选依赖平台，使授权源码在本地可重复安装、lint、typecheck 和 Next build。
+  - 完成爱窝啦品牌、导航、日夜主题、OG 图、正式 canonical、旧 URL 重定向和公开模块入口。
+  - 以失败隔离的只读 API 接入 V1 账号商机和异动，不触发 AI 日报或生产任务。
+  - 将 `/api/offers/all` 从全量返回改成最多 100 条的服务端游标分页，支持商品、渠道、平台、类目和排除词筛选。
+  - 新增 PostgreSQL 索引和 `get_product_catalog_summary()` 聚合函数，商品目录不再在构建时读取全部报价。
+  - 新增 Linux V2 CI，验证 pnpm frozen install、单测、类型、lint 和 OpenNext Cloudflare 打包。
+- Verification:
+  - 单元测试 6/6；TypeScript 通过；ESLint 0 errors、110 inherited warnings。
+  - 无 secrets 的 Next 生产构建通过，共 33 条路由记录（含动态和静态）。
+  - 7 个视觉用例全部 `publishable`：桌面/390px、日/夜、全报价分页样本，无溢出、坏图和控制台错误。
+  - Windows OpenNext 在完成 Next 编译后，仅在依赖 symlink 阶段 EPERM；交由 Linux CI 验证完整 bundle。
+  - GitHub V2 CI `33245320797` 成功，Ubuntu 完成 frozen install、测试、类型、lint 和 `build:cf`，耗时 1 分 14 秒。
+  - GitHub V1 CI `33245320761` 成功，原站 lint、类型、测试、内容校验、seed dry-run 和构建均通过。
+  - 推送后只读线上复核：正式首页、`/products`、`/opportunities`、`/api/v1/health` 均为 200；数据库 `ok`，仍为 48 商品、24 报价、1 商户、最新商机 2026-08-29。
+- Production impact:
+  - 无；未部署 V2、未迁移生产数据库、未触发生产采集，`supply.aivora.cn` 仍运行 V1。
+
 ## Session: 2026-08-28 至 2026-08-29
 
 ### Phase 1：真实基线与部署前置核查

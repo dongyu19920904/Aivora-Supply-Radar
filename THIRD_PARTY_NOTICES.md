@@ -29,4 +29,12 @@
 - License: MIT
 - Used for: Cloudflare Worker HTTP routing and middleware.
 
-OpenPrice、PriceAI、AIDeal 和 withAI 的受限或未公开源码不包含在本仓库中。
+## OpenPrice
+
+- Repository: https://github.com/bytedoger/awesome-OpenPrice
+- Imported revision: `387d6b2b5a7ab0a42acc42da2117c9fd0cf290bf`
+- Upstream license: OpenPrice Custom License Agreement（原文保留于 `v2-web/LICENSE`）
+- Authorization: 项目所有者确认已取得权利人的商业使用及模块移植授权；授权文件由项目所有者私下保管，不提交到公开仓库。
+- Used for: V2 商品目录、渠道比价、官方区域价格、商家提交、管理后台、指南和 Supabase 数据模型的授权实现基线。
+
+PriceAI、AIDeal 和 withAI 的受限或未公开源码不包含在本仓库中。
