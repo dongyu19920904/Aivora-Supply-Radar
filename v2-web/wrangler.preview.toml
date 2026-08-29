@@ -1,0 +1,10 @@
+name = "aivora-supply-radar-v2-preview"
+main = "cloudflare-worker.mjs"
+compatibility_date = "2026-08-28"
+compatibility_flags = ["nodejs_compat"]
+assets = { directory = ".open-next/assets", binding = "ASSETS" }
+minify = true
+keep_vars = true
+
+[images]
+binding = "IMAGES"
