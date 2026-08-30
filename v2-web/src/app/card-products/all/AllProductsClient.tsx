@@ -228,7 +228,7 @@ export const AllProductsClient: React.FC<AllProductsClientProps> = ({ initialCat
             placeholder="所有平台"
             allOptionLabel="所有平台"
           />
-          <div className="hidden lg:block">
+          <div className="block">
             <CustomDropdown
               value={selectedCategory}
               onChange={setSelectedCategory}

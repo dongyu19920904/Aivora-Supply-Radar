@@ -1,0 +1,55 @@
+name: Supply Radar V2 Official Price Sync
+
+on:
+  schedule:
+    # 05:17 Asia/Shanghai. Kept separate from the half-hour market sync so a
+    # storefront outage can never block the main supply dataset.
+    - cron: "17 21 * * *"
+  workflow_dispatch:
+    inputs:
+      app_id:
+        description: "Optional Apple app id (blank = all configured apps)"
+        required: false
+        type: string
+      country:
+        description: "Optional two-letter storefront (blank = all 32 regions)"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supply-radar-v2-official-price-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: v2-web/scraper
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      REVALIDATE_URL: https://supply.aivora.cn/api/revalidate
+      REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: v2-web/scraper/requirements.txt
+      - run: python -m pip install -r requirements.txt
+      - name: Fetch and validate App Store prices
+        shell: bash
+        env:
+          APP_ID: ${{ inputs.app_id }}
+          COUNTRY: ${{ inputs.country }}
+        run: |
+          args=()
+          if [[ -n "$APP_ID" ]]; then args+=(--app-id "$APP_ID"); fi
+          if [[ -n "$COUNTRY" ]]; then args+=(--country "$COUNTRY"); fi
+          python tasks/app_store_worker.py "${args[@]}"

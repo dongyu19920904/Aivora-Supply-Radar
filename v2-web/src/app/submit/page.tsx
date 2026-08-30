@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: '提交货源渠道 | 爱窝啦·货源雷达',
   description: '提交可公开核验的 AI 账号与数字商品货源渠道，进入审核、采集测试和收录流程。',
   robots: { index: false, follow: true },
+  alternates: { canonical: '/submit' },
 };
 
 export default function SubmitPage() {

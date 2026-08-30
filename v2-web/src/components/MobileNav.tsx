@@ -8,7 +8,7 @@ const navItems = [
   { href: '/official-prices', label: '官方价' },
   { href: '/changes', label: '异动' },
   { href: '/opportunities', label: '商机' },
-  { href: '/guide', label: '指南' },
+  { href: '/profit-calculator', label: '利润' },
 ] as const;
 
 export function MobileNav() {
@@ -17,7 +17,7 @@ export function MobileNav() {
   return (
     <nav
       aria-label="移动端主导航"
-      className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-t border-gray-100 pb-safe shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.02)]"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-gray-300 bg-white/95 pb-safe backdrop-blur"
     >
       <div className="flex h-12 items-center justify-around">
         {navItems.map((item) => {
@@ -28,8 +28,8 @@ export function MobileNav() {
               href={item.href}
               className={`flex h-full min-w-0 flex-1 items-center justify-center px-1 text-[12px] transition-colors ${
                 active
-                  ? 'bg-emerald-50/60 font-bold text-emerald-600'
-                  : 'font-medium text-gray-500 hover:bg-gray-50/50 hover:text-gray-700'
+                  ? 'border-t-2 border-amber-400 bg-amber-50 font-bold text-gray-950'
+                  : 'border-t-2 border-transparent font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-950'
               }`}
             >
               {item.label}

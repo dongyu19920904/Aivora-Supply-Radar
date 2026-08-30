@@ -12,41 +12,17 @@ export const metadata: Metadata = {
 };
 
 export default async function ChannelsPage() {
-  const { data: targets, error } = await supabaseAdmin
-    .from('crawler_targets')
-    .select('id, name, scraper_type, created_at, updated_at')
-    .eq('is_active', true)
-    .order('updated_at', { ascending: false });
+  const summary = await supabaseAdmin.rpc('get_active_channel_summary');
+  let channelsWithCounts = (summary.data || []).map((target) => ({
+    ...target,
+    productCount: Number(target.product_count || 0),
+  }));
 
-  const offers = await (async () => {
-    let allOffers: any[] = [];
-    let from = 0;
-    const pageSize = 1000;
-    while (true) {
-      const { data, error } = await supabaseAdmin
-        .from('market_offers')
-        .select('target_id')
-        .eq('status', 'in_stock')
-        .range(from, from + pageSize - 1);
-      if (error) {
-        console.error('Error fetching market offers for channels:', error);
-        break;
-      }
-      if (data) allOffers = allOffers.concat(data);
-      if (!data || data.length < pageSize) break;
-      from += pageSize;
-    }
-    return allOffers;
-  })();
-
-  if (error) {
-    console.error('Error fetching active channels:', error);
+  if (summary.error) {
+    console.error('Channel summary RPC unavailable; using a bounded channel fallback:', summary.error);
+    const fallback = await supabaseAdmin.from('crawler_targets').select('id, name, scraper_type, created_at, updated_at').eq('is_active', true).order('updated_at', { ascending: false }).limit(1_000);
+    channelsWithCounts = (fallback.data || []).map((target) => ({ ...target, productCount: 0 }));
   }
-
-  const channelsWithCounts = (targets || []).map(target => {
-    const productCount = (offers || []).filter(offer => offer.target_id === target.id).length;
-    return { ...target, productCount };
-  });
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">

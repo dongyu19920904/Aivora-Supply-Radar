@@ -17,8 +17,8 @@ interface CatalogSummaryRow {
   display_id: string;
   platform_name: string;
   platform_sort_order: number;
-  lowest_price: number | string;
-  warranty_price: number | string;
+  lowest_price: number | string | null;
+  warranty_price: number | string | null;
   channel_count: number | string;
   latest_offer_at: string | null;
 }
@@ -52,8 +52,8 @@ export default async function CardProductsPage() {
       slug: row.slug,
       name: row.name,
       platform: row.platform_name || row.platform_id,
-      lowestPrice: Number(row.lowest_price || 0),
-      warrantyPrice: Number(row.warranty_price || 0),
+      lowestPrice: row.lowest_price === null ? null : Number(row.lowest_price),
+      warrantyPrice: row.warranty_price === null ? null : Number(row.warranty_price),
       channelCount: Number(row.channel_count || 0),
       updatedAt: row.latest_offer_at,
       shortDesc: row.short_desc,
@@ -76,8 +76,8 @@ export default async function CardProductsPage() {
         slug: row.slug,
         name: row.name,
         platform: platform?.name || row.platform_id,
-        lowestPrice: 0,
-        warrantyPrice: 0,
+        lowestPrice: null,
+        warrantyPrice: null,
         channelCount: 0,
         updatedAt: null,
         shortDesc: row.short_desc,

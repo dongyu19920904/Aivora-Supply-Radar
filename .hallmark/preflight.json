@@ -1,0 +1,12 @@
+{
+  "scanned_at": "2026-08-30",
+  "scope": "multi-page-app",
+  "framework": "Next.js 16 App Router with Tailwind CSS 3",
+  "font_stack": "Remote Inter import in globals.css; replaced by build-time Noto Sans SC and Space Grotesk",
+  "palette": "Existing neutral/emerald Tailwind UI with light and dark CSS variables",
+  "motion": "motion dependency present; public redesign uses motion-cut interaction rules",
+  "spacing": "Tailwind defaults plus new semantic 4-point token scale",
+  "assets": "Text wordmark and existing app icon; no required decorative imagery",
+  "preserved": ["all route ownership", "dark mode", "brand naming", "data tables", "business logic"],
+  "introduced": ["Workbench macrostructure", "semantic tokens", "focus and reduced-motion rules", "seller profit tool"]
+}

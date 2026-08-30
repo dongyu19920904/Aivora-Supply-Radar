@@ -17,6 +17,65 @@ export interface PriceAiOfferForImport {
 
 export type PriceAiOfferStatus = 'in_stock' | 'out_of_stock' | 'offline' | 'blacklisted';
 
+export interface PriceAiOfferSnapshot {
+  price: number | string | null;
+  status: PriceAiOfferStatus;
+  observedAt: string;
+}
+
+export interface PriceAiChangeContext {
+  productSlug: string;
+  productName: string;
+  merchantName: string;
+  sourceUrl: string;
+}
+
+export interface PriceAiChangeRow {
+  product_slug: string;
+  product_name: string;
+  merchant_name: string;
+  source_url: string;
+  previous_price: number | null;
+  current_price: number | null;
+  previous_stock: PriceAiOfferStatus;
+  current_stock: PriceAiOfferStatus;
+  observed_at: string;
+}
+
+function finitePrice(value: number | string | null): number | null {
+  if (value === null || value === '') return null;
+  const parsed = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
+}
+
+export function buildPriceAiChange(
+  previous: PriceAiOfferSnapshot | null,
+  current: PriceAiOfferSnapshot,
+  context: PriceAiChangeContext,
+): PriceAiChangeRow | null {
+  if (!previous) return null;
+
+  const previousAt = Date.parse(previous.observedAt);
+  const currentAt = Date.parse(current.observedAt);
+  if (!Number.isFinite(previousAt) || !Number.isFinite(currentAt) || currentAt <= previousAt) return null;
+
+  const previousPrice = finitePrice(previous.price);
+  const currentPrice = finitePrice(current.price);
+  if (previousPrice === currentPrice && previous.status === current.status) return null;
+
+  return {
+    product_slug: context.productSlug,
+    product_name: context.productName,
+    merchant_name: context.merchantName,
+    source_url: context.sourceUrl,
+    previous_price: previousPrice,
+    current_price: currentPrice,
+    previous_stock: previous.status,
+    current_stock: current.status,
+    observed_at: current.observedAt,
+  };
+}
+
 export function isAllowedPriceAiProduct(product: PriceAiProductForImport): boolean {
   return product.id !== 'other-product'
     && product.slug !== 'other-product';

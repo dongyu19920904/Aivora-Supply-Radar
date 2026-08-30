@@ -1,0 +1,13 @@
+[
+  {
+    "date": "2026-08-30",
+    "scope": "app",
+    "macrostructure": "Workbench",
+    "theme": "custom Aivora signal-yellow data workbench",
+    "enrichment": "none",
+    "nav": "N1b dense three-section with utility rail",
+    "footer": "Ft2 compact inline rule",
+    "brief": "Supply marketplace, opportunity intelligence and seller profit workflow",
+    "responsive_validation": "pass: 320, 390, 768 and 1280 px; light and dark; no overflow, wrapped affordances, broken images or console errors"
+  }
+]

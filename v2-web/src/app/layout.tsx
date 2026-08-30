@@ -1,7 +1,7 @@
 import { Header } from '../components/Header';
 import { MobileNav } from '../components/MobileNav';
-import { FloatingGithubBanner } from '../components/FloatingGithubBanner';
 import { GoogleAnalytics } from '@next/third-parties/google';
+import { Noto_Sans_SC, Space_Grotesk } from 'next/font/google';
 import NextTopLoader from 'nextjs-toploader';
 import { JsonLd } from '../components/JsonLd';
 import { DEFAULT_SHARE_IMAGE, SITE_NAME, SITE_URL, absoluteUrl } from '../lib/site';
@@ -36,6 +36,19 @@ export const metadata: Metadata = {
 
 import { Footer } from '../components/Footer';
 
+const bodyFont = Noto_Sans_SC({
+  variable: '--font-noto-sans-sc',
+  weight: ['400', '500', '600', '700'],
+  display: 'swap',
+  preload: false,
+});
+
+const displayFont = Space_Grotesk({
+  variable: '--font-space-grotesk',
+  subsets: ['latin'],
+  display: 'swap',
+});
+
 export default function RootLayout({
   children,
 }: {
@@ -48,7 +61,7 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: "try{var t=localStorage.getItem('aivora-supply-theme');var d=t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d)}catch(e){}" }} />
       </head>
-      <body className="min-h-screen flex flex-col">
+      <body className={`${bodyFont.variable} ${displayFont.variable} min-h-screen flex flex-col`}>
         <JsonLd data={[
           {
             '@context': 'https://schema.org',
@@ -68,14 +81,13 @@ export default function RootLayout({
             publisher: { '@id': `${SITE_URL}/#organization` },
           },
         ]} />
-        <NextTopLoader color="#10b981" showSpinner={false} shadow="0 0 10px #10b981,0 0 5px #10b981" />
+        <NextTopLoader color="#f5c518" showSpinner={false} shadow="none" />
         <Header />
         <div className="flex-1 pb-11 md:pb-0">
           {children}
         </div>
         <Footer />
         <MobileNav />
-        <FloatingGithubBanner />
         {gaId && <GoogleAnalytics gaId={gaId} />}
       </body>
     </html>

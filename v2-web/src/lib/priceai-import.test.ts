@@ -2,11 +2,19 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  buildPriceAiChange,
   buildPriceAiTags,
   isAllowedPriceAiProduct,
   normalizePriceAiStatus,
   validHttpsUrl,
 } from './priceai-import';
+
+const changeContext = {
+  productSlug: 'chatgpt-plus',
+  productName: 'ChatGPT Plus',
+  merchantName: '示例渠道',
+  sourceUrl: 'https://example.com/chatgpt-plus',
+};
 
 test('keeps AI catalog products and excludes the mixed non-AI catch-all', () => {
   assert.equal(isAllowedPriceAiProduct({ id: 'chatgpt-plus', slug: 'chatgpt-plus', platform: 'ChatGPT' }), true);
@@ -48,4 +56,34 @@ test('builds traceable grouped PriceAI tags', () => {
     'risk:low',
     'facet:delivery_account',
   ]);
+});
+
+test('does not report first snapshots or unchanged snapshots as price changes', () => {
+  const current = { price: 99, status: 'in_stock' as const, observedAt: '2026-08-30T10:00:00+08:00' };
+  assert.equal(buildPriceAiChange(null, current, changeContext), null);
+  assert.equal(buildPriceAiChange({ ...current, observedAt: '2026-08-30T09:00:00+08:00' }, current, changeContext), null);
+});
+
+test('reports price and stock changes only when the source snapshot moves forward', () => {
+  assert.deepEqual(buildPriceAiChange(
+    { price: '109.00', status: 'in_stock', observedAt: '2026-08-30T09:00:00+08:00' },
+    { price: 99, status: 'out_of_stock', observedAt: '2026-08-30T10:00:00+08:00' },
+    changeContext,
+  ), {
+    product_slug: 'chatgpt-plus',
+    product_name: 'ChatGPT Plus',
+    merchant_name: '示例渠道',
+    source_url: 'https://example.com/chatgpt-plus',
+    previous_price: 109,
+    current_price: 99,
+    previous_stock: 'in_stock',
+    current_stock: 'out_of_stock',
+    observed_at: '2026-08-30T10:00:00+08:00',
+  });
+
+  assert.equal(buildPriceAiChange(
+    { price: 109, status: 'in_stock', observedAt: '2026-08-30T11:00:00+08:00' },
+    { price: 99, status: 'out_of_stock', observedAt: '2026-08-30T10:00:00+08:00' },
+    changeContext,
+  ), null);
 });

@@ -1,13 +1,15 @@
 import React from 'react';
 import { ProductType } from '../data';
-import { ArrowRight } from 'lucide-react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getRelativeTime } from '../lib/utils';
 import { ViewDetailsButton } from './ViewDetailsButton';
 
 interface MasterTableProps {
   products: ProductType[];
+}
+
+function priceLabel(price: number | null): string {
+  return price === null ? '暂无报价' : `¥${price.toFixed(2)}`;
 }
 
 export const MasterTable: React.FC<MasterTableProps> = ({ products }) => {
@@ -22,7 +24,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({ products }) => {
   
   return (
     <div className="flex flex-col gap-4">
-      {platformsOrder.map((platform, index) => (
+      {platformsOrder.map((platform) => (
         <div key={platform} className="flex flex-col gap-4">
           
           {/* Platform Title and Divider Outside the Table */}
@@ -57,7 +59,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({ products }) => {
                       <td className="px-6 py-4 text-gray-500 font-mono text-xs">{product.display_id || '-'}</td>
                       <td className="px-6 py-4 font-medium text-gray-900">{product.platform}</td>
                       <td className="px-6 py-4 text-gray-600">{product.name}</td>
-                      <td className="px-6 py-4 text-emerald-600 font-medium">¥{product.lowestPrice.toFixed(2)}</td>
+                      <td className={`px-6 py-4 font-medium ${product.lowestPrice === null ? 'text-gray-400' : 'text-emerald-600'}`}>{priceLabel(product.lowestPrice)}</td>
                       <td className="px-6 py-4 text-gray-600">{product.channelCount}</td>
                       <td suppressHydrationWarning className="px-6 py-4 text-gray-500 text-xs">{getRelativeTime(product.updatedAt)}</td>
                       <td className="px-6 py-4 text-right">
@@ -82,7 +84,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({ products }) => {
                 >
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="font-medium text-gray-900 leading-snug pr-4">{product.name}</h3>
-                    <span className="text-emerald-600 font-bold whitespace-nowrap">¥{product.lowestPrice.toFixed(2)}</span>
+                    <span className={`font-bold whitespace-nowrap ${product.lowestPrice === null ? 'text-gray-400' : 'text-emerald-600'}`}>{priceLabel(product.lowestPrice)}</span>
                   </div>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-gray-500 mb-3 mt-2">
                     <span className="bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded">在售: {product.channelCount}</span>

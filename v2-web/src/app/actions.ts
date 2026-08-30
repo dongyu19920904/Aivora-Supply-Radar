@@ -1,13 +1,14 @@
 'use server';
 
 import { supabaseAdmin } from '@/lib/supabase-admin';
+import { validateChannelSubmission } from '@/lib/submission-validation';
 
 export async function getChannelProviderCount() {
   try {
-    const { count, error } = await supabaseAdmin
-      .from('crawler_targets')
-      .select('*', { count: 'exact', head: true })
-      .eq('is_active', true);
+    const { count, error } = await Promise.race([
+      supabaseAdmin.from('crawler_targets').select('*', { count: 'exact', head: true }).eq('is_active', true),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error('channel_count_timeout')), 5_000)),
+    ]);
     
     if (error) {
       console.error('Error fetching channel provider count:', error);
@@ -23,15 +24,21 @@ export async function getChannelProviderCount() {
 
 export async function submitChannel(formData: FormData) {
   try {
-    const rawName = formData.get('site_name') as string;
-    const name = rawName ? rawName.trim() : '未命名 (用户未提供)';
-    const site_url_raw = (formData.get('site_url') as string) || '';
-    const site_url = site_url_raw.endsWith('/') ? site_url_raw.slice(0, -1) : site_url_raw;
-    const contact = formData.get('contact') as string;
-    const remarks = formData.get('remarks') as string;
+    const validation = validateChannelSubmission(formData);
+    if (validation.ok === false) return { success: false, error: validation.error };
+    const { name, siteUrl, contact, remarks, honeypot } = validation.value;
+    if (honeypot) return { success: true };
 
-    if (!site_url) {
-      return { success: false, error: '请填写带*的必填项' };
+    const [{ data: existingSubmission, error: submissionLookupError }, { data: existingTarget, error: targetLookupError }] = await Promise.all([
+      supabaseAdmin.from('user_target_submissions').select('id').eq('site_url', siteUrl).limit(1).maybeSingle(),
+      supabaseAdmin.from('crawler_targets').select('id').eq('site_url', siteUrl).limit(1).maybeSingle(),
+    ]);
+    if (submissionLookupError || targetLookupError) {
+      console.error('Error checking channel submission duplicates:', submissionLookupError || targetLookupError);
+      return { success: false, error: '暂时无法校验渠道，请稍后重试' };
+    }
+    if (existingSubmission || existingTarget) {
+      return { success: false, error: '该渠道已收录或正在审核，请勿重复提交' };
     }
 
     const { error } = await supabaseAdmin
@@ -39,9 +46,9 @@ export async function submitChannel(formData: FormData) {
       .insert([
         {
           name,
-          site_url,
-          contact: contact || '',
-          remarks: remarks || '',
+          site_url: siteUrl,
+          contact,
+          remarks,
           status: 'pending'
         }
       ]);

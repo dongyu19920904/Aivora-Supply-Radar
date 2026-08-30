@@ -3,8 +3,8 @@ export interface ProductType {
   slug: string;
   name: string;
   platform: string;
-  lowestPrice: number;
-  warrantyPrice: number;
+  lowestPrice: number | null;
+  warrantyPrice: number | null;
   channelCount: number;
   updatedAt: string | null;
   shortDesc?: string;

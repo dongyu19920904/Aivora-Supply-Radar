@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
-import { ArrowLeft, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Calculator, ExternalLink, Search } from 'lucide-react';
 import { getAccountOpportunity } from '@/lib/legacy-radar';
 
 export const revalidate = 300;
@@ -53,6 +53,17 @@ export default async function OpportunityDetailPage({ params }: PageProps) {
             <ReactMarkdown>{opportunity.body_markdown}</ReactMarkdown>
           </div>
         </article>
+
+        <aside className="mt-6 grid gap-4 border-t border-gray-200 pt-6 sm:grid-cols-2" aria-label="把商机变成行动">
+          <Link href="/profit-calculator" className="radar-action-link">
+            <Calculator className="h-5 w-5 text-amber-500" />
+            <span><strong>先算利润和保本价</strong><small>把进货、支付、退款与售后成本一起算清</small></span>
+          </Link>
+          <Link href="/card-products" className="radar-action-link">
+            <Search className="h-5 w-5 text-blue-600" />
+            <span><strong>再核验当前货源</strong><small>对比在售渠道、库存、更新时间与原始链接</small></span>
+          </Link>
+        </aside>
       </div>
     </main>
   );

@@ -3,6 +3,7 @@ import { mkdir, readFile, readdir, rename, rmdir, stat, unlink, writeFile } from
 import path from 'node:path';
 
 import {
+  buildPriceAiChange,
   buildPriceAiTags,
   isAllowedPriceAiProduct,
   normalizePriceAiStatus,
@@ -321,18 +322,19 @@ async function main() {
   if (targetError) throw targetError;
   const targetIds = new Map((targets || []).map((row) => [row.scrape_url, row.id]));
 
-  const offerRows = [...grouped.values()].map(({ product, offer, count }) => {
+  const offerRowsWithContext = [...grouped.values()].map(({ product, offer, count }) => {
     const targetId = targetIds.get(`${base}/api/offers?source=${encodeURIComponent(offer.sourceId)}`);
     const catalogId = catalogIds.get(product.slug);
     if (!targetId) throw new Error(`priceai_missing_target:${offer.sourceId}`);
     if (!catalogId) throw new Error(`priceai_missing_catalog:${product.slug}`);
     const observedAt = offer.lastSeenAt || offer.capturedAt || explorer.generatedAt;
+    const status = normalizePriceAiStatus(offer.status, offer.effectiveStatus, offer.hidden);
     return {
       target_id: targetId,
       canonical_product_id: catalogId,
       product_title: offer.sourceTitle.trim().slice(0, 1_000),
       price: offer.price,
-      status: normalizePriceAiStatus(offer.status, offer.effectiveStatus, offer.hidden),
+      status,
       url: validHttpsUrl(offer.url) as string,
       tags: buildPriceAiTags(offer, count),
       inventory_level: offer.stockCount ?? null,
@@ -340,22 +342,61 @@ async function main() {
       last_crawled_at: observedAt,
       updated_at: offer.sourceUpdatedAt || observedAt,
       is_manual_override: false,
+      changeContext: {
+        productSlug: product.slug,
+        productName: product.displayName,
+        merchantName: (offer.sourceStoreName || offer.sourceName || offer.sourceId).slice(0, 240),
+        sourceUrl: validHttpsUrl(offer.url) as string,
+      },
     };
   });
-  await upsertBatches(supabase, 'market_offers', offerRows, 'target_id,product_title');
+  const offerRows = offerRowsWithContext.map(({ changeContext, ...row }) => {
+    if (!changeContext.sourceUrl) throw new Error('priceai_missing_change_source_url');
+    return row;
+  });
 
-  const activeKeys = new Set(offerRows.map((row) => `${row.target_id}\u0000${row.product_title}`));
-  const existingRows: { id: string; target_id: string; product_title: string }[] = [];
+  const existingRows: {
+    id: string;
+    target_id: string;
+    product_title: string;
+    price: number | string | null;
+    status: 'in_stock' | 'out_of_stock' | 'offline' | 'blacklisted';
+    last_crawled_at: string;
+  }[] = [];
   for (let offset = 0; ; offset += 1_000) {
     const { data, error } = await supabase
       .from('market_offers')
-      .select('id,target_id,product_title')
+      .select('id,target_id,product_title,price,status,last_crawled_at')
       .contains('tags', ['source:priceai'])
       .range(offset, offset + 999);
     if (error) throw error;
     existingRows.push(...(data || []));
     if (!data || data.length < 1_000) break;
   }
+  const existingByKey = new Map(existingRows.map((row) => [`${row.target_id}\u0000${row.product_title}`, row]));
+  const changeRows = offerRowsWithContext
+    .map((row) => buildPriceAiChange(
+      existingByKey.has(`${row.target_id}\u0000${row.product_title}`)
+        ? {
+            price: existingByKey.get(`${row.target_id}\u0000${row.product_title}`)!.price,
+            status: existingByKey.get(`${row.target_id}\u0000${row.product_title}`)!.status,
+            observedAt: existingByKey.get(`${row.target_id}\u0000${row.product_title}`)!.last_crawled_at,
+          }
+        : null,
+      { price: row.price, status: row.status, observedAt: row.last_crawled_at },
+      row.changeContext,
+    ))
+    .filter((row): row is NonNullable<typeof row> => row !== null);
+
+  await upsertBatches(supabase, 'market_offers', offerRows, 'target_id,product_title');
+  await upsertBatches(
+    supabase,
+    'market_price_changes',
+    changeRows.map((row) => ({ ...row })),
+    'product_slug,merchant_name,source_url,observed_at',
+  );
+
+  const activeKeys = new Set(offerRows.map((row) => `${row.target_id}\u0000${row.product_title}`));
   const staleIds = existingRows
     .filter((row) => !activeKeys.has(`${row.target_id}\u0000${row.product_title}`))
     .map((row) => row.id);
@@ -382,6 +423,7 @@ async function main() {
     invalidOffersSkipped: invalidCount,
     invalidOfferReasons: invalidReasons,
     staleOffersRemoved: staleIds.length,
+    priceChangesRecorded: changeRows.length,
     validation: 'passed',
   }));
 }

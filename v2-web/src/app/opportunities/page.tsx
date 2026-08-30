@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowRight, CalendarDays, Newspaper } from 'lucide-react';
+import { ArrowRight, Calculator, CalendarDays, Newspaper } from 'lucide-react';
 import { listAccountOpportunities } from '@/lib/legacy-radar';
 
 export const dynamic = 'force-dynamic';
@@ -15,27 +15,26 @@ export default async function OpportunitiesPage() {
   const opportunities = await listAccountOpportunities();
 
   return (
-    <main className="min-h-screen bg-gray-50/60 py-10 sm:py-14">
+    <main className="radar-page py-10 sm:py-14">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <header className="rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-amber-50 p-6 shadow-sm sm:p-9">
-          <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-sm font-semibold text-emerald-700 ring-1 ring-emerald-100">
+        <header className="border-b border-gray-300 pb-8">
+          <span className="radar-kicker inline-flex items-center gap-2">
             <Newspaper className="h-4 w-4" />
             货源之后的第二步
           </span>
-          <h1 className="mt-5 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">AI 账号商机日报</h1>
+          <h1 className="mt-5 text-3xl font-bold tracking-tight text-gray-950 sm:text-5xl">AI 账号商机日报</h1>
           <p className="mt-4 max-w-3xl text-base leading-7 text-gray-600 sm:text-lg">
             价格低不等于能赚钱。这里把当天事实、供给形态、买家需求、可售动作、售后边界和停止条件放在一起，帮助卖家决定今天该做什么。
           </p>
-          <div className="mt-6 flex flex-wrap gap-3 text-sm text-gray-600">
-            <span className="rounded-lg bg-white px-3 py-2 ring-1 ring-gray-200">只读复用现有日报</span>
-            <span className="rounded-lg bg-white px-3 py-2 ring-1 ring-gray-200">不增加大模型调用</span>
-            <span className="rounded-lg bg-white px-3 py-2 ring-1 ring-gray-200">失败不阻塞货源市场</span>
+          <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-gray-600">
+            <span>只读复用现有日报</span><span>不增加大模型调用</span><span>失败不阻塞货源市场</span>
+            <Link href="/profit-calculator" className="inline-flex items-center gap-1.5 font-semibold text-blue-700 hover:underline"><Calculator className="h-4 w-4" />打开利润计算器</Link>
           </div>
         </header>
 
         <section className="mt-8 space-y-4" aria-label="账号商机日报列表">
           {opportunities.length ? opportunities.map((item) => (
-            <article key={item.report_date} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:border-emerald-200 hover:shadow-md sm:p-6">
+            <article key={item.report_date} className="border-b border-gray-300 bg-white p-5 sm:p-6">
               <div className="flex items-center gap-2 text-sm font-medium text-emerald-700">
                 <CalendarDays className="h-4 w-4" />
                 <time dateTime={item.report_date}>{item.report_date}</time>
