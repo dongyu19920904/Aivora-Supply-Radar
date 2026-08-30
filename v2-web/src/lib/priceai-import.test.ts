@@ -7,6 +7,7 @@ import {
   catalogSortOrderForSourceIndex,
   isAllowedPriceAiProduct,
   normalizePriceAiStatus,
+  validatePriceAiSnapshotCoverage,
   validHttpsUrl,
 } from './priceai-import';
 
@@ -30,10 +31,36 @@ test('keeps source catalog order aligned with ascending database sort order', ()
   assert.throws(() => catalogSortOrderForSourceIndex(-1), /invalid_catalog_source_index/);
 });
 
-test('maps PriceAI availability without promoting unknown states', () => {
+test('uses product stock as authoritative without confusing source availability', () => {
   assert.equal(normalizePriceAiStatus('in_stock', 'available', false), 'in_stock');
+  assert.equal(normalizePriceAiStatus('low_stock', 'available', false), 'in_stock');
+  assert.equal(normalizePriceAiStatus('out_of_stock', 'available', false), 'out_of_stock');
+  assert.equal(normalizePriceAiStatus('in_stock', 'unavailable', false), 'in_stock');
+  assert.equal(normalizePriceAiStatus('unknown', 'available', false), 'offline');
   assert.equal(normalizePriceAiStatus('unknown', 'unknown', false), 'offline');
   assert.equal(normalizePriceAiStatus('in_stock', 'available', true), 'blacklisted');
+});
+
+test('allows bounded live pagination drift while preserving snapshot coverage', () => {
+  assert.deepEqual(validatePriceAiSnapshotCoverage([1_000, 1_004, 1_006], 1_000), {
+    minTotal: 1_000,
+    maxTotal: 1_006,
+    totalDrift: 6,
+    totalDriftLimit: 25,
+    missingLimit: 11,
+  });
+  assert.throws(
+    () => validatePriceAiSnapshotCoverage([1_000, 1_100], 1_050),
+    /priceai_total_drift_too_large/,
+  );
+  assert.throws(
+    () => validatePriceAiSnapshotCoverage([500, 504], 470),
+    /priceai_offer_count_too_small/,
+  );
+  assert.throws(
+    () => validatePriceAiSnapshotCoverage([8, 8], 7),
+    /priceai_offer_count_too_small/,
+  );
 });
 
 test('accepts only bounded HTTPS purchase links', () => {

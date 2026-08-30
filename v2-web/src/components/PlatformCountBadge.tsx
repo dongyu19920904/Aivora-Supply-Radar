@@ -26,11 +26,11 @@ export function PlatformCountBadge({ count, prefix = '已收录', suffix = '个�
   const className = "absolute top-0 right-0 sm:top-8 sm:right-8 flex items-center text-sm font-medium text-white bg-emerald-600 px-4 py-2 rounded-full shadow-md transition-all hover:bg-emerald-700 z-10 border border-emerald-500";
 
   return href ? (
-    <Link href={href} className={`${className} cursor-pointer`} aria-label={`查看${count}个渠道商`}>
+    <Link href={href} className={`${className} cursor-pointer`} aria-label={`${prefix}${count}${suffix}`}>
       {content}
     </Link>
   ) : (
-    <div className={`${className} cursor-default`}>
+    <div className={`${className} cursor-default`} aria-label={`${prefix}${count}${suffix}`}>
       {content}
     </div>
   );

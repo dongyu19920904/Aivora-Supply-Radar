@@ -81,6 +81,10 @@ try {
       const catalogActiveStates = visibleCatalogRows.map(
         (row) => row.dataset.activeOffer === 'true',
       );
+      const visibleOfferRows = Array.from(
+        document.querySelectorAll<HTMLElement>('[data-offer-status]'),
+      ).filter((row) => row.getClientRects().length > 0);
+      const offerStatuses = visibleOfferRows.map((row) => row.dataset.offerStatus || '');
       return {
         title: document.title,
         dark: document.documentElement.classList.contains('dark'),
@@ -96,10 +100,46 @@ try {
         ),
         catalogUnavailableCount: catalogActiveStates.filter((active) => !active).length,
         catalogSortControl: Boolean(document.querySelector('select[aria-label="商品排序"]')),
+        offerAvailabilityFilterCount: document.querySelectorAll('[data-offer-availability]').length,
+        offerZeroInventoryText: /库存\s*[:：]?\s*0(?:\D|$)/.test(document.body.innerText),
+        offerUnavailableBeforeAvailable: offerStatuses.some(
+          (status, index) => status !== 'in_stock' && offerStatuses.slice(index + 1).includes('in_stock'),
+        ),
+        unavailableFilterRows: 0,
+        unavailableFilterOnlyUnavailable: false,
+        unavailableFilterDisabledBuyButtons: 0,
       };
     });
     const screenshot = fileURLToPath(new URL(`${auditCase.name}.png`, outputDir));
     await page.screenshot({ path: screenshot, fullPage: true, caret: 'initial' });
+
+    if (auditCase.path === '/card-products/chatgpt-plus') {
+      const unavailableFilter = page.locator('[data-offer-availability="unavailable"]');
+      if (await unavailableFilter.count()) {
+        await Promise.all([
+          page.waitForResponse(
+            (response) => response.url().includes('/api/products/chatgpt-plus/offers')
+              && response.url().includes('availability=unavailable'),
+            { timeout: 30_000 },
+          ),
+          unavailableFilter.click(),
+        ]);
+        await page.waitForLoadState('networkidle', { timeout: 8_000 }).catch(() => undefined);
+        const unavailableFilterDiagnostics = await page.evaluate(() => {
+          const rows = Array.from(document.querySelectorAll<HTMLElement>('[data-offer-status]'))
+            .filter((row) => row.getClientRects().length > 0);
+          return {
+            unavailableFilterRows: rows.length,
+            unavailableFilterOnlyUnavailable: rows.length > 0
+              && rows.every((row) => row.dataset.offerStatus !== 'in_stock'),
+            unavailableFilterDisabledBuyButtons: rows.filter(
+              (row) => Boolean(row.querySelector('button:disabled')),
+            ).length,
+          };
+        });
+        Object.assign(diagnostics, unavailableFilterDiagnostics);
+      }
+    }
 
     const status = response?.status() || 0;
     const themeMatches = diagnostics.dark === (auditCase.theme === 'dark');
@@ -110,13 +150,21 @@ try {
       || diagnostics.catalogUnavailableCount !== 0
       || !diagnostics.catalogSortControl
     );
+    const detailFailed = auditCase.path === '/card-products/chatgpt-plus' && (
+      diagnostics.offerAvailabilityFilterCount !== 3
+      || diagnostics.offerZeroInventoryText
+      || diagnostics.offerUnavailableBeforeAvailable
+      || diagnostics.unavailableFilterOnlyUnavailable !== true
+      || diagnostics.unavailableFilterRows !== diagnostics.unavailableFilterDisabledBuyButtons
+    );
     const caseFailed = status !== 200
       || diagnostics.overflow > 1
       || diagnostics.brokenImages.length > 0
       || diagnostics.mainText < 80
       || !themeMatches
       || consoleErrors.length > 0
-      || catalogFailed;
+      || catalogFailed
+      || detailFailed;
     failed ||= caseFailed;
     results.push({
       name: auditCase.name,
@@ -124,6 +172,7 @@ try {
       ...diagnostics,
       themeMatches,
       catalogFailed,
+      detailFailed,
       consoleErrors,
       screenshot,
       result: caseFailed ? 'failed' : 'passed',

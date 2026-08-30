@@ -69,6 +69,8 @@ export async function GET(request: Request, context: { params: Promise<{ slug: s
 
     if (params.minPrice !== null) query = query.gte('price', params.minPrice);
     if (params.maxPrice !== null) query = query.lte('price', params.maxPrice);
+    if (params.availability === 'available') query = query.eq('status', 'in_stock');
+    if (params.availability === 'unavailable') query = query.in('status', ['out_of_stock', 'offline']);
     for (const term of params.searchTerms) {
       const targetIds = targetMatches.get(term) || [];
       const targetFilter = targetIds.length ? `,target_id.in.(${targetIds.join(',')})` : '';

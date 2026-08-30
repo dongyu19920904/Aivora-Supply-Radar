@@ -7,6 +7,13 @@ export interface ProductOfferQueryParams {
   excludedTerms: string[];
   minPrice: number | null;
   maxPrice: number | null;
+  availability: ProductOfferAvailability;
+}
+
+export type ProductOfferAvailability = 'all' | 'available' | 'unavailable';
+
+function availability(value: string | null): ProductOfferAvailability {
+  return value === 'available' || value === 'unavailable' ? value : 'all';
 }
 
 function boundedInteger(value: string | null, fallback: number, min: number, max: number): number {
@@ -35,5 +42,6 @@ export function parseProductOfferQuery(searchParams: URLSearchParams): ProductOf
     excludedTerms: common.excludedTerms,
     minPrice,
     maxPrice: minPrice !== null && maxPrice !== null && maxPrice < minPrice ? minPrice : maxPrice,
+    availability: availability(searchParams.get('availability')),
   };
 }

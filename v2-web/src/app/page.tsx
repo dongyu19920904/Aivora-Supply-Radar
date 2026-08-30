@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 export const dynamic = 'force-dynamic';
 
 const faqItems = [
-  { question: 'ChatGPT Plus 代充价格怎么查询？', answer: '在货源市场选择 ChatGPT 平台或搜索代充关键词，可查看公开报价、在售渠道、库存、更新时间和原始商品链接。' },
+  { question: 'ChatGPT Plus 代充价格怎么查询？', answer: '在货源市场选择 ChatGPT 平台或搜索代充关键词，可查看公开报价、可购买状态、库存、更新时间和原始商品链接。' },
   { question: 'Claude Pro 成品号和代充有什么区别？', answer: '成品号通常交付已经开通订阅的账号；代充面向买家已有账号。账号归属、开通方式和售后边界不同，不能只比较价格。' },
   { question: 'AI 订阅比价应该看哪些信息？', answer: '至少同时核验商品类型、库存、更新时间、原始链接、售后说明和渠道稳定性。最低价只是一项信号。' },
   { question: '官方订阅不同地区价格在哪里看？', answer: '官方价格页比较 ChatGPT、Claude 和 Grok 在不同 App Store 地区的公开订阅价格，并区分月付与年付计划。' },

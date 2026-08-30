@@ -17,6 +17,14 @@ export interface PriceAiOfferForImport {
 
 export type PriceAiOfferStatus = 'in_stock' | 'out_of_stock' | 'offline' | 'blacklisted';
 
+export interface PriceAiSnapshotCoverage {
+  minTotal: number;
+  maxTotal: number;
+  totalDrift: number;
+  totalDriftLimit: number;
+  missingLimit: number;
+}
+
 export interface PriceAiOfferSnapshot {
   price: number | string | null;
   status: PriceAiOfferStatus;
@@ -88,10 +96,45 @@ export function isAllowedPriceAiProduct(product: PriceAiProductForImport): boole
 
 export function normalizePriceAiStatus(status: unknown, effectiveStatus: unknown, hidden: unknown): PriceAiOfferStatus {
   if (hidden === true) return 'blacklisted';
-  if (status === 'in_stock' || effectiveStatus === 'available') return 'in_stock';
-  if (status === 'out_of_stock' || effectiveStatus === 'unavailable') return 'out_of_stock';
+  // `status` describes the product's stock. `effectiveStatus` describes whether
+  // the source record is currently usable and must never promote a sold-out
+  // product to an in-stock offer.
+  if (status === 'in_stock' || status === 'low_stock') return 'in_stock';
+  if (status === 'out_of_stock') return 'out_of_stock';
   if (status === 'blacklisted') return 'blacklisted';
+  if (status === 'offline') return 'offline';
+  void effectiveStatus;
   return 'offline';
+}
+
+export function validatePriceAiSnapshotCoverage(
+  observedTotals: readonly number[],
+  uniqueOfferCount: number,
+): PriceAiSnapshotCoverage {
+  if (!observedTotals.length || observedTotals.some((total) => !Number.isInteger(total) || total < 0)) {
+    throw new Error('priceai_invalid_observed_totals');
+  }
+  if (!Number.isInteger(uniqueOfferCount) || uniqueOfferCount < 0) {
+    throw new Error('priceai_invalid_unique_offer_count');
+  }
+
+  const minTotal = Math.min(...observedTotals);
+  const maxTotal = Math.max(...observedTotals);
+  const totalDrift = maxTotal - minTotal;
+  const totalDriftLimit = Math.max(25, Math.ceil(maxTotal * 0.02));
+  if (totalDrift > totalDriftLimit) {
+    throw new Error(`priceai_total_drift_too_large:${minTotal}_${maxTotal}`);
+  }
+
+  const missingLimit = maxTotal < 100 ? 0 : Math.max(10, Math.ceil(maxTotal * 0.01));
+  if (uniqueOfferCount < Math.max(0, minTotal - missingLimit)) {
+    throw new Error(`priceai_offer_count_too_small:min_${minTotal}:received_${uniqueOfferCount}`);
+  }
+  if (uniqueOfferCount > maxTotal + totalDriftLimit) {
+    throw new Error(`priceai_offer_count_too_large:max_${maxTotal}:received_${uniqueOfferCount}`);
+  }
+
+  return { minTotal, maxTotal, totalDrift, totalDriftLimit, missingLimit };
 }
 
 export function validHttpsUrl(value: unknown): string | null {

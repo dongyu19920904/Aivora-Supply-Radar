@@ -8,8 +8,10 @@ import {
   catalogSortOrderForSourceIndex,
   isAllowedPriceAiProduct,
   normalizePriceAiStatus,
+  validatePriceAiSnapshotCoverage,
   validHttpsUrl,
   type PriceAiOfferForImport,
+  type PriceAiSnapshotCoverage,
 } from '../src/lib/priceai-import';
 
 const PAGE_SIZE = 100;
@@ -64,6 +66,11 @@ interface ExplorerPayload {
   degraded: boolean;
   generatedAt: string;
   products: PriceAiProduct[];
+}
+
+interface ProductOfferSnapshot {
+  offers: PriceAiOffer[];
+  coverage: PriceAiSnapshotCoverage;
 }
 
 function requiredEnv(name: string): string {
@@ -129,34 +136,38 @@ async function mapConcurrent<T, R>(items: T[], mapper: (item: T) => Promise<R>):
   return results;
 }
 
-async function fetchProductOffers(base: string, product: PriceAiProduct): Promise<PriceAiOffer[]> {
+async function fetchProductOffers(base: string, product: PriceAiProduct): Promise<ProductOfferSnapshot> {
   const rows: PriceAiOffer[] = [];
+  const observedTotals: number[] = [];
   let offset = 0;
-  let expectedTotal: number | null = null;
-  while (expectedTotal === null || offset < expectedTotal) {
+  let latestTotal: number | null = null;
+  while (latestTotal === null || offset < latestTotal) {
     const page = await fetchJson<OfferPage>(
       `${base}/api/products/${encodeURIComponent(product.id)}/offers?limit=${PAGE_SIZE}&offset=${offset}`,
     );
     if (page.degraded || !Array.isArray(page.offers) || !Number.isInteger(page.total) || page.total < 0) {
       throw new Error(`priceai_degraded_or_invalid:${product.id}`);
     }
-    if (expectedTotal === null) expectedTotal = page.total;
-    if (page.total !== expectedTotal) throw new Error(`priceai_total_changed:${product.id}`);
+    observedTotals.push(page.total);
+    latestTotal = page.total;
     rows.push(...page.offers);
-    if (!page.offers.length && offset < expectedTotal) throw new Error(`priceai_incomplete_page:${product.id}`);
-    if (offset + page.offers.length >= expectedTotal) break;
+    if (!page.offers.length && offset < latestTotal) throw new Error(`priceai_incomplete_page:${product.id}`);
+    if (offset + page.offers.length >= latestTotal) break;
     offset += PAGE_SIZE - PAGE_OVERLAP;
     await new Promise((resolve) => setTimeout(resolve, 250));
   }
   const unique = new Map(rows.map((offer) => [offer.id, offer]));
-  const allowedMissing = expectedTotal < 100 ? 0 : Math.max(2, Math.floor(expectedTotal * 0.002));
-  if (unique.size > expectedTotal || expectedTotal - unique.size > allowedMissing) {
-    throw new Error(`priceai_offer_count_mismatch:${product.id}:expected_${expectedTotal}:received_${unique.size}`);
+  let coverage: PriceAiSnapshotCoverage;
+  try {
+    coverage = validatePriceAiSnapshotCoverage(observedTotals, unique.size);
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : 'invalid_coverage';
+    throw new Error(`priceai_offer_count_mismatch:${product.id}:${reason}`);
   }
-  return [...unique.values()];
+  return { offers: [...unique.values()], coverage };
 }
 
-async function loadOrFetchProductOffers(base: string, product: PriceAiProduct, checkpointDir: string): Promise<PriceAiOffer[]> {
+async function loadOrFetchProductOffers(base: string, product: PriceAiProduct, checkpointDir: string): Promise<ProductOfferSnapshot> {
   const safeName = product.id.replace(/[^a-zA-Z0-9_-]/g, '_');
   const checkpointPath = path.join(checkpointDir, `${safeName}.json`);
   try {
@@ -166,18 +177,28 @@ async function loadOrFetchProductOffers(base: string, product: PriceAiProduct, c
       if (cached && typeof cached === 'object'
         && (cached as { productId?: unknown }).productId === product.id
         && Array.isArray((cached as { offers?: unknown }).offers)) {
-        return (cached as { offers: PriceAiOffer[] }).offers;
+        const offers = (cached as { offers: PriceAiOffer[] }).offers;
+        const cachedCoverage = (cached as { coverage?: PriceAiSnapshotCoverage }).coverage;
+        return {
+          offers,
+          coverage: cachedCoverage || validatePriceAiSnapshotCoverage([offers.length], offers.length),
+        };
       }
     }
   } catch {
     // Missing, stale, or malformed checkpoints are fetched again.
   }
 
-  const offers = await fetchProductOffers(base, product);
+  const snapshot = await fetchProductOffers(base, product);
   const temporaryPath = `${checkpointPath}.tmp`;
-  await writeFile(temporaryPath, JSON.stringify({ productId: product.id, fetchedAt: new Date().toISOString(), offers }), 'utf8');
+  await writeFile(temporaryPath, JSON.stringify({
+    productId: product.id,
+    fetchedAt: new Date().toISOString(),
+    offers: snapshot.offers,
+    coverage: snapshot.coverage,
+  }), 'utf8');
   await rename(temporaryPath, checkpointPath);
-  return offers;
+  return snapshot;
 }
 
 async function cleanCheckpointDirectory(checkpointDir: string) {
@@ -216,10 +237,8 @@ async function upsertBatches(client: SupabaseClient, table: string, rows: Record
 async function main() {
   const base = apiBase();
   const checkpointDir = requiredEnv('PRICEAI_SNAPSHOT_CACHE_DIR');
+  const dryRun = process.argv.includes('--dry-run');
   await mkdir(checkpointDir, { recursive: true });
-  const supabase = createClient(requiredEnv('SUPABASE_URL'), requiredEnv('SUPABASE_SERVICE_ROLE_KEY'), {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
   const explorer = await fetchJson<ExplorerPayload>(`${base}/api/explorer`);
   if (!explorer.configured || explorer.degraded || !Array.isArray(explorer.products)) {
     throw new Error('priceai_explorer_unavailable');
@@ -229,12 +248,12 @@ async function main() {
 
   let completedProducts = 0;
   const productOffers = await mapConcurrent(products, async (product) => {
-    const offers = await loadOrFetchProductOffers(base, product, checkpointDir);
+    const snapshot = await loadOrFetchProductOffers(base, product, checkpointDir);
     completedProducts += 1;
     if (completedProducts % 5 === 0 || completedProducts === products.length) {
       console.log(JSON.stringify({ stage: 'source_fetch', completedProducts, totalProducts: products.length }));
     }
-    return { product, offers };
+    return { product, ...snapshot };
   });
   const rawOffers = productOffers.flatMap(({ product, offers }) => offers.map((offer) => ({ product, offer })));
 
@@ -262,6 +281,38 @@ async function main() {
       ? { product: row.product, offer: preferredOffer(existing.offer, row.offer), count: existing.count + 1 }
       : { product: row.product, offer: row.offer, count: 1 });
   }
+
+  const normalizedStatusCounts = new Map<string, number>();
+  for (const { offer } of grouped.values()) {
+    const status = normalizePriceAiStatus(offer.status, offer.effectiveStatus, offer.hidden);
+    normalizedStatusCounts.set(status, (normalizedStatusCounts.get(status) || 0) + 1);
+  }
+  const totalDriftProducts = productOffers.filter(({ coverage }) => coverage.totalDrift > 0).length;
+  const maxTotalDrift = Math.max(0, ...productOffers.map(({ coverage }) => coverage.totalDrift));
+
+  if (dryRun) {
+    await cleanCheckpointDirectory(checkpointDir);
+    console.log(JSON.stringify({
+      source: base,
+      mode: 'dry-run',
+      products: products.length,
+      rawOffers: rawOffers.length,
+      groupedOffers: grouped.size,
+      excludedMixedProduct: explorer.products.length - products.length,
+      invalidOffersSkipped: invalidCount,
+      invalidOfferReasons: invalidReasons,
+      normalizedStatusCounts: Object.fromEntries([...normalizedStatusCounts.entries()].sort()),
+      totalDriftProducts,
+      maxTotalDrift,
+      databaseWrites: 0,
+      validation: 'passed',
+    }));
+    return;
+  }
+
+  const supabase = createClient(requiredEnv('SUPABASE_URL'), requiredEnv('SUPABASE_SERVICE_ROLE_KEY'), {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
 
   const platformNames = [...new Set(products.map((product) => product.platform.trim()).filter(Boolean))];
   const { data: platforms, error: platformError } = await supabase
@@ -423,6 +474,9 @@ async function main() {
     excludedMixedProduct: explorer.products.length - products.length,
     invalidOffersSkipped: invalidCount,
     invalidOfferReasons: invalidReasons,
+    normalizedStatusCounts: Object.fromEntries([...normalizedStatusCounts.entries()].sort()),
+    totalDriftProducts,
+    maxTotalDrift,
     staleOffersRemoved: staleIds.length,
     priceChangesRecorded: changeRows.length,
     validation: 'passed',

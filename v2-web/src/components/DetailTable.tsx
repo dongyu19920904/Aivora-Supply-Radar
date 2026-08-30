@@ -1,9 +1,9 @@
 import React from 'react';
 import { ProductDetail, ProductType } from '../data';
 import { Badge } from './Badge';
-import { ArrowRight } from 'lucide-react';
 import { getRelativeTime } from '../lib/utils';
 import { GoToBuyButton } from './GoToBuyButton';
+import { isOfferPurchasable, visibleInventory } from '../lib/offer-availability';
 
 interface DetailTableProps {
   details: ProductDetail[];
@@ -25,17 +25,18 @@ export const DetailTable: React.FC<DetailTableProps> = ({ details, types, showCa
 
   const getStatusBadge = (detail: ProductDetail) => {
     if (detail.status === 'in_stock') {
-      if (detail.inventory != null && detail.inventory >= 0) {
+      const inventory = visibleInventory(detail);
+      if (inventory !== null) {
         return (
           <div className="flex flex-col gap-1.5 items-start">
-            <Badge variant="success">正常</Badge>
+            <Badge variant="success">可购买</Badge>
             <span className="inline-flex items-center rounded-md bg-emerald-50 px-1.5 py-0.5 text-[11px] font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
-              库存: {detail.inventory}
+              库存 {inventory}
             </span>
           </div>
         );
       }
-      return <Badge variant="success">正常</Badge>;
+      return <Badge variant="success">可购买</Badge>;
     }
     if (detail.status === 'out_of_stock') {
       return <Badge variant="warning">缺货</Badge>;
@@ -45,6 +46,8 @@ export const DetailTable: React.FC<DetailTableProps> = ({ details, types, showCa
     }
     return <Badge>未知</Badge>;
   };
+
+  const firstUnavailableIndex = details.findIndex((detail) => !isOfferPurchasable(detail));
 
 
 
@@ -66,11 +69,20 @@ export const DetailTable: React.FC<DetailTableProps> = ({ details, types, showCa
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 w-full">
       {/* Mobile Card Layout */}
       <div className="flex flex-col gap-3 md:hidden">
-        {details.map((detail) => {
+        {details.map((detail, index) => {
           const typeInfo = types?.find(t => t.id === detail.typeId);
-          const isBuyDisabled = detail.status === 'offline' || detail.status === 'out_of_stock';
+          const isBuyDisabled = !isOfferPurchasable(detail);
           return (
-            <div key={detail.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex flex-col gap-3">
+            <React.Fragment key={detail.id}>
+              {index === firstUnavailableIndex && (
+                <div data-unavailable-divider className="rounded-lg border border-gray-200 bg-gray-100 px-4 py-2.5 text-xs font-semibold text-gray-600">
+                  以下报价当前不可购买，保留用于观察补货和供给缺口
+                </div>
+              )}
+            <div
+              data-offer-status={detail.status}
+              className={`${isBuyDisabled ? 'bg-gray-50 opacity-80' : 'bg-white'} rounded-xl shadow-sm border border-gray-100 p-4 flex flex-col gap-3`}
+            >
               {/* Top Row: Channel and Status */}
               <div className="flex justify-between items-start gap-2">
                 <div className="flex flex-col gap-1.5 min-w-0">
@@ -113,8 +125,8 @@ export const DetailTable: React.FC<DetailTableProps> = ({ details, types, showCa
                 <div className="flex flex-col">
                   <span suppressHydrationWarning className="text-[11px] text-gray-400 mb-1">{getRelativeTime(detail.updateTime)}</span>
                   <div className="flex items-baseline gap-0.5">
-                    <span className="text-emerald-600 font-semibold text-sm">¥</span>
-                    <span className="text-emerald-600 font-bold text-xl leading-none">{detail.price.toFixed(2)}</span>
+                    <span className={`${isBuyDisabled ? 'text-gray-400' : 'text-emerald-600'} font-semibold text-sm`}>¥</span>
+                    <span className={`${isBuyDisabled ? 'text-gray-400 line-through decoration-gray-300' : 'text-emerald-600'} font-bold text-xl leading-none`}>{detail.price.toFixed(2)}</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -132,6 +144,7 @@ export const DetailTable: React.FC<DetailTableProps> = ({ details, types, showCa
                 </div>
               </div>
             </div>
+            </React.Fragment>
           );
         })}
       </div>
@@ -157,11 +170,25 @@ export const DetailTable: React.FC<DetailTableProps> = ({ details, types, showCa
             </tr>
           </thead>
           <tbody className="bg-white">
-            {details.map((detail) => {
+            {details.map((detail, index) => {
               const typeInfo = types?.find(t => t.id === detail.typeId);
-              const isBuyDisabled = detail.status === 'offline' || detail.status === 'out_of_stock';
+              const isBuyDisabled = !isOfferPurchasable(detail);
               return (
-                <tr key={detail.id} className="even:bg-gray-50/80 hover:bg-gray-100 transition-colors">
+                <React.Fragment key={detail.id}>
+                  {index === firstUnavailableIndex && (
+                    <tr data-unavailable-divider>
+                      <td
+                        colSpan={mode === 'all' ? 9 : (showCategoryInfo ? 8 : 7)}
+                        className="border-y border-gray-200 bg-gray-100 px-4 py-2.5 text-xs font-semibold text-gray-600"
+                      >
+                        以下报价当前不可购买，保留用于观察补货和供给缺口
+                      </td>
+                    </tr>
+                  )}
+                <tr
+                  data-offer-status={detail.status}
+                  className={`${isBuyDisabled ? 'bg-gray-50/90 text-gray-500' : 'even:bg-gray-50/80 hover:bg-gray-100'} transition-colors`}
+                >
                   {(showCategoryInfo || mode === 'all') && (
                     <td className="px-4 py-4 text-gray-900 break-words">{detail.platform || typeInfo?.platform || '-'}</td>
                   )}
@@ -185,7 +212,7 @@ export const DetailTable: React.FC<DetailTableProps> = ({ details, types, showCa
                     </div>
                   </td>
                   <td className="px-4 py-4 text-gray-500 break-words">{detail.originalName}</td>
-                  <td className="px-4 py-4 text-emerald-600 font-medium">¥{detail.price.toFixed(2)}</td>
+                  <td className={`px-4 py-4 font-medium ${isBuyDisabled ? 'text-gray-400 line-through decoration-gray-300' : 'text-emerald-600'}`}>¥{detail.price.toFixed(2)}</td>
                   <td suppressHydrationWarning className="px-4 py-4 text-gray-500 text-xs">{getRelativeTime(detail.updateTime)}</td>
                   <td className="px-4 py-4 text-center">
                     <GoToBuyButton 
@@ -202,6 +229,7 @@ export const DetailTable: React.FC<DetailTableProps> = ({ details, types, showCa
                     </button>
                   </td>
                 </tr>
+                </React.Fragment>
             )})}
           </tbody>
         </table>

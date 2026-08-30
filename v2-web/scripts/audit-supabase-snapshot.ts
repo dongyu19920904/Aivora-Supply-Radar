@@ -11,6 +11,7 @@ interface OfferRow {
   status: string;
   url: string;
   tags: string[] | null;
+  inventory_level: number | null;
   updated_at: string;
   last_crawled_at: string | null;
 }
@@ -72,7 +73,7 @@ async function main() {
     exactCount(admin, 'product_platforms'),
     fetchAll<CatalogRow>(admin, 'product_catalog', 'id,slug,name'),
     fetchAll<TargetRow>(admin, 'crawler_targets', 'id,name'),
-    fetchAll<OfferRow>(admin, 'market_offers', 'id,target_id,canonical_product_id,product_title,price,status,url,tags,updated_at,last_crawled_at'),
+    fetchAll<OfferRow>(admin, 'market_offers', 'id,target_id,canonical_product_id,product_title,price,status,url,tags,inventory_level,updated_at,last_crawled_at'),
     publicClient.rpc('get_product_catalog_summary'),
   ]);
   if (publicSummary.error) throw publicSummary.error;
@@ -88,6 +89,12 @@ async function main() {
   let invalidHttpsUrls = 0;
   let missingCatalog = 0;
   let missingTarget = 0;
+  let inStockWithZeroInventory = 0;
+  let outOfStockWithPositiveInventory = 0;
+  let inStockWithNonPositivePrice = 0;
+  let newestCrawledAt = '';
+  let oldestCrawledAt = '';
+  const productsWithAvailableOffers = new Set<string>();
 
   for (const offer of offers) {
     const source = offer.tags?.includes('source:priceai')
@@ -97,6 +104,17 @@ async function main() {
     if (!offer.url.startsWith('https://')) invalidHttpsUrls += 1;
     if (!offer.canonical_product_id || !catalogById.has(offer.canonical_product_id)) missingCatalog += 1;
     if (!offer.target_id || !targetById.has(offer.target_id)) missingTarget += 1;
+    if (offer.status === 'in_stock') {
+      if (offer.inventory_level === 0) inStockWithZeroInventory += 1;
+      if (!(Number(offer.price) > 0)) inStockWithNonPositivePrice += 1;
+      if (offer.canonical_product_id) productsWithAvailableOffers.add(offer.canonical_product_id);
+    }
+    if (offer.status === 'out_of_stock' && Number(offer.inventory_level) > 0) {
+      outOfStockWithPositiveInventory += 1;
+    }
+    const crawledAt = offer.last_crawled_at || offer.updated_at;
+    if (crawledAt && (!newestCrawledAt || crawledAt > newestCrawledAt)) newestCrawledAt = crawledAt;
+    if (crawledAt && (!oldestCrawledAt || crawledAt < oldestCrawledAt)) oldestCrawledAt = crawledAt;
     if (offer.canonical_product_id) {
       offerCountsByProduct.set(offer.canonical_product_id, (offerCountsByProduct.get(offer.canonical_product_id) || 0) + 1);
     }
@@ -114,6 +132,10 @@ async function main() {
     .sort((a, b) => b[1] - a[1])
     .map(([id, count]) => ({ id, name: targetById.get(id)?.name || 'unknown', count }))[0] || null;
   const summaryRows = (publicSummary.data || []) as SummaryRow[];
+  const chatGptPlus = catalog.find((row) => row.slug === 'chatgpt-plus');
+  const chatGptPlusOffers = chatGptPlus
+    ? offers.filter((offer) => offer.canonical_product_id === chatGptPlus.id && offer.status !== 'blacklisted')
+    : [];
 
   const audit = {
     platformCount,
@@ -127,6 +149,22 @@ async function main() {
     largestTarget,
     publicSummaryRows: summaryRows.length,
     publicSummaryMaxChannelCount: Math.max(0, ...summaryRows.map((row) => Number(row.channel_count || 0))),
+    productsWithAvailableOffers: productsWithAvailableOffers.size,
+    productsWithoutAvailableOffers: catalog.length - productsWithAvailableOffers.size,
+    inStockWithZeroInventory,
+    outOfStockWithPositiveInventory,
+    inStockWithNonPositivePrice,
+    newestCrawledAt,
+    oldestCrawledAt,
+    chatGptPlus: {
+      total: chatGptPlusOffers.length,
+      inStock: chatGptPlusOffers.filter((offer) => offer.status === 'in_stock').length,
+      outOfStock: chatGptPlusOffers.filter((offer) => offer.status === 'out_of_stock').length,
+      offline: chatGptPlusOffers.filter((offer) => offer.status === 'offline').length,
+      inStockWithZeroInventory: chatGptPlusOffers.filter(
+        (offer) => offer.status === 'in_stock' && offer.inventory_level === 0,
+      ).length,
+    },
     invalidHttpsUrls,
     missingCatalog,
     missingTarget,

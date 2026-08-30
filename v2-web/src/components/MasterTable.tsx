@@ -28,7 +28,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({ products }) => {
                     <th scope="col" className="w-[7%] px-5 py-4 font-semibold text-gray-900">序号</th>
                     <th scope="col" className="w-[43%] px-5 py-4 font-semibold text-gray-900">标准商品</th>
                     <th scope="col" className="w-[13%] px-5 py-4 font-semibold text-gray-900">最低价</th>
-                    <th scope="col" className="w-[12%] px-5 py-4 font-semibold text-gray-900">在售渠道</th>
+                    <th scope="col" className="w-[12%] px-5 py-4 font-semibold text-gray-900">可购买报价</th>
                     <th scope="col" className="w-[12%] px-5 py-4 font-semibold text-gray-900">最近更新</th>
                     <th scope="col" className="w-[13%] px-5 py-4 font-semibold text-gray-900 text-right">操作</th>
                   </tr>
@@ -39,7 +39,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({ products }) => {
                       {firstUnavailableIndex > 0 && index === firstUnavailableIndex && (
                         <tr>
                           <td colSpan={6} className="border-y border-gray-200 bg-gray-100 px-5 py-2.5 text-xs font-semibold text-gray-600">
-                            以下商品当前暂无在售渠道，仍保留在完整目录中
+                            以下商品当前暂无可购买报价，仍保留在完整目录中
                           </td>
                         </tr>
                       )}
@@ -63,7 +63,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({ products }) => {
                         </td>
                         <td className={`px-5 py-4 font-mono font-semibold tabular-nums ${product.lowestPrice === null ? 'text-gray-400' : 'text-emerald-700'}`}>{priceLabel(product.lowestPrice)}</td>
                         <td className={`px-5 py-4 font-medium tabular-nums ${product.channelCount === 0 ? 'text-gray-400' : 'text-gray-700'}`}>
-                          {product.channelCount === 0 ? '暂无在售' : product.channelCount}
+                          {product.channelCount === 0 ? '暂无可购买' : product.channelCount}
                         </td>
                         <td suppressHydrationWarning className="px-5 py-4 text-xs text-gray-500">
                           {product.updatedAt ? getRelativeTime(product.updatedAt) : '待首次采集'}
@@ -86,7 +86,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({ products }) => {
                 <React.Fragment key={product.id}>
                   {firstUnavailableIndex > 0 && index === firstUnavailableIndex && (
                     <div className="bg-gray-100 px-4 py-2.5 text-xs font-semibold text-gray-600">
-                      以下商品当前暂无在售渠道
+                      以下商品当前暂无可购买报价
                     </div>
                   )}
                   <div
@@ -112,7 +112,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({ products }) => {
                     )}
                     <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-gray-500">
                       <span className={`rounded px-1.5 py-0.5 font-semibold ${product.channelCount === 0 ? 'bg-gray-100 text-gray-500' : 'bg-blue-50 text-blue-700'}`}>
-                        {product.channelCount === 0 ? '暂无在售' : `在售 ${product.channelCount}`}
+                        {product.channelCount === 0 ? '暂无可购买' : `可购买 ${product.channelCount}`}
                       </span>
                       <span suppressHydrationWarning className="text-gray-400">
                         {product.updatedAt ? getRelativeTime(product.updatedAt) : '待首次采集'}

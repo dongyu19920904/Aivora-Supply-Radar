@@ -11,6 +11,7 @@ import { FeedbackModal } from '../../../components/FeedbackModal';
 import { YoufenkAffiliateBanner } from '../../../components/YoufenkAffiliateAd';
 import { useBuyAction } from '../../../hooks/useBuyAction';
 import { PlatformCountBadge } from '../../../components/PlatformCountBadge';
+import type { ProductOfferAvailability } from '../../../lib/product-offer-query';
 
 interface ProductDetailClientProps {
   slug: string;
@@ -46,6 +47,7 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ slug, 
   const [searchQuery, setSearchQuery] = useState('');
   const [customMinPrice, setCustomMinPrice] = useState('');
   const [customMaxPrice, setCustomMaxPrice] = useState('');
+  const [availability, setAvailability] = useState<ProductOfferAvailability>('all');
   const [currentDetails, setCurrentDetails] = useState(initialDetails);
   const [total, setTotal] = useState(initialTotal);
   const [loading, setLoading] = useState(false);
@@ -59,11 +61,12 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ slug, 
     if (searchQuery.trim()) params.set('q', searchQuery.trim());
     if (customMinPrice) params.set('min', customMinPrice);
     if (customMaxPrice) params.set('max', customMaxPrice);
+    if (availability !== 'all') params.set('availability', availability);
     return `/api/products/${encodeURIComponent(slug)}/offers?${params.toString()}`;
-  }, [customMaxPrice, customMinPrice, searchQuery, slug]);
+  }, [availability, customMaxPrice, customMinPrice, searchQuery, slug]);
 
   useEffect(() => {
-    if (!searchQuery.trim() && !customMinPrice && !customMaxPrice) {
+    if (availability === 'all' && !searchQuery.trim() && !customMinPrice && !customMaxPrice) {
       const resetTimer = window.setTimeout(() => {
         setCurrentDetails(initialDetails);
         setTotal(initialTotal);
@@ -95,7 +98,7 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ slug, 
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [buildRequestUrl, customMaxPrice, customMinPrice, initialDetails, initialTotal, searchQuery]);
+  }, [availability, buildRequestUrl, customMaxPrice, customMinPrice, initialDetails, initialTotal, searchQuery]);
 
   const loadMore = useCallback(async () => {
     if (loadingMore || currentDetails.length >= total) return;
@@ -119,11 +122,18 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ slug, 
   }, [buildRequestUrl, currentDetails.length, loadingMore, total]);
 
   const hasMore = currentDetails.length < total;
+  const availableTotal = Math.max(0, selectedProduct.channelCount);
+  const unavailableTotal = Math.max(0, initialTotal - availableTotal);
+  const availabilityOptions: Array<{ value: ProductOfferAvailability; label: string; count: number }> = [
+    { value: 'all', label: '全部报价', count: initialTotal },
+    { value: 'available', label: '可购买', count: availableTotal },
+    { value: 'unavailable', label: '缺货 / 下架', count: unavailableTotal },
+  ];
 
   return (
     <>
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 relative">
-        <PlatformCountBadge count={selectedProduct.channelCount} prefix="该商品有" suffix="个渠道报价" />
+        <PlatformCountBadge count={availableTotal} prefix="当前" suffix="条可购买报价" />
         
         {/* Option A: Static Header with Title and Back Button */}
         <div className="mb-6 flex flex-col md:flex-row items-start gap-4 md:gap-6">
@@ -140,6 +150,36 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ slug, 
         </div>
 
         <div className="flex flex-col relative">
+          <div
+            className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-gray-200 bg-white p-2 shadow-sm"
+            aria-label="报价库存筛选"
+          >
+            {availabilityOptions.map((option) => {
+              const active = option.value === availability;
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  data-offer-availability={option.value}
+                  aria-pressed={active}
+                  onClick={() => setAvailability(option.value)}
+                  className={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 ${
+                    active
+                      ? 'bg-emerald-600 text-white shadow-sm'
+                      : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  {option.label}
+                  <span className={`ml-1.5 font-mono text-xs tabular-nums ${active ? 'text-emerald-50' : 'text-gray-500'}`}>
+                    {option.count}
+                  </span>
+                </button>
+              );
+            })}
+            <span className="ml-auto hidden text-xs text-gray-500 sm:inline">
+              默认可购买优先；缺货记录保留用于观察补货机会
+            </span>
+          </div>
           <FilterBar
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
@@ -147,6 +187,7 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ slug, 
               setSearchQuery("");
               setCustomMinPrice("");
               setCustomMaxPrice("");
+              setAvailability('all');
             }}
             searchPlaceholder="在当前商品中搜索（-关键词可排除）"
             searchHelp="排除不想看的结果：在词语前加“-”。例如输入“-共享”，就不会显示含“共享”的商品。"

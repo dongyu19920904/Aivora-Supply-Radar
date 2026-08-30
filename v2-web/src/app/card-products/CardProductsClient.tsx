@@ -119,7 +119,7 @@ export const CardProductsClient: React.FC<CardProductsClientProps> = ({ initialP
           </Link>
         </div>
         <p className="text-sm text-gray-500 max-w-4xl leading-relaxed">
-          先看有在售渠道的核心 AI 商品，再按渠道覆盖和更新时间判断。推荐排序不代表销量或收益承诺，购买或上架前仍需打开详情核验交付、售后与原始链接。
+          先看当前可购买的核心 AI 商品，再按可购买报价数和更新时间判断。推荐排序不代表销量或收益承诺，购买或上架前仍需打开详情核验交付、售后与原始链接。
         </p>
       </div>
 
@@ -130,11 +130,11 @@ export const CardProductsClient: React.FC<CardProductsClientProps> = ({ initialP
         </div>
         <div className="bg-white px-4 py-3">
           <div className="font-mono text-xl font-bold tabular-nums text-emerald-700">{availableCount}</div>
-          <div className="mt-0.5 text-xs text-gray-500">当前有在售渠道</div>
+          <div className="mt-0.5 text-xs text-gray-500">当前可购买商品</div>
         </div>
         <div className="bg-white px-4 py-3">
           <div className="font-mono text-xl font-bold tabular-nums text-gray-600">{unavailableCount}</div>
-          <div className="mt-0.5 text-xs text-gray-500">暂无在售，排在后面</div>
+          <div className="mt-0.5 text-xs text-gray-500">暂不可购买，排在后面</div>
         </div>
         <Link href="/channels" className="group bg-white px-4 py-3 transition-colors hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-amber-500">
           <div className="font-mono text-xl font-bold tabular-nums text-gray-950">{platformCount}</div>
@@ -194,7 +194,7 @@ export const CardProductsClient: React.FC<CardProductsClientProps> = ({ initialP
                     }`}
                   >
                     <span className="sm:hidden">
-                      {option.value === 'available' ? '在售' : option.value === 'unavailable' ? '待补' : '全部'}
+                      {option.value === 'available' ? '可买' : option.value === 'unavailable' ? '待补' : '全部'}
                     </span>
                     <span className="hidden sm:inline">{option.label}</span>{' '}
                     <span className="font-mono tabular-nums">{count}</span>
@@ -228,7 +228,7 @@ export const CardProductsClient: React.FC<CardProductsClientProps> = ({ initialP
             {' / '}
             <strong className="font-mono tabular-nums text-gray-900">{filteredProducts.length}</strong> 个匹配商品
           </span>
-          <span>推荐规则：有在售 → 核心 AI 商品 → 渠道覆盖 → 更新时间</span>
+          <span>推荐规则：可购买 → 核心 AI 商品 → 报价覆盖 → 更新时间</span>
         </div>
         
         <div className="min-h-[400px] relative">
