@@ -348,6 +348,8 @@
 - 新增纯前端利润计算器，并从账号商机列表和详情连接到货源与利润动作；
 - 增加 320、390、768、1280 px 的发布视觉审计，覆盖日夜主题、canonical、单一 H1、横向溢出、按钮文字换行、坏图和控制台错误。
 
-本地验收结果：Node 单元测试 28/28、Python 官方价格解析测试 22/22、Root/V2 TypeScript、V2 Next 生产构建、Supabase migration dry-run 均通过；V2 ESLint 为 0 error、101 个继承 warning；20 个关键页面/视口/主题视觉用例全部通过。Windows 上的 OpenNext 本地打包因其官方不支持的符号链接行为出现 `EPERM`，因此 OpenNext 产物以 GitHub Linux CI 和预览 Worker 为发布门禁。
+本地验收结果：Node 单元测试 28/28、Python 官方价格解析测试 23/23、Root/V2 TypeScript、V2 Next 生产构建、Supabase migration dry-run 均通过；V2 ESLint 为 0 error、101 个继承 warning；20 个关键页面/视口/主题视觉用例全部通过。Windows 上的 OpenNext 本地打包因其官方不支持的符号链接行为出现 `EPERM`，因此 OpenNext 产物以 GitHub Linux CI 和预览 Worker 为发布门禁。
+
+生产前的单次官方价真实采集又发现 Apple 新增 `500 Credits`、`1000 Credits`，旧规则只识别 `100 Credits`，因此安全拒绝整批写入。已将 ChatGPT 纯数字 Credits 识别为可展示点数包，并保留对 `Unlimited Credits` 等未知名称的阻断回归测试；本轮不重复触发生产采集，由下一次独立日程验证。
 
 仍按原计划留到后续独立发布：真实社区账户/帖子/回复、收藏提醒、商业合作后台、完整 URL 迁移和大规模性能压测。本轮不以静态内容冒充这些能力。

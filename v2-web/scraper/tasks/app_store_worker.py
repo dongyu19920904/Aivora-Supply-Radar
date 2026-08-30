@@ -257,7 +257,7 @@ def _normalize_name(value: str) -> str:
 
 def _is_credit(app_id: str, name: str) -> bool:
     if app_id == "6448311069":
-        return name == "100 credits"
+        return re.fullmatch(r"[1-9]\d* credits", name) is not None
     if app_id == "6473753684":
         return name.startswith("usage credits (")
     if app_id == "6670324846":

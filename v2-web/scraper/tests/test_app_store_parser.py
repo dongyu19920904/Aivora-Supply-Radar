@@ -187,6 +187,19 @@ class LocalPlanMappingTests(unittest.TestCase):
         self.assertFalse(result.ignored_names)
         self.assertFalse(result.unknown_names)
 
+    def test_chatgpt_keeps_new_numeric_credit_packs_without_weakening_unknown_checks(self):
+        result = map_local_prices("6448311069", "us", self.priced("""
+        <li><div class="text-pair"><span>500 Credits</span><span>$10.00</span></div></li>
+        <li><div class="text-pair"><span>1000 Credits</span><span>$20.00</span></div></li>
+        <li><div class="text-pair"><span>Unlimited Credits</span><span>$99.00</span></div></li>
+        """))
+
+        self.assertEqual(
+            [item.subscription_name for item in result.purchases],
+            ["1000 Credits", "500 Credits"],
+        )
+        self.assertEqual(result.unknown_names, ("Unlimited Credits",))
+
     def test_claude_maps_explicit_periods_and_keeps_credits(self):
         result = map_local_prices("6473753684", "us", self.priced("""
         <li><div class="text-pair"><span>Claude Pro - Monthly</span><span>$20.00</span></div></li>
