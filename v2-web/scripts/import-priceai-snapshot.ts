@@ -6,6 +6,7 @@ import {
   buildPriceAiChange,
   buildPriceAiTags,
   catalogSortOrderForSourceIndex,
+  deduplicatePriceAiChanges,
   isAllowedPriceAiProduct,
   normalizePriceAiStatus,
   validatePriceAiSnapshotCoverage,
@@ -426,7 +427,7 @@ async function main() {
     if (!data || data.length < 1_000) break;
   }
   const existingByKey = new Map(existingRows.map((row) => [`${row.target_id}\u0000${row.product_title}`, row]));
-  const changeRows = offerRowsWithContext
+  const rawChangeRows = offerRowsWithContext
     .map((row) => buildPriceAiChange(
       existingByKey.has(`${row.target_id}\u0000${row.product_title}`)
         ? {
@@ -439,6 +440,8 @@ async function main() {
       row.changeContext,
     ))
     .filter((row): row is NonNullable<typeof row> => row !== null);
+  const deduplicatedChanges = deduplicatePriceAiChanges(rawChangeRows);
+  const changeRows = deduplicatedChanges.rows;
 
   await upsertBatches(supabase, 'market_offers', offerRows, 'target_id,product_title');
   await upsertBatches(
@@ -479,11 +482,21 @@ async function main() {
     maxTotalDrift,
     staleOffersRemoved: staleIds.length,
     priceChangesRecorded: changeRows.length,
+    duplicatePriceChangesCollapsed: deduplicatedChanges.dropped,
     validation: 'passed',
   }));
 }
 
 main().catch((error) => {
-  console.error(error instanceof Error ? error.message : 'priceai_import_failed');
+  if (error instanceof Error) {
+    console.error(error.message);
+  } else if (error && typeof error === 'object') {
+    const structured = error as { code?: unknown; message?: unknown };
+    const code = typeof structured.code === 'string' ? structured.code.slice(0, 80) : 'unknown';
+    const message = typeof structured.message === 'string' ? structured.message.slice(0, 1_000) : 'unknown';
+    console.error(`priceai_import_failed:${code}:${message}`);
+  } else {
+    console.error('priceai_import_failed:unknown');
+  }
   process.exitCode = 1;
 });

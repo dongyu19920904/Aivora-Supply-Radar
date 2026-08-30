@@ -5,6 +5,7 @@ import {
   buildPriceAiChange,
   buildPriceAiTags,
   catalogSortOrderForSourceIndex,
+  deduplicatePriceAiChanges,
   isAllowedPriceAiProduct,
   normalizePriceAiStatus,
   validatePriceAiSnapshotCoverage,
@@ -121,4 +122,22 @@ test('reports price and stock changes only when the source snapshot moves forwar
     { price: 99, status: 'out_of_stock', observedAt: '2026-08-30T10:00:00+08:00' },
     changeContext,
   ), null);
+});
+
+test('collapses price changes that share the database conflict key', () => {
+  const first = {
+    product_slug: 'chatgpt-plus',
+    product_name: 'ChatGPT Plus',
+    merchant_name: '示例渠道',
+    source_url: 'https://example.com/item',
+    previous_price: 20,
+    current_price: 19,
+    previous_stock: 'in_stock' as const,
+    current_stock: 'in_stock' as const,
+    observed_at: '2026-08-30T15:00:00Z',
+  };
+  const second = { ...first, current_price: 18 };
+  const result = deduplicatePriceAiChanges([first, second]);
+  assert.equal(result.dropped, 1);
+  assert.deepEqual(result.rows, [second]);
 });

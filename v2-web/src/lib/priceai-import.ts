@@ -55,6 +55,23 @@ export interface PriceAiChangeRow {
   observed_at: string;
 }
 
+export function deduplicatePriceAiChanges(rows: readonly PriceAiChangeRow[]): {
+  rows: PriceAiChangeRow[];
+  dropped: number;
+} {
+  const unique = new Map<string, PriceAiChangeRow>();
+  for (const row of rows) {
+    const key = JSON.stringify([
+      row.product_slug,
+      row.merchant_name,
+      row.source_url,
+      row.observed_at,
+    ]);
+    unique.set(key, row);
+  }
+  return { rows: [...unique.values()], dropped: rows.length - unique.size };
+}
+
 function finitePrice(value: number | string | null): number | null {
   if (value === null || value === '') return null;
   const parsed = typeof value === 'number' ? value : Number(value);
