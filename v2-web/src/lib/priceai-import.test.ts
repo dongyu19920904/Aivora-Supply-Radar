@@ -4,6 +4,7 @@ import test from 'node:test';
 import {
   buildPriceAiChange,
   buildPriceAiTags,
+  catalogSortOrderForSourceIndex,
   isAllowedPriceAiProduct,
   normalizePriceAiStatus,
   validHttpsUrl,
@@ -20,6 +21,13 @@ test('keeps AI catalog products and excludes the mixed non-AI catch-all', () => 
   assert.equal(isAllowedPriceAiProduct({ id: 'chatgpt-plus', slug: 'chatgpt-plus', platform: 'ChatGPT' }), true);
   assert.equal(isAllowedPriceAiProduct({ id: 'cursor-account', slug: 'cursor-account', platform: '其他' }), true);
   assert.equal(isAllowedPriceAiProduct({ id: 'other-product', slug: 'other-product', platform: '其他' }), false);
+});
+
+test('keeps source catalog order aligned with ascending database sort order', () => {
+  assert.equal(catalogSortOrderForSourceIndex(0), 1_000);
+  assert.equal(catalogSortOrderForSourceIndex(1), 1_001);
+  assert.ok(catalogSortOrderForSourceIndex(10) > catalogSortOrderForSourceIndex(2));
+  assert.throws(() => catalogSortOrderForSourceIndex(-1), /invalid_catalog_source_index/);
 });
 
 test('maps PriceAI availability without promoting unknown states', () => {

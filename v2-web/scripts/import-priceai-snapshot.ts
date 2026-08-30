@@ -5,6 +5,7 @@ import path from 'node:path';
 import {
   buildPriceAiChange,
   buildPriceAiTags,
+  catalogSortOrderForSourceIndex,
   isAllowedPriceAiProduct,
   normalizePriceAiStatus,
   validHttpsUrl,
@@ -280,7 +281,7 @@ async function main() {
       search_keywords: [...new Set([product.platform, product.displayName, product.productType, product.spec, ...(product.aliases || [])].filter(Boolean))],
       is_active: true,
       platform_id: platformId,
-      sort_order: 1_000 - index,
+      sort_order: catalogSortOrderForSourceIndex(index),
       is_catch_all: false,
       updated_at: product.updatedAt || explorer.generatedAt,
     };

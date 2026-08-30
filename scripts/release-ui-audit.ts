@@ -89,6 +89,12 @@ try {
               return hasWrappedText;
             })
             .map((element) => element.innerText.trim().replace(/\s+/g, " ").slice(0, 80));
+          const visibleCatalogRows = Array.from(
+            document.querySelectorAll<HTMLElement>("[data-catalog-product]"),
+          ).filter((row) => row.getClientRects().length > 0);
+          const catalogActiveStates = visibleCatalogRows.map(
+            (row) => row.dataset.activeOffer === "true",
+          );
           return {
             title: document.title,
             h1Count: document.querySelectorAll("h1").length,
@@ -103,6 +109,15 @@ try {
             bodyFont: getComputedStyle(document.body).fontFamily,
             bodyBackground: getComputedStyle(document.body).backgroundColor,
             themeIsDark: document.documentElement.classList.contains("dark"),
+            catalogProductCount: visibleCatalogRows.length,
+            catalogFirstNames: visibleCatalogRows
+              .slice(0, 3)
+              .map((row) => row.dataset.catalogName || ""),
+            catalogUnavailableBeforeAvailable: catalogActiveStates.some(
+              (active, index) => !active && catalogActiveStates.slice(index + 1).includes(true),
+            ),
+            catalogUnavailableCount: catalogActiveStates.filter((active) => !active).length,
+            catalogSortControl: Boolean(document.querySelector('select[aria-label="商品排序"]')),
           };
         });
 
@@ -140,16 +155,26 @@ try {
   await browser.close();
 }
 
-const failures = results.filter(
-  (result) =>
+const failures = results.filter((result) => {
+  const catalogFirstNames = Array.isArray(result.catalogFirstNames) ? result.catalogFirstNames : [];
+  const catalogFailed =
+    result.route === "/card-products" &&
+    (Number(result.catalogProductCount) !== 24 ||
+      !String(catalogFirstNames[0] || "").includes("ChatGPT Plus") ||
+      Boolean(result.catalogUnavailableBeforeAvailable) ||
+      Number(result.catalogUnavailableCount) !== 0 ||
+      !result.catalogSortControl);
+  return (
     Number(result.status) >= 400 ||
     Number(result.overflow) !== 0 ||
     Number(result.h1Count) !== 1 ||
     (result.brokenImages as string[]).length > 0 ||
     (result.wrappedAffordances as string[]).length > 0 ||
     (result.errors as string[]).length > 0 ||
-    !String(result.canonical).startsWith("http"),
-);
+    !String(result.canonical).startsWith("http") ||
+    catalogFailed
+  );
+});
 
 const reportPath = resolve(outputDir, "report.json");
 await writeFile(

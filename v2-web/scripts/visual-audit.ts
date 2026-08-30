@@ -9,6 +9,8 @@ await mkdir(outputDir, { recursive: true });
 const allCases = [
   { name: 'home-desktop-light', path: '/', width: 1440, height: 1000, theme: 'light', mockOffers: false },
   { name: 'home-desktop-dark', path: '/', width: 1440, height: 1000, theme: 'dark', mockOffers: false },
+  { name: 'products-desktop-light', path: '/card-products', width: 1440, height: 1000, theme: 'light', mockOffers: false },
+  { name: 'products-desktop-dark', path: '/card-products', width: 1440, height: 1000, theme: 'dark', mockOffers: false },
   { name: 'products-mobile-light', path: '/card-products', width: 390, height: 844, theme: 'light', mockOffers: false },
   { name: 'products-mobile-dark', path: '/card-products', width: 390, height: 844, theme: 'dark', mockOffers: false },
   { name: 'all-products-mobile-light', path: '/card-products/all', width: 390, height: 844, theme: 'light', mockOffers: false },
@@ -72,32 +74,56 @@ try {
       timeout: 45_000,
     });
     await page.evaluate(() => document.fonts.ready);
-    const diagnostics = await page.evaluate(() => ({
-      title: document.title,
-      dark: document.documentElement.classList.contains('dark'),
-      overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
-      brokenImages: Array.from(document.images)
-        .filter((image) => image.complete && image.naturalWidth === 0)
-        .map((image) => image.currentSrc || image.src),
-      mainText: document.querySelector('main')?.textContent?.trim().length ?? 0,
-    }));
+    const diagnostics = await page.evaluate(() => {
+      const visibleCatalogRows = Array.from(
+        document.querySelectorAll<HTMLElement>('[data-catalog-product]'),
+      ).filter((row) => row.getClientRects().length > 0);
+      const catalogActiveStates = visibleCatalogRows.map(
+        (row) => row.dataset.activeOffer === 'true',
+      );
+      return {
+        title: document.title,
+        dark: document.documentElement.classList.contains('dark'),
+        overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        brokenImages: Array.from(document.images)
+          .filter((image) => image.complete && image.naturalWidth === 0)
+          .map((image) => image.currentSrc || image.src),
+        mainText: document.querySelector('main')?.textContent?.trim().length ?? 0,
+        catalogProductCount: visibleCatalogRows.length,
+        catalogFirstNames: visibleCatalogRows.slice(0, 3).map((row) => row.dataset.catalogName || ''),
+        catalogUnavailableBeforeAvailable: catalogActiveStates.some(
+          (active, index) => !active && catalogActiveStates.slice(index + 1).includes(true),
+        ),
+        catalogUnavailableCount: catalogActiveStates.filter((active) => !active).length,
+        catalogSortControl: Boolean(document.querySelector('select[aria-label="商品排序"]')),
+      };
+    });
     const screenshot = fileURLToPath(new URL(`${auditCase.name}.png`, outputDir));
     await page.screenshot({ path: screenshot, fullPage: true, caret: 'initial' });
 
     const status = response?.status() || 0;
     const themeMatches = diagnostics.dark === (auditCase.theme === 'dark');
+    const catalogFailed = auditCase.path === '/card-products' && (
+      diagnostics.catalogProductCount !== 24
+      || !diagnostics.catalogFirstNames[0]?.includes('ChatGPT Plus')
+      || diagnostics.catalogUnavailableBeforeAvailable
+      || diagnostics.catalogUnavailableCount !== 0
+      || !diagnostics.catalogSortControl
+    );
     const caseFailed = status !== 200
       || diagnostics.overflow > 1
       || diagnostics.brokenImages.length > 0
       || diagnostics.mainText < 80
       || !themeMatches
-      || consoleErrors.length > 0;
+      || consoleErrors.length > 0
+      || catalogFailed;
     failed ||= caseFailed;
     results.push({
       name: auditCase.name,
       status,
       ...diagnostics,
       themeMatches,
+      catalogFailed,
       consoleErrors,
       screenshot,
       result: caseFailed ? 'failed' : 'passed',

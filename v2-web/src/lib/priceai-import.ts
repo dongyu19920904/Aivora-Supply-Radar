@@ -23,6 +23,11 @@ export interface PriceAiOfferSnapshot {
   observedAt: string;
 }
 
+export function catalogSortOrderForSourceIndex(index: number): number {
+  if (!Number.isInteger(index) || index < 0) throw new Error('invalid_catalog_source_index');
+  return 1_000 + index;
+}
+
 export interface PriceAiChangeContext {
   productSlug: string;
   productName: string;
