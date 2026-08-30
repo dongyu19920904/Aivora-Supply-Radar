@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { FilterBar } from '../../components/FilterBar';
 import { getRelativeTime } from '../../lib/utils';
 import { ViewDetailsButton } from '../../components/ViewDetailsButton';
@@ -21,6 +21,8 @@ interface ChannelsClientProps {
   initialChannels: Channel[];
 }
 
+const PAGE_SIZE = 40;
+
 function formatScraperType(type: string) {
   if (type === 'ldxp') return '链动小铺';
   if (type === 'dujiao') return '独角数卡';
@@ -34,8 +36,7 @@ function formatScraperType(type: string) {
 
 export const ChannelsClient: React.FC<ChannelsClientProps> = ({ initialChannels }) => {
   const [searchQuery, setSearchQuery] = useUrlState('q', '');
-
-
+  const [requestedPage, setRequestedPage] = useState(1);
 
   const filteredChannels = useMemo(() => {
     const query = searchQuery.toLowerCase();
@@ -46,6 +47,20 @@ export const ChannelsClient: React.FC<ChannelsClientProps> = ({ initialChannels 
              formatScraperType(c.scraper_type).toLowerCase().includes(query);
     });
   }, [initialChannels, searchQuery]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredChannels.length / PAGE_SIZE));
+  const page = Math.min(requestedPage, totalPages);
+  const visibleChannels = filteredChannels.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  const changePage = (nextPage: number) => {
+    setRequestedPage(Math.min(totalPages, Math.max(1, nextPage)));
+    requestAnimationFrame(() => document.getElementById('channel-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  };
+
+  const changeSearch = (value: string) => {
+    setRequestedPage(1);
+    setSearchQuery(value);
+  };
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 relative">
@@ -68,15 +83,17 @@ export const ChannelsClient: React.FC<ChannelsClientProps> = ({ initialChannels 
       <div className="flex flex-col relative">
         <FilterBar
           searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          onReset={() => setSearchQuery("")}
+          onSearchChange={changeSearch}
+          onReset={() => changeSearch('')}
           searchPlaceholder="搜索渠道名称或类型..."
         />
-        
+
+        <div id="channel-results" className="scroll-mt-28" />
+
         {/* Mobile Card Layout */}
         <div className="flex flex-col gap-3 md:hidden">
           {filteredChannels.length > 0 ? (
-            filteredChannels.map((channel) => (
+            visibleChannels.map((channel) => (
               <div key={channel.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex flex-col gap-3">
                 <div className="flex justify-between items-start gap-2">
                   <div className="font-bold text-gray-900 text-[15px]">{channel.name}</div>
@@ -119,7 +136,7 @@ export const ChannelsClient: React.FC<ChannelsClientProps> = ({ initialChannels 
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {filteredChannels.length > 0 ? (
-                  filteredChannels.map((channel) => (
+                  visibleChannels.map((channel) => (
                     <tr key={channel.id} className="hover:bg-gray-50/80 transition-colors">
                       <td className="px-6 py-4">
                         <div className="font-medium text-gray-900">{channel.name}</div>
@@ -159,6 +176,22 @@ export const ChannelsClient: React.FC<ChannelsClientProps> = ({ initialChannels 
             </table>
           </div>
         </div>
+
+        {filteredChannels.length > PAGE_SIZE && (
+          <nav className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 pt-4" aria-label="渠道列表分页">
+            <p className="text-xs text-gray-500">
+              第 <span className="font-mono font-semibold text-gray-900">{page}</span> / {totalPages} 页 · 共 {filteredChannels.length} 个渠道
+            </p>
+            <div className="flex items-center gap-2">
+              <button type="button" disabled={page <= 1} onClick={() => changePage(page - 1)} className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40">
+                上一页
+              </button>
+              <button type="button" disabled={page >= totalPages} onClick={() => changePage(page + 1)} className="rounded-md border border-gray-950 bg-gray-950 px-3 py-2 text-sm font-semibold text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-40">
+                下一页
+              </button>
+            </div>
+          </nav>
+        )}
       </div>
     </div>
   );
