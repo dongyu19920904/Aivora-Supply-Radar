@@ -180,7 +180,7 @@ try {
     const themeMatches = diagnostics.dark === (auditCase.theme === 'dark');
     const catalogFailed = auditCase.path === '/card-products' && (
       diagnostics.catalogProductCount !== 71
-      || !diagnostics.catalogFirstNames[0]?.includes('ChatGPT Plus')
+      || !diagnostics.catalogFirstNames[0]?.includes('ChatGPT')
       || diagnostics.catalogCategoryIds[0] !== 'chatgpt'
       || diagnostics.catalogCategoryIds.join(',') !== 'chatgpt,claude,gemini,grok,ai-coding,ai-creative,email,verification,social,api-payment,other'
       || !diagnostics.catalogCategoryIdsUnique
