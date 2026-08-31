@@ -4,6 +4,7 @@ import test from 'node:test';
 import type { ProductType } from '../data';
 import type { AccountOpportunity, PriceChange } from './legacy-radar';
 import {
+  buildPublicSupplyOpportunitySnapshot,
   buildSupplyOpportunityDashboard,
   findRelatedCatalogProducts,
   getProfitCalculatorHref,
@@ -90,4 +91,28 @@ test('builds a prefilled profit calculator link from the current lowest price', 
     getProfitCalculatorHref(products[1]),
     '/profit-calculator?product=Claude+Pro&cost=120.00',
   );
+});
+
+test('serializes a bounded public snapshot for the account opportunity daily', () => {
+  const dashboard = buildSupplyOpportunityDashboard(products, [
+    change({ product_slug: 'chatgpt-plus', previous_stock: 'out_of_stock', current_stock: 'in_stock' }),
+  ], new Date('2026-08-31T04:00:00Z'));
+  dashboard.stats.recentChangeCount = 100;
+
+  const snapshot = buildPublicSupplyOpportunitySnapshot(dashboard);
+
+  assert.equal(snapshot.schemaVersion, 1);
+  assert.equal(snapshot.source, 'https://supply.aivora.cn/opportunities');
+  assert.equal(snapshot.stats.recentChangeCountCapped, true);
+  assert.ok(snapshot.signals.length <= 6);
+  assert.equal(snapshot.signals[0].product.slug, 'chatgpt-plus');
+  assert.equal(
+    snapshot.signals[0].product.productUrl,
+    'https://supply.aivora.cn/card-products/chatgpt-plus',
+  );
+  assert.equal(
+    snapshot.signals[0].product.profitCalculatorUrl,
+    'https://supply.aivora.cn/profit-calculator?product=ChatGPT+Plus&cost=80.00',
+  );
+  assert.equal('shortDesc' in snapshot.signals[0].product, false);
 });

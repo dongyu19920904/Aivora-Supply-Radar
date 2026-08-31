@@ -7,6 +7,7 @@ import {
   type CatalogCategoryId,
 } from './catalog-taxonomy';
 import type { AccountOpportunity, PriceChange } from './legacy-radar';
+import { absoluteUrl } from './site';
 
 export type SupplySignalKind = 'restock' | 'stockout' | 'price_drop' | 'price_rise' | 'supply_gap' | 'crowded';
 export type SupplySignalTone = 'opportunity' | 'warning' | 'watch';
@@ -49,6 +50,43 @@ export interface SupplyOpportunityDashboard {
     lowSupplyProductCount: number;
   };
   signals: SupplyOpportunitySignal[];
+  categories: SupplyCategorySnapshot[];
+}
+
+export interface PublicSupplyOpportunitySnapshot {
+  schemaVersion: 1;
+  source: string;
+  generatedAt: string;
+  latestObservedAt: string | null;
+  stats: SupplyOpportunityDashboard['stats'] & {
+    recentChangeCountCapped: boolean;
+  };
+  signals: Array<{
+    id: string;
+    kind: SupplySignalKind;
+    tone: SupplySignalTone;
+    label: string;
+    title: string;
+    evidence: string;
+    buyerAction: string;
+    sellerAction: string;
+    stopCondition: string;
+    observedAt: string | null;
+    sourceUrl: string | null;
+    product: {
+      slug: string;
+      name: string;
+      platform: string;
+      lowestPrice: number | null;
+      warrantyPrice: number | null;
+      availableOfferCount: number;
+      updatedAt: string | null;
+      sortOrder: number;
+      platformSortOrder: number;
+      productUrl: string;
+      profitCalculatorUrl: string;
+    };
+  }>;
   categories: SupplyCategorySnapshot[];
 }
 
@@ -98,6 +136,49 @@ function calculatorHref(product: ProductType): string {
 
 export function getProfitCalculatorHref(product: ProductType): string {
   return calculatorHref(product);
+}
+
+export function buildPublicSupplyOpportunitySnapshot(
+  dashboard: SupplyOpportunityDashboard,
+): PublicSupplyOpportunitySnapshot {
+  return {
+    schemaVersion: 1,
+    source: absoluteUrl('/opportunities'),
+    generatedAt: dashboard.generatedAt,
+    latestObservedAt: dashboard.latestObservedAt,
+    stats: {
+      ...dashboard.stats,
+      // listPriceChanges is deliberately bounded to the newest 100 records.
+      recentChangeCountCapped: dashboard.stats.recentChangeCount >= 100,
+    },
+    signals: dashboard.signals.slice(0, MAX_SIGNALS).map((signal) => ({
+      id: signal.id,
+      kind: signal.kind,
+      tone: signal.tone,
+      label: signal.label,
+      title: signal.title,
+      evidence: signal.evidence,
+      buyerAction: signal.buyerAction,
+      sellerAction: signal.sellerAction,
+      stopCondition: signal.stopCondition,
+      observedAt: signal.observedAt,
+      sourceUrl: signal.sourceUrl,
+      product: {
+        slug: signal.product.slug,
+        name: signal.product.name,
+        platform: signal.product.platform,
+        lowestPrice: signal.product.lowestPrice,
+        warrantyPrice: signal.product.warrantyPrice,
+        availableOfferCount: signal.product.channelCount,
+        updatedAt: signal.product.updatedAt,
+        sortOrder: signal.product.sort_order,
+        platformSortOrder: signal.product.platform_sort_order || 0,
+        productUrl: absoluteUrl(`/card-products/${signal.product.slug}`),
+        profitCalculatorUrl: absoluteUrl(calculatorHref(signal.product)),
+      },
+    })),
+    categories: dashboard.categories,
+  };
 }
 
 function changeSignal(change: PriceChange, product: ProductType, kind: SupplySignalKind): SupplyOpportunitySignal {
