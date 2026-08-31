@@ -93,7 +93,7 @@ test('builds a prefilled profit calculator link from the current lowest price', 
   );
 });
 
-test('serializes a bounded public snapshot for the account opportunity daily', () => {
+test('serializes a bounded V2 public snapshot with a merchant product board', () => {
   const dashboard = buildSupplyOpportunityDashboard(products, [
     change({ product_slug: 'chatgpt-plus', previous_stock: 'out_of_stock', current_stock: 'in_stock' }),
   ], new Date('2026-08-31T04:00:00Z'));
@@ -101,10 +101,10 @@ test('serializes a bounded public snapshot for the account opportunity daily', (
 
   const snapshot = buildPublicSupplyOpportunitySnapshot(dashboard);
 
-  assert.equal(snapshot.schemaVersion, 1);
+  assert.equal(snapshot.schemaVersion, 2);
   assert.equal(snapshot.source, 'https://supply.aivora.cn/opportunities');
   assert.equal(snapshot.stats.recentChangeCountCapped, true);
-  assert.ok(snapshot.signals.length <= 6);
+  assert.ok(snapshot.signals.length <= 10);
   assert.equal(snapshot.signals[0].product.slug, 'chatgpt-plus');
   assert.equal(
     snapshot.signals[0].product.productUrl,
@@ -115,4 +115,27 @@ test('serializes a bounded public snapshot for the account opportunity daily', (
     'https://supply.aivora.cn/profit-calculator?product=ChatGPT+Plus&cost=80.00',
   );
   assert.equal('shortDesc' in snapshot.signals[0].product, false);
+  assert.equal(snapshot.products.length, products.length);
+  assert.deepEqual(
+    snapshot.products.map((item) => item.slug),
+    ['chatgpt-plus', 'claude-pro', 'claude-max', 'cursor'],
+  );
+  assert.equal(snapshot.products[0].categoryId, 'chatgpt');
+  assert.equal(snapshot.products[0].categoryName, 'ChatGPT');
+  assert.equal(snapshot.products[0].availableOfferCount, 220);
+  assert.equal('shortDesc' in snapshot.products[0], false);
+  assert.equal('searchKeywords' in snapshot.products[0], false);
+});
+
+test('keeps unavailable products in the public board but sorts them after available peers', () => {
+  const mixedProducts = [
+    product({ slug: 'chatgpt-unavailable', name: 'ChatGPT 暂停商品', platform: 'ChatGPT', channelCount: 0, sort_order: 1 }),
+    product({ slug: 'chatgpt-available', name: 'ChatGPT 可买商品', platform: 'ChatGPT', channelCount: 2, sort_order: 2 }),
+  ];
+  const snapshot = buildPublicSupplyOpportunitySnapshot(
+    buildSupplyOpportunityDashboard(mixedProducts, [], new Date('2026-08-31T04:00:00Z')),
+  );
+
+  assert.deepEqual(snapshot.products.map((item) => item.slug), ['chatgpt-available', 'chatgpt-unavailable']);
+  assert.equal(snapshot.products[1].availableOfferCount, 0);
 });

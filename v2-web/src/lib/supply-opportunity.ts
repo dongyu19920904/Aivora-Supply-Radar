@@ -39,6 +39,22 @@ export interface SupplyCategorySnapshot {
   lowestPrice: number | null;
 }
 
+export interface PublicSupplyProductSnapshot {
+  slug: string;
+  name: string;
+  platform: string;
+  categoryId: CatalogCategoryId;
+  categoryName: string;
+  lowestPrice: number | null;
+  warrantyPrice: number | null;
+  availableOfferCount: number;
+  updatedAt: string | null;
+  sortOrder: number;
+  platformSortOrder: number;
+  productUrl: string;
+  profitCalculatorUrl: string;
+}
+
 export interface SupplyOpportunityDashboard {
   generatedAt: string;
   latestObservedAt: string | null;
@@ -51,10 +67,11 @@ export interface SupplyOpportunityDashboard {
   };
   signals: SupplyOpportunitySignal[];
   categories: SupplyCategorySnapshot[];
+  products: ProductType[];
 }
 
 export interface PublicSupplyOpportunitySnapshot {
-  schemaVersion: 1;
+  schemaVersion: 2;
   source: string;
   generatedAt: string;
   latestObservedAt: string | null;
@@ -73,25 +90,16 @@ export interface PublicSupplyOpportunitySnapshot {
     stopCondition: string;
     observedAt: string | null;
     sourceUrl: string | null;
-    product: {
-      slug: string;
-      name: string;
-      platform: string;
-      lowestPrice: number | null;
-      warrantyPrice: number | null;
-      availableOfferCount: number;
-      updatedAt: string | null;
-      sortOrder: number;
-      platformSortOrder: number;
-      productUrl: string;
-      profitCalculatorUrl: string;
-    };
+    product: PublicSupplyProductSnapshot;
   }>;
   categories: SupplyCategorySnapshot[];
+  products: PublicSupplyProductSnapshot[];
 }
 
 const CATEGORY_RANK = new Map(catalogCategories.map((category, index) => [category.id, index]));
-const MAX_SIGNALS = 6;
+const MAX_SIGNALS = 10;
+const MAX_PUBLIC_PRODUCTS = 80;
+const MAX_SIGNALS_PER_CATEGORY = 3;
 const RECENT_WINDOW_MS = 24 * 60 * 60 * 1_000;
 const SIGNIFICANT_PRICE_CHANGE = 0.08;
 
@@ -138,11 +146,40 @@ export function getProfitCalculatorHref(product: ProductType): string {
   return calculatorHref(product);
 }
 
+function publicProduct(product: ProductType): PublicSupplyProductSnapshot {
+  const category = getCatalogCategory(classifyCatalogProduct(product));
+  return {
+    slug: product.slug,
+    name: product.name,
+    platform: product.platform,
+    categoryId: category.id,
+    categoryName: category.name,
+    lowestPrice: product.lowestPrice,
+    warrantyPrice: product.warrantyPrice,
+    availableOfferCount: product.channelCount,
+    updatedAt: product.updatedAt,
+    sortOrder: product.sort_order,
+    platformSortOrder: product.platform_sort_order || 0,
+    productUrl: absoluteUrl(`/card-products/${product.slug}`),
+    profitCalculatorUrl: absoluteUrl(calculatorHref(product)),
+  };
+}
+
+function publicProductOrder(a: ProductType, b: ProductType): number {
+  const categoryRank = (CATEGORY_RANK.get(classifyCatalogProduct(a)) ?? 99)
+    - (CATEGORY_RANK.get(classifyCatalogProduct(b)) ?? 99);
+  if (categoryRank !== 0) return categoryRank;
+  if ((a.channelCount > 0) !== (b.channelCount > 0)) return Number(b.channelCount > 0) - Number(a.channelCount > 0);
+  if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order;
+  if (a.channelCount !== b.channelCount) return b.channelCount - a.channelCount;
+  return a.name.localeCompare(b.name, 'zh-CN');
+}
+
 export function buildPublicSupplyOpportunitySnapshot(
   dashboard: SupplyOpportunityDashboard,
 ): PublicSupplyOpportunitySnapshot {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     source: absoluteUrl('/opportunities'),
     generatedAt: dashboard.generatedAt,
     latestObservedAt: dashboard.latestObservedAt,
@@ -163,21 +200,13 @@ export function buildPublicSupplyOpportunitySnapshot(
       stopCondition: signal.stopCondition,
       observedAt: signal.observedAt,
       sourceUrl: signal.sourceUrl,
-      product: {
-        slug: signal.product.slug,
-        name: signal.product.name,
-        platform: signal.product.platform,
-        lowestPrice: signal.product.lowestPrice,
-        warrantyPrice: signal.product.warrantyPrice,
-        availableOfferCount: signal.product.channelCount,
-        updatedAt: signal.product.updatedAt,
-        sortOrder: signal.product.sort_order,
-        platformSortOrder: signal.product.platform_sort_order || 0,
-        productUrl: absoluteUrl(`/card-products/${signal.product.slug}`),
-        profitCalculatorUrl: absoluteUrl(calculatorHref(signal.product)),
-      },
+      product: publicProduct(signal.product),
     })),
     categories: dashboard.categories,
+    products: [...dashboard.products]
+      .sort(publicProductOrder)
+      .slice(0, MAX_PUBLIC_PRODUCTS)
+      .map(publicProduct),
   };
 }
 
@@ -334,6 +363,7 @@ export function buildSupplyOpportunityDashboard(
   for (const product of products.filter((item) => item.channelCount >= 100)) candidates.push(crowdedSignal(product));
 
   const seenNames = new Set<string>();
+  const categorySignalCounts = new Map<CatalogCategoryId, number>();
   const signals = candidates
     .sort((a, b) => {
       if (a.priority !== b.priority) return b.priority - a.priority;
@@ -345,7 +375,11 @@ export function buildSupplyOpportunityDashboard(
     .filter((signal) => {
       const key = signal.product.name.trim().toLowerCase();
       if (seenNames.has(key)) return false;
+      const categoryId = classifyCatalogProduct(signal.product);
+      const categoryCount = categorySignalCounts.get(categoryId) || 0;
+      if (categoryCount >= MAX_SIGNALS_PER_CATEGORY) return false;
       seenNames.add(key);
+      categorySignalCounts.set(categoryId, categoryCount + 1);
       return true;
     })
     .slice(0, MAX_SIGNALS);
@@ -380,6 +414,7 @@ export function buildSupplyOpportunityDashboard(
     },
     signals,
     categories,
+    products: [...products],
   };
 }
 
