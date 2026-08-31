@@ -6,13 +6,14 @@ import { ViewDetailsButton } from './ViewDetailsButton';
 
 interface MasterTableProps {
   products: ProductType[];
+  startIndex?: number;
 }
 
 function priceLabel(price: number | null): string {
   return price === null ? '暂无报价' : `¥${price.toFixed(2)}`;
 }
 
-export const MasterTable: React.FC<MasterTableProps> = ({ products }) => {
+export const MasterTable: React.FC<MasterTableProps> = ({ products, startIndex = 0 }) => {
   const router = useRouter();
   const firstUnavailableIndex = products.findIndex((product) => product.channelCount === 0);
   
@@ -50,7 +51,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({ products }) => {
                         className="even:bg-gray-50/60 hover:bg-blue-50/40 transition-colors cursor-pointer group border-b border-gray-100 last:border-0"
                         onClick={() => router.push(`/card-products/${product.slug}`)}
                       >
-                        <td className="px-5 py-4 font-mono text-xs tabular-nums text-gray-500">#{String(index + 1).padStart(2, '0')}</td>
+                        <td className="px-5 py-4 font-mono text-xs tabular-nums text-gray-500">#{String(startIndex + index + 1).padStart(2, '0')}</td>
                         <td className="px-5 py-4">
                           <div className="flex flex-wrap items-center gap-2">
                             <span className="font-semibold text-gray-950">{product.name}</span>
@@ -99,7 +100,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({ products }) => {
                     <div className="mb-2 flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <div className="mb-1 flex flex-wrap items-center gap-1.5 text-[11px] text-gray-500">
-                          <span className="font-mono tabular-nums">#{String(index + 1).padStart(2, '0')}</span>
+                          <span className="font-mono tabular-nums">#{String(startIndex + index + 1).padStart(2, '0')}</span>
                           <span className="rounded border border-gray-200 bg-gray-50 px-1.5 py-0.5 font-semibold text-gray-600">{product.platform}</span>
                           {product.display_id && <span className="font-mono">目录 {product.display_id}</span>}
                         </div>

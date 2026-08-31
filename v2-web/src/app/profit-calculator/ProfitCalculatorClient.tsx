@@ -28,8 +28,16 @@ function money(value: number): string {
   return new Intl.NumberFormat('zh-CN', { style: 'currency', currency: 'CNY', maximumFractionDigits: 2 }).format(value);
 }
 
-export function ProfitCalculatorClient() {
-  const [values, setValues] = useState(defaults);
+interface ProfitCalculatorClientProps {
+  initialUnitCost?: number | null;
+  productName?: string;
+}
+
+export function ProfitCalculatorClient({ initialUnitCost = null, productName = '' }: ProfitCalculatorClientProps) {
+  const [values, setValues] = useState(() => ({
+    ...defaults,
+    unitCost: initialUnitCost ?? defaults.unitCost,
+  }));
   const result = useMemo(() => calculateProfit(values), [values]);
   const profitable = result.netProfit > 0;
 
@@ -40,6 +48,11 @@ export function ProfitCalculatorClient() {
           <div><span className="radar-kicker">输入真实成本</span><h2 id="profit-inputs-title">一单生意到底剩多少钱</h2></div>
           <Calculator className="h-5 w-5 text-amber-500" aria-hidden="true" />
         </div>
+        {initialUnitCost !== null && (
+          <div className="mx-5 mt-5 border-l-2 border-blue-500 bg-blue-50 px-4 py-3 text-sm leading-6 text-blue-950">
+            已从货源线索带入{productName ? `「${productName}」` : '商品'}当前最低价 ¥{initialUnitCost.toFixed(2)}。这是公开快照，不是最终成交成本，请先复核原始页面。
+          </div>
+        )}
         <div className="grid gap-4 p-5 sm:grid-cols-2">
           {fields.map((field) => (
             <label key={field.key} className="grid gap-1.5 text-sm font-medium text-gray-700">

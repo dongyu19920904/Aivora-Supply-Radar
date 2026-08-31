@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { calculateProfit } from './profit-calculator';
+import { calculateProfit, parseProfitCalculatorPrefill } from './profit-calculator';
 
 test('calculates net profit, margin, and break-even price', () => {
   const result = calculateProfit({
@@ -37,4 +37,14 @@ test('bounds invalid inputs and reports no break-even price at 100% variable cos
   assert.equal(result.revenue, 0);
   assert.equal(result.supplierCost, 0);
   assert.equal(result.breakEvenPrice, null);
+});
+
+test('accepts a bounded supply price prefill without trusting invalid query values', () => {
+  assert.deepEqual(parseProfitCalculatorPrefill('128.50', 'Claude Pro'), {
+    unitCost: 128.5,
+    productName: 'Claude Pro',
+  });
+  assert.equal(parseProfitCalculatorPrefill('-1', 'test').unitCost, null);
+  assert.equal(parseProfitCalculatorPrefill('not-a-number', 'test').unitCost, null);
+  assert.equal(parseProfitCalculatorPrefill(undefined, undefined).productName, '');
 });

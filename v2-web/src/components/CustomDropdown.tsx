@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { ChevronDown, Filter } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 
 export interface DropdownOption {
   value: string;
@@ -16,6 +16,7 @@ interface CustomDropdownProps {
   searchable?: boolean;
   disabled?: boolean;
   allOptionLabel?: string;
+  ariaLabel?: string;
 }
 
 export const CustomDropdown: React.FC<CustomDropdownProps> = ({
@@ -26,7 +27,8 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
   icon,
   searchable = true,
   disabled = false,
-  allOptionLabel
+  allOptionLabel,
+  ariaLabel,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -64,6 +66,7 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
         )}
         <input
           type="text"
+          aria-label={ariaLabel || placeholder}
           readOnly={!searchable || disabled}
           className={`w-full sm:w-40 lg:w-48 ${icon ? 'pl-8 sm:pl-11' : 'pl-2.5 sm:pl-4'} pr-7 sm:pr-10 h-8 sm:h-10 bg-white/95 border-none shadow-sm rounded-lg text-[12px] sm:text-[14px] font-medium text-gray-900 placeholder-gray-500 hover:bg-white transition-colors focus:outline-none focus:ring-2 focus:ring-white/50 z-40 relative truncate ${disabled ? 'pointer-events-none' : 'cursor-text'}`}
           placeholder={placeholder}
@@ -107,6 +110,8 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
           <div className="max-h-60 overflow-y-auto p-1 scrollbar-thin">
             {allOptionLabel && (
               <button
+                type="button"
+                data-dropdown-option=""
                 onClick={() => {
                   onChange("");
                   setIsOpen(false);
@@ -123,6 +128,8 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
             {filteredOptions.map(option => (
               <button
                 key={option.value}
+                type="button"
+                data-dropdown-option={option.value}
                 onClick={() => {
                   onChange(option.value);
                   setIsOpen(false);

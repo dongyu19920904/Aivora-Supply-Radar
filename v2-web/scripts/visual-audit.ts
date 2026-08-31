@@ -74,7 +74,20 @@ try {
       timeout: 45_000,
     });
     await page.evaluate(() => document.fonts.ready);
-    const diagnostics = await page.evaluate(() => {
+    let catalogDropdownOptionIds: string[] = [];
+    if (auditCase.path === '/card-products') {
+      const categoryDropdown = page.locator('input[aria-label="平台分类筛选"]');
+      if (await categoryDropdown.count()) {
+        await categoryDropdown.click();
+        catalogDropdownOptionIds = await page.locator('[data-dropdown-option]').evaluateAll(
+          (nodes) => nodes.map((node) => (node as HTMLElement).dataset.dropdownOption || ''),
+        );
+        await page.keyboard.press('Escape');
+        await page.locator('body').click({ position: { x: 1, y: 1 } });
+      }
+    }
+    const diagnostics = {
+      ...(await page.evaluate(() => {
       const visibleCatalogRows = Array.from(
         document.querySelectorAll<HTMLElement>('[data-catalog-product]'),
       ).filter((row) => row.getClientRects().length > 0);
@@ -85,6 +98,16 @@ try {
         document.querySelectorAll<HTMLElement>('[data-offer-status]'),
       ).filter((row) => row.getClientRects().length > 0);
       const offerStatuses = visibleOfferRows.map((row) => row.dataset.offerStatus || '');
+      const visibleCategorySections = Array.from(
+        document.querySelectorAll<HTMLElement>('[data-catalog-category]'),
+      ).filter((section) => section.getClientRects().length > 0);
+      const categoryIds = visibleCategorySections.map((section) => section.dataset.catalogCategory || '');
+      const unavailableBeforeAvailableWithinCategory = visibleCategorySections.some((section) => {
+        const states = Array.from(section.querySelectorAll<HTMLElement>('[data-catalog-product]'))
+          .filter((row) => row.getClientRects().length > 0)
+          .map((row) => row.dataset.activeOffer === 'true');
+        return states.some((active, index) => !active && states.slice(index + 1).includes(true));
+      });
       return {
         title: document.title,
         dark: document.documentElement.classList.contains('dark'),
@@ -100,6 +123,11 @@ try {
         ),
         catalogUnavailableCount: catalogActiveStates.filter((active) => !active).length,
         catalogSortControl: Boolean(document.querySelector('select[aria-label="商品排序"]')),
+        catalogCategoryIds: categoryIds,
+        catalogCategoryIdsUnique: new Set(categoryIds).size === categoryIds.length,
+        catalogUnavailableBeforeAvailableWithinCategory: unavailableBeforeAvailableWithinCategory,
+        catalogCategoryFilterIds: Array.from(document.querySelectorAll<HTMLElement>('[data-catalog-category-filter]'))
+          .map((button) => button.dataset.catalogCategoryFilter || ''),
         offerAvailabilityFilterCount: document.querySelectorAll('[data-offer-availability]').length,
         offerZeroInventoryText: /库存\s*[:：]?\s*0(?:\D|$)/.test(document.body.innerText),
         offerUnavailableBeforeAvailable: offerStatuses.some(
@@ -108,8 +136,15 @@ try {
         unavailableFilterRows: 0,
         unavailableFilterOnlyUnavailable: false,
         unavailableFilterDisabledBuyButtons: 0,
-      };
-    });
+        opportunityLiveDashboard: Boolean(document.querySelector('[data-opportunity-live-dashboard]')),
+        opportunitySignalCount: document.querySelectorAll('[data-supply-opportunity]').length,
+        opportunityProductLinkCount: document.querySelectorAll('[data-opportunity-product-link]').length,
+        opportunitySupplyMap: Boolean(document.querySelector('[data-opportunity-supply-map]')),
+        opportunityIndustryArchive: Boolean(document.querySelector('[data-opportunity-industry-archive]')),
+        };
+      })),
+      catalogDropdownOptionIds,
+    };
     const screenshot = fileURLToPath(new URL(`${auditCase.name}.png`, outputDir));
     await page.screenshot({ path: screenshot, fullPage: true, caret: 'initial' });
 
@@ -144,10 +179,14 @@ try {
     const status = response?.status() || 0;
     const themeMatches = diagnostics.dark === (auditCase.theme === 'dark');
     const catalogFailed = auditCase.path === '/card-products' && (
-      diagnostics.catalogProductCount !== 24
+      diagnostics.catalogProductCount !== 71
       || !diagnostics.catalogFirstNames[0]?.includes('ChatGPT Plus')
-      || diagnostics.catalogUnavailableBeforeAvailable
-      || diagnostics.catalogUnavailableCount !== 0
+      || diagnostics.catalogCategoryIds[0] !== 'chatgpt'
+      || diagnostics.catalogCategoryIds.join(',') !== 'chatgpt,claude,gemini,grok,ai-coding,ai-creative,email,verification,social,api-payment,other'
+      || !diagnostics.catalogCategoryIdsUnique
+      || diagnostics.catalogUnavailableBeforeAvailableWithinCategory
+      || diagnostics.catalogCategoryFilterIds[1] !== 'chatgpt'
+      || diagnostics.catalogDropdownOptionIds[1] !== 'chatgpt'
       || !diagnostics.catalogSortControl
     );
     const detailFailed = auditCase.path === '/card-products/chatgpt-plus' && (
@@ -157,6 +196,13 @@ try {
       || diagnostics.unavailableFilterOnlyUnavailable !== true
       || diagnostics.unavailableFilterRows !== diagnostics.unavailableFilterDisabledBuyButtons
     );
+    const opportunityFailed = auditCase.path === '/opportunities' && (
+      !diagnostics.opportunityLiveDashboard
+      || diagnostics.opportunitySignalCount < 1
+      || diagnostics.opportunityProductLinkCount < 1
+      || !diagnostics.opportunitySupplyMap
+      || !diagnostics.opportunityIndustryArchive
+    );
     const caseFailed = status !== 200
       || diagnostics.overflow > 1
       || diagnostics.brokenImages.length > 0
@@ -164,7 +210,8 @@ try {
       || !themeMatches
       || consoleErrors.length > 0
       || catalogFailed
-      || detailFailed;
+      || detailFailed
+      || opportunityFailed;
     failed ||= caseFailed;
     results.push({
       name: auditCase.name,
@@ -173,6 +220,7 @@ try {
       themeMatches,
       catalogFailed,
       detailFailed,
+      opportunityFailed,
       consoleErrors,
       screenshot,
       result: caseFailed ? 'failed' : 'passed',

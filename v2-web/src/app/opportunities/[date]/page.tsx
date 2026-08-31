@@ -2,8 +2,11 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
-import { ArrowLeft, Calculator, ExternalLink, Search } from 'lucide-react';
+import { ArrowLeft, Calculator, ExternalLink, PackageSearch, Search } from 'lucide-react';
+import { listCatalogSummaryProducts } from '@/lib/catalog-summary';
 import { getAccountOpportunity } from '@/lib/legacy-radar';
+import { findRelatedCatalogProducts, getProfitCalculatorHref } from '@/lib/supply-opportunity';
+import { classifyCatalogProduct, getCatalogCategory } from '@/lib/catalog-taxonomy';
 
 export const revalidate = 300;
 
@@ -29,8 +32,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function OpportunityDetailPage({ params }: PageProps) {
   const { date } = await params;
-  const opportunity = await getAccountOpportunity(date);
+  const [opportunity, products] = await Promise.all([
+    getAccountOpportunity(date),
+    listCatalogSummaryProducts(),
+  ]);
   if (!opportunity) notFound();
+  const relatedProducts = findRelatedCatalogProducts(opportunity, products);
 
   return (
     <main className="min-h-screen bg-gray-50/60 py-10 sm:py-14">
@@ -48,6 +55,42 @@ export default async function OpportunityDetailPage({ params }: PageProps) {
               查看日报原页 <ExternalLink className="h-4 w-4" />
             </a>
           </header>
+
+          <section className="border-b border-gray-200 bg-gray-50 p-6 sm:p-9" data-opportunity-related-supply aria-labelledby="related-supply-title">
+            <div className="flex items-start gap-3">
+              <PackageSearch className="mt-1 h-5 w-5 shrink-0 text-amber-500" />
+              <div>
+                <h2 id="related-supply-title" className="text-xl font-bold text-gray-950">这条行业信号与当前哪些货源有关</h2>
+                <p className="mt-1 text-sm leading-6 text-gray-600">下面是按日报正文关键词匹配的当前标准商品快照，不代表日报已经证明这些商品有销量。</p>
+              </div>
+            </div>
+
+            {relatedProducts.length ? (
+              <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {relatedProducts.map((product) => {
+                  const category = getCatalogCategory(classifyCatalogProduct(product));
+                  return (
+                    <article key={product.id} className="border-t-2 border-t-gray-950 bg-white p-4 ring-1 ring-gray-200">
+                      <span className="text-xs font-semibold text-gray-500">{category.name}</span>
+                      <h3 className="mt-1 font-bold text-gray-950">{product.name}</h3>
+                      <dl className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                        <div><dt className="text-gray-500">当前最低价</dt><dd className="mt-0.5 font-mono font-semibold tabular-nums text-emerald-700">{product.lowestPrice === null ? '暂无报价' : `¥${product.lowestPrice.toFixed(2)}`}</dd></div>
+                        <div><dt className="text-gray-500">可购买报价</dt><dd className="mt-0.5 font-mono font-semibold tabular-nums text-blue-700">{product.channelCount}</dd></div>
+                      </dl>
+                      <div className="mt-4 flex flex-wrap gap-x-3 gap-y-2 text-xs font-semibold">
+                        <Link href={`/card-products/${product.slug}`} data-opportunity-product-link className="text-emerald-700 hover:underline">核验货源 →</Link>
+                        <Link href={getProfitCalculatorHref(product)} className="text-blue-700 hover:underline">带入成本算利润 →</Link>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="mt-5 border border-dashed border-gray-300 bg-white p-5 text-sm leading-6 text-gray-600">
+                这条日报暂时无法可靠匹配到当前标准商品。请返回实时商机台，从库存、价格和渠道数据开始判断，不强行建立关联。
+              </div>
+            )}
+          </section>
 
           <div className="prose prose-gray max-w-none p-6 prose-a:text-blue-700 prose-headings:scroll-mt-24 prose-strong:text-gray-950 sm:p-9">
             <ReactMarkdown>{opportunity.body_markdown}</ReactMarkdown>

@@ -18,8 +18,29 @@ export interface ProfitResult {
   breakEvenPrice: number | null;
 }
 
+export interface ProfitCalculatorPrefill {
+  unitCost: number | null;
+  productName: string;
+}
+
 function safeNumber(value: number, min = 0, max = 1_000_000): number {
   return Number.isFinite(value) ? Math.min(max, Math.max(min, value)) : 0;
+}
+
+export function parseProfitCalculatorPrefill(
+  cost: string | string[] | undefined,
+  product: string | string[] | undefined,
+): ProfitCalculatorPrefill {
+  const rawCost = Array.isArray(cost) ? cost[0] : cost;
+  const parsedCost = rawCost === undefined || rawCost.trim() === '' ? Number.NaN : Number(rawCost);
+  const unitCost = Number.isFinite(parsedCost) && parsedCost >= 0 && parsedCost <= 1_000_000
+    ? parsedCost
+    : null;
+  const rawProduct = Array.isArray(product) ? product[0] : product;
+  return {
+    unitCost,
+    productName: typeof rawProduct === 'string' ? rawProduct.trim().slice(0, 120) : '',
+  };
 }
 
 export function calculateProfit(input: ProfitInputs): ProfitResult {
