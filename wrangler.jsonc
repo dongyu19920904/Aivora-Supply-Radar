@@ -11,7 +11,7 @@
   },
   "vars": {
     "SITE_URL": "https://supply.aivora.cn",
-    "SOURCE_REPO": "dongyu19920904/Hextra-AI-Insight-Daily"
+    "SOURCE_REPO": "dongyu19920904/Aivora-Supply-Radar"
   },
   "durable_objects": {
     "bindings": [

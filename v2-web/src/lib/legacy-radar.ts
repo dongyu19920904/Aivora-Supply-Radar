@@ -2,6 +2,7 @@ import { supabase } from './supabase';
 import { resolveCanonicalProductSlug } from './product-canonicalization';
 
 const MAX_ITEMS = 100;
+const ACCOUNT_ARCHIVE_PAGE_SIZE = 24;
 
 export interface AccountOpportunity {
   id: number;
@@ -25,6 +26,14 @@ export interface PriceChange {
   previous_stock: string | null;
   current_stock: string | null;
   observed_at: string;
+}
+
+export interface AccountOpportunityArchivePage {
+  items: AccountOpportunity[];
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -76,18 +85,46 @@ export function parsePriceChangeRow(value: unknown): PriceChange | null {
   };
 }
 
-export async function listAccountOpportunities(): Promise<AccountOpportunity[]> {
+export async function listAccountOpportunities(limit = 12): Promise<AccountOpportunity[]> {
   try {
     const { data, error } = await supabase
       .from('account_opportunities')
-      .select('report_date,title,description,body_markdown,source_url,source_sha,published_at,source_synced_at')
+      .select('report_date,title,description,source_url,source_sha,published_at,source_synced_at')
       .order('report_date', { ascending: false })
-      .limit(MAX_ITEMS);
+      .limit(Math.max(1, Math.min(limit, 500)));
     if (error) throw error;
     return (data || []).map(parseAccountOpportunityRow).filter(Boolean) as AccountOpportunity[];
   } catch (error) {
     console.warn('Account opportunity feed unavailable:', error instanceof Error ? error.message : 'unknown');
     return [];
+  }
+}
+
+export async function listAccountOpportunityArchive(
+  requestedPage = 1,
+  requestedPageSize = ACCOUNT_ARCHIVE_PAGE_SIZE,
+): Promise<AccountOpportunityArchivePage> {
+  const page = Math.max(1, Math.floor(requestedPage) || 1);
+  const pageSize = Math.max(1, Math.min(Math.floor(requestedPageSize) || ACCOUNT_ARCHIVE_PAGE_SIZE, 50));
+  const from = (page - 1) * pageSize;
+  try {
+    const { data, error, count } = await supabase
+      .from('account_opportunities')
+      .select('report_date,title,description,source_url,source_sha,published_at,source_synced_at', { count: 'exact' })
+      .order('report_date', { ascending: false })
+      .range(from, from + pageSize - 1);
+    if (error) throw error;
+    const total = count || 0;
+    return {
+      items: (data || []).map(parseAccountOpportunityRow).filter(Boolean) as AccountOpportunity[],
+      page,
+      pageSize,
+      total,
+      totalPages: Math.max(1, Math.ceil(total / pageSize)),
+    };
+  } catch (error) {
+    console.warn('Account opportunity archive unavailable:', error instanceof Error ? error.message : 'unknown');
+    return { items: [], page, pageSize, total: 0, totalPages: 1 };
   }
 }
 

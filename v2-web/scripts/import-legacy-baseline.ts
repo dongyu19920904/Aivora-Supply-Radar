@@ -298,7 +298,10 @@ async function main() {
       .map(normalizeLegacyOpportunity)
       .filter((row): row is NonNullable<typeof row> => row !== null);
     if (rows.length) {
-      const { error } = await supabase.from('account_opportunities').upsert(rows, { onConflict: 'report_date' });
+      const { error } = await supabase.from('account_opportunities').upsert(rows, {
+        onConflict: 'report_date',
+        ignoreDuplicates: true,
+      });
       if (error) console.warn(`optional_opportunity_sync_failed:${error.message}`);
       else opportunityCount = rows.length;
     }

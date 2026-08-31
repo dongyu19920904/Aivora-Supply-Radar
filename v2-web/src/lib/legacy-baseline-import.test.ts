@@ -56,6 +56,7 @@ test('normalizes only traceable account-opportunity reports', () => {
     synced_at: '2026-08-29 12:50:08',
   });
   assert.equal(row?.report_date, '2026-08-29');
+  assert.equal(row?.source_url, 'https://supply.aivora.cn/opportunities/2026-08-29');
   assert.equal(row?.source_synced_at, '2026-08-29T12:50:08+08:00');
   assert.equal(normalizeLegacyOpportunity({
     report_date: '2026-08-29', title: 'bad', description: '', body_markdown: 'x',

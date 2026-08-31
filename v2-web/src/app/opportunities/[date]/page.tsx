@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
-import { ArrowLeft, Calculator, ExternalLink, PackageSearch, Search } from 'lucide-react';
+import { ArrowLeft, Calculator, PackageSearch, Search } from 'lucide-react';
 import { listCatalogSummaryProducts } from '@/lib/catalog-summary';
 import { getAccountOpportunity } from '@/lib/legacy-radar';
 import { findRelatedCatalogProducts, getProfitCalculatorHref } from '@/lib/supply-opportunity';
@@ -38,22 +38,33 @@ export default async function OpportunityDetailPage({ params }: PageProps) {
   ]);
   if (!opportunity) notFound();
   const relatedProducts = findRelatedCatalogProducts(opportunity, products);
+  const articleSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: opportunity.title,
+    description: opportunity.description,
+    datePublished: opportunity.published_at,
+    dateModified: opportunity.synced_at || opportunity.published_at,
+    mainEntityOfPage: `https://supply.aivora.cn/opportunities/${opportunity.report_date}`,
+    publisher: { '@type': 'Organization', name: '爱窝啦·AI账号店', url: 'https://www.aivora.cn/' },
+  };
 
   return (
     <main className="min-h-screen bg-gray-50/60 py-10 sm:py-14">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <Link href="/opportunities" className="inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-700 hover:text-emerald-800">
-          <ArrowLeft className="h-4 w-4" /> 返回账号商机日报
+          <ArrowLeft className="h-4 w-4" /> 返回今日经营台
         </Link>
 
         <article className="mt-5 overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
           <header className="border-b border-gray-100 bg-gradient-to-br from-emerald-50 via-white to-amber-50 p-6 sm:p-9">
-            <time dateTime={opportunity.report_date} className="text-sm font-semibold text-emerald-700">{opportunity.report_date} · 账号商机</time>
+            <time dateTime={opportunity.report_date} className="text-sm font-semibold text-emerald-700">{opportunity.report_date} · 商家经营日报</time>
             <h1 className="mt-3 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">{opportunity.title}</h1>
             <p className="mt-4 max-w-3xl text-base leading-7 text-gray-600">{opportunity.description}</p>
-            <a href={opportunity.source_url} target="_blank" rel="noopener" className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 hover:text-blue-800">
-              查看日报原页 <ExternalLink className="h-4 w-4" />
-            </a>
+            <Link href="/opportunities/archive" className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 hover:text-blue-800">
+              查看全部经营日报归档
+            </Link>
           </header>
 
           <section className="border-b border-gray-200 bg-gray-50 p-6 sm:p-9" data-opportunity-related-supply aria-labelledby="related-supply-title">

@@ -118,7 +118,7 @@ export function normalizeLegacyOpportunity(value: LegacyOpportunityForImport) {
     title,
     description: boundedText(value.description, 600),
     body_markdown: bodyMarkdown,
-    source_url: sourceUrl,
+    source_url: `https://supply.aivora.cn/opportunities/${reportDate}`,
     source_sha: nullableBoundedText(value.source_sha, 80),
     published_at: publishedAt,
     source_synced_at: timestamp(value.synced_at, true),

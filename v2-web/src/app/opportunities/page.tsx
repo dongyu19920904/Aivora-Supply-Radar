@@ -199,9 +199,10 @@ export default async function OpportunitiesPage() {
         <section className="border-t border-gray-300 pt-8" data-opportunity-industry-archive aria-labelledby="industry-signals-title">
           <div className="grid gap-4 lg:grid-cols-[0.72fr_1.28fr]">
             <div>
-              <span className="radar-kicker inline-flex items-center gap-2"><Newspaper className="h-4 w-4" />辅助证据 / 旧日报归档</span>
-              <h2 id="industry-signals-title" className="mt-3 text-2xl font-bold tracking-tight text-gray-950">行业信号不能替代当前货源</h2>
-              <p className="mt-3 text-sm leading-6 text-gray-600">日报用于解释政策、模型、支付或使用场景变化。进入详情后会匹配当前相关商品；没有货源关联时明确显示，不再把旧新闻直接包装成今天的货源商机。</p>
+              <span className="radar-kicker inline-flex items-center gap-2"><Newspaper className="h-4 w-4" />经营记录 / 日报归档</span>
+              <h2 id="industry-signals-title" className="mt-3 text-2xl font-bold tracking-tight text-gray-950">日报记录当天判断，实时盘面决定今天动作</h2>
+              <p className="mt-3 text-sm leading-6 text-gray-600">每期日报由当日货源、库存、报价和异动生成，并保留官方变化作为辅助证据。进入详情后会重新匹配当前商品，避免把历史判断当成今天的库存。</p>
+              <Link href="/opportunities/archive" className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-emerald-700 hover:underline">查看完整日报归档 <ArrowRight className="h-4 w-4" /></Link>
             </div>
             <div className="divide-y divide-gray-300 border-y border-gray-300">
               {opportunities.length ? opportunities.slice(0, 12).map((item) => (
@@ -209,7 +210,7 @@ export default async function OpportunitiesPage() {
                   <div className="flex items-center gap-2 text-xs font-semibold text-emerald-700"><CalendarDays className="h-4 w-4" /><time dateTime={item.report_date}>{item.report_date}</time></div>
                   <h3 className="mt-2 text-lg font-bold text-gray-950"><Link href={`/opportunities/${item.report_date}`} className="hover:text-emerald-700">{item.title}</Link></h3>
                   <p className="mt-2 text-sm leading-6 text-gray-600">{item.description}</p>
-                  <Link href={`/opportunities/${item.report_date}`} className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-blue-700 hover:underline">查看行业证据与当前货源关联 <ArrowRight className="h-4 w-4" /></Link>
+                  <Link href={`/opportunities/${item.report_date}`} className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-blue-700 hover:underline">查看当日判断与当前货源 <ArrowRight className="h-4 w-4" /></Link>
                 </article>
               )) : (
                 <div className="bg-white p-6 text-sm text-gray-600">行业日报暂不可用；实时货源、分类供给地图和价格异动不受影响。</div>

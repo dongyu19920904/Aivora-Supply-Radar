@@ -3,7 +3,7 @@ import type { OpportunityDocument } from "../domain/types";
 import { fetchPublicResource } from "../security/url";
 import { recordSourceRun, upsertOpportunity } from "../services/database";
 
-const DEFAULT_SOURCE_REPO = "dongyu19920904/Hextra-AI-Insight-Daily";
+export const DEFAULT_SOURCE_REPO = "dongyu19920904/Aivora-Supply-Radar";
 
 export function shanghaiDate(offsetDays = 0, now = new Date()): string {
   const formatter = new Intl.DateTimeFormat("en-CA", {
@@ -68,12 +68,12 @@ export async function fetchOpportunityDocument(
   throw lastError;
 }
 
-function sourceUrls(repo: string, date: string): { raw: string; page: string } {
+export function opportunitySourceUrls(repo: string, date: string): { raw: string; page: string } {
   const yearMonth = date.slice(0, 7);
   const encodedPath = `content/cn/account-opportunity/${yearMonth}/${date}.md`;
   return {
     raw: `https://raw.githubusercontent.com/${repo}/main/${encodedPath}`,
-    page: `https://news.aivora.cn/account-opportunity/${yearMonth}/${date}/`,
+    page: `https://supply.aivora.cn/opportunities/${date}`,
   };
 }
 
@@ -88,7 +88,7 @@ export async function syncLatestOpportunity(
   try {
     for (let offset = 0; offset > -14; offset -= 1) {
       const target = shanghaiDate(offset, new Date(`${targetDate}T04:00:00+08:00`));
-      const urls = sourceUrls(sourceRepo, target);
+      const urls = opportunitySourceUrls(sourceRepo, target);
       try {
         discovered += 1;
         const document = await fetchOpportunityDocument(urls.raw, urls.page, 12_000, 2);

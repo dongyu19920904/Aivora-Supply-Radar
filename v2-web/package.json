@@ -16,6 +16,7 @@
     "typecheck": "tsc --noEmit",
     "test": "tsx --test src/**/*.test.ts",
     "import:legacy": "tsx scripts/import-legacy-baseline.ts",
+    "import:account-opportunity-archive": "tsx scripts/import-account-opportunity-archive.ts",
     "import:priceai": "tsx scripts/import-priceai-snapshot.ts",
     "audit:data": "tsx scripts/audit-supabase-snapshot.ts",
     "audit:visual": "tsx scripts/visual-audit.ts",

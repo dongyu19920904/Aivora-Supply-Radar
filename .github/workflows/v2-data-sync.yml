@@ -40,6 +40,9 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Sync verified Aivora V1 baseline
         run: pnpm import:legacy
+      - name: Sync account opportunity archive
+        continue-on-error: true
+        run: pnpm import:account-opportunity-archive
       - name: Sync authorized PriceAI snapshot
         run: pnpm import:priceai
         env:

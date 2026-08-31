@@ -1,4 +1,9 @@
-import { fetchOpportunityDocument, shanghaiDate } from "../src/ingest/opportunity";
+import {
+  DEFAULT_SOURCE_REPO,
+  fetchOpportunityDocument,
+  opportunitySourceUrls,
+  shanghaiDate,
+} from "../src/ingest/opportunity";
 
 function argument(name: string): string | undefined {
   const index = process.argv.indexOf(name);
@@ -8,11 +13,8 @@ function argument(name: string): string | undefined {
 const requestedDate = argument("--date") ?? shanghaiDate();
 if (!/^\d{4}-\d{2}-\d{2}$/.test(requestedDate)) throw new Error("invalid_date_argument");
 
-const yearMonth = requestedDate.slice(0, 7);
-const path = `content/cn/account-opportunity/${yearMonth}/${requestedDate}.md`;
-const rawUrl = `https://raw.githubusercontent.com/dongyu19920904/Hextra-AI-Insight-Daily/main/${path}`;
-const pageUrl = `https://news.aivora.cn/account-opportunity/${yearMonth}/${requestedDate}/`;
-const document = await fetchOpportunityDocument(rawUrl, pageUrl, 30_000, 3);
+const urls = opportunitySourceUrls(DEFAULT_SOURCE_REPO, requestedDate);
+const document = await fetchOpportunityDocument(urls.raw, urls.page, 30_000, 3);
 
 const result = {
   status: "publishable",

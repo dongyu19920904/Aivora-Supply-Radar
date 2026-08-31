@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { parseOpportunityMarkdown, shanghaiDate } from "../src/ingest/opportunity";
+import {
+  DEFAULT_SOURCE_REPO,
+  opportunitySourceUrls,
+  parseOpportunityMarkdown,
+  shanghaiDate,
+} from "../src/ingest/opportunity";
 
 describe("account opportunity import", () => {
   it("parses the published Markdown contract", () => {
@@ -26,5 +31,13 @@ describe("account opportunity import", () => {
   it("uses Asia/Shanghai around UTC date boundaries", () => {
     expect(shanghaiDate(0, new Date("2026-08-28T16:30:00Z"))).toBe("2026-08-29");
     expect(shanghaiDate(-1, new Date("2026-08-28T16:30:00Z"))).toBe("2026-08-28");
+  });
+
+  it("reads the canonical archive from the supply repository and site", () => {
+    expect(DEFAULT_SOURCE_REPO).toBe("dongyu19920904/Aivora-Supply-Radar");
+    expect(opportunitySourceUrls(DEFAULT_SOURCE_REPO, "2026-08-31")).toEqual({
+      raw: "https://raw.githubusercontent.com/dongyu19920904/Aivora-Supply-Radar/main/content/cn/account-opportunity/2026-08/2026-08-31.md",
+      page: "https://supply.aivora.cn/opportunities/2026-08-31",
+    });
   });
 });

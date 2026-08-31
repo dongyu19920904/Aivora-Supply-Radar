@@ -52,7 +52,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error('获取博客文章失败，sitemap中将跳过动态博客生成:', error);
   }
 
-  const opportunities = await listAccountOpportunities();
+  const opportunities = await listAccountOpportunities(500);
   const opportunityUrls = opportunities.map((item) => ({
     url: `${baseUrl}/opportunities/${item.report_date}`,
     lastModified: item.synced_at ? new Date(item.synced_at) : undefined,
@@ -69,6 +69,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/official-prices`, priority: 0.9, changeFrequency: 'daily' as const },
     { url: `${baseUrl}/changes`, priority: 0.9, changeFrequency: 'hourly' as const },
     { url: `${baseUrl}/opportunities`, priority: 0.9, changeFrequency: 'daily' as const },
+    { url: `${baseUrl}/opportunities/archive`, priority: 0.8, changeFrequency: 'daily' as const },
     { url: `${baseUrl}/profit-calculator`, priority: 0.8, changeFrequency: 'monthly' as const },
     { url: `${baseUrl}/wholesale`, priority: 0.8, changeFrequency: 'weekly' as const },
     { url: `${baseUrl}/commercial`, priority: 0.7, changeFrequency: 'monthly' as const },
