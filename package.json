@@ -20,6 +20,7 @@
     "check:content": "tsx scripts/check-content.ts",
     "check:live-sources": "tsx scripts/check-live-sources.ts",
     "audit:competitive": "tsx scripts/competitive-site-audit.ts",
+    "audit:priceai-parity": "tsx scripts/priceai-parity-audit.ts",
     "audit:release-ui": "tsx scripts/release-ui-audit.ts",
     "audit:visual": "tsx scripts/visual-audit.ts",
     "deploy": "wrangler deploy"
