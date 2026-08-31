@@ -37,12 +37,18 @@ interface CatalogFilterRow {
 }
 
 export default async function AllProductsPage() {
-  const { data: catalog } = await supabase
-    .from('product_catalog')
-    .select('name, platform_id, sort_order, product_platforms(name, sort_order)')
-    .eq('is_active', true);
+  let catalog: CatalogFilterRow[] = [];
+  try {
+    const response = await supabase
+      .from('product_catalog')
+      .select('name, platform_id, sort_order, product_platforms(name, sort_order)')
+      .eq('is_active', true);
+    catalog = (response.data || []) as unknown as CatalogFilterRow[];
+  } catch (error) {
+    console.warn('Offer filters unavailable:', error instanceof Error ? error.message : 'unknown');
+  }
 
-  const catalogRows = (catalog || []) as unknown as CatalogFilterRow[];
+  const catalogRows = catalog;
   const initialCategories: CategoryFilterOption[] = catalogRows.map((item) => {
     const platform = Array.isArray(item.product_platforms)
       ? item.product_platforms[0]?.name

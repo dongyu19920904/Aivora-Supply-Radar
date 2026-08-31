@@ -20,31 +20,33 @@ export interface OfficialPriceRow {
 }
 
 async function fetchOfficialApps(): Promise<OfficialAppRow[]> {
-  const { data, error } = await supabase
-    .from('apple_store_apps')
-    .select('apple_app_id, slug, name, is_active, target_countries')
-    .eq('is_active', true);
+  try {
+    const { data, error } = await supabase
+      .from('apple_store_apps')
+      .select('apple_app_id, slug, name, is_active, target_countries')
+      .eq('is_active', true);
 
-  if (error) {
-    console.error('Error fetching official apps:', error);
+    if (error) console.error('Error fetching official apps:', error);
+    return error ? [] : data || [];
+  } catch (error) {
+    console.warn('Official app list unavailable:', error instanceof Error ? error.message : 'unknown');
     return [];
   }
-
-  return data || [];
 }
 
 async function fetchOfficialPrices(): Promise<OfficialPriceRow[]> {
-  const { data, error } = await supabase
-    .from('apple_store_prices')
-    .select('apple_app_id, country, subscription_name, original_price_str, price_rmb, updated_at')
-    .order('price_rmb', { ascending: true });
+  try {
+    const { data, error } = await supabase
+      .from('apple_store_prices')
+      .select('apple_app_id, country, subscription_name, original_price_str, price_rmb, updated_at')
+      .order('price_rmb', { ascending: true });
 
-  if (error) {
-    console.error('Error fetching official prices:', error);
+    if (error) console.error('Error fetching official prices:', error);
+    return error ? [] : data || [];
+  } catch (error) {
+    console.warn('Official price list unavailable:', error instanceof Error ? error.message : 'unknown');
     return [];
   }
-
-  return data || [];
 }
 
 const getCachedOfficialApps = unstable_cache(

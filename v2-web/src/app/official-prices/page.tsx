@@ -49,10 +49,16 @@ function isCreditLike(name: string): boolean {
 }
 
 export default async function OfficialPricesPage() {
-  const [appsData, pricesData] = await Promise.all([
-    getOfficialApps(),
-    getOfficialPrices(),
-  ]);
+  let appsData: Awaited<ReturnType<typeof getOfficialApps>> = [];
+  let pricesData: Awaited<ReturnType<typeof getOfficialPrices>> = [];
+  try {
+    [appsData, pricesData] = await Promise.all([
+      getOfficialApps(),
+      getOfficialPrices(),
+    ]);
+  } catch (error) {
+    console.warn('Official price page data unavailable:', error instanceof Error ? error.message : 'unknown');
+  }
 
   // Aggregate prices: Group by App ID -> Subscription Name -> find cheapest
   const appsWithPrices = appsData.map((app) => {

@@ -56,37 +56,42 @@ export function mapCatalogSummaryRows(rows: readonly CatalogSummaryRow[]): Produ
 }
 
 export const listCatalogSummaryProducts = cache(async (): Promise<ProductType[]> => {
-  const summaryResponse = await supabase.rpc('get_product_catalog_summary');
-  if (!summaryResponse.error) {
-    return mergeCanonicalCatalogProducts(mapCatalogSummaryRows((summaryResponse.data || []) as CatalogSummaryRow[]));
-  }
+  try {
+    const summaryResponse = await supabase.rpc('get_product_catalog_summary');
+    if (!summaryResponse.error) {
+      return mergeCanonicalCatalogProducts(mapCatalogSummaryRows((summaryResponse.data || []) as CatalogSummaryRow[]));
+    }
 
-  console.warn('Catalog summary RPC unavailable; returning catalog without price aggregates:', summaryResponse.error.message);
-  const fallback = await supabase
-    .from('product_catalog')
-    .select('id, slug, name, short_desc, search_keywords, platform_id, sort_order, display_id, product_platforms(name, sort_order)')
-    .eq('is_active', true);
-  if (fallback.error) {
-    console.warn('Catalog fallback unavailable:', fallback.error.message);
+    console.warn('Catalog summary RPC unavailable; returning catalog without price aggregates:', summaryResponse.error.message);
+    const fallback = await supabase
+      .from('product_catalog')
+      .select('id, slug, name, short_desc, search_keywords, platform_id, sort_order, display_id, product_platforms(name, sort_order)')
+      .eq('is_active', true);
+    if (fallback.error) {
+      console.warn('Catalog fallback unavailable:', fallback.error.message);
+      return [];
+    }
+
+    return mergeCanonicalCatalogProducts(((fallback.data || []) as unknown as CatalogFallbackRow[]).map((row) => {
+      const platform = firstRelation(row.product_platforms);
+      return {
+        id: row.id,
+        slug: row.slug,
+        name: row.name,
+        platform: platform?.name || row.platform_id,
+        lowestPrice: null,
+        warrantyPrice: null,
+        channelCount: 0,
+        updatedAt: null,
+        shortDesc: row.short_desc,
+        searchKeywords: row.search_keywords || [],
+        sort_order: row.sort_order || 0,
+        display_id: row.display_id,
+        platform_sort_order: platform?.sort_order || 0,
+      };
+    }));
+  } catch (error) {
+    console.warn('Catalog data unavailable:', error instanceof Error ? error.message : 'unknown');
     return [];
   }
-
-  return mergeCanonicalCatalogProducts(((fallback.data || []) as unknown as CatalogFallbackRow[]).map((row) => {
-    const platform = firstRelation(row.product_platforms);
-    return {
-      id: row.id,
-      slug: row.slug,
-      name: row.name,
-      platform: platform?.name || row.platform_id,
-      lowestPrice: null,
-      warrantyPrice: null,
-      channelCount: 0,
-      updatedAt: null,
-      shortDesc: row.short_desc,
-      searchKeywords: row.search_keywords || [],
-      sort_order: row.sort_order || 0,
-      display_id: row.display_id,
-      platform_sort_order: platform?.sort_order || 0,
-    };
-  }));
 });
