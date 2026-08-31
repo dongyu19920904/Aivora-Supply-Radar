@@ -1,6 +1,7 @@
 # 爱窝啦·货源雷达跨来源商品统一与核心体验修改方案
 
-日期：2026-08-31（Asia/Shanghai）  
+日期：2026-08-31（Asia/Shanghai）
+
 关联审计：`SUPPLY_RADAR_CANONICAL_CORE_GAP_AUDIT_2026-08-31.md`
 
 ## 1. 目标与边界

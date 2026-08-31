@@ -47,6 +47,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({ products, startIndex =
                       <tr
                         data-catalog-product
                         data-catalog-name={product.name}
+                        data-catalog-slug={product.slug}
                         data-active-offer={product.channelCount > 0 ? 'true' : 'false'}
                         className="even:bg-gray-50/60 hover:bg-blue-50/40 transition-colors cursor-pointer group border-b border-gray-100 last:border-0"
                         onClick={() => router.push(`/card-products/${product.slug}`)}
@@ -93,6 +94,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({ products, startIndex =
                   <div
                     data-catalog-product
                     data-catalog-name={product.name}
+                    data-catalog-slug={product.slug}
                     data-active-offer={product.channelCount > 0 ? 'true' : 'false'}
                     className="p-4 active:bg-gray-50 transition-colors cursor-pointer"
                     onClick={() => router.push(`/card-products/${product.slug}`)}

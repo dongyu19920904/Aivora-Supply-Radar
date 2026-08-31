@@ -11,6 +11,7 @@ import {
   type LegacyPriceChangeForImport,
   type LegacyProductForImport,
 } from '../src/lib/legacy-baseline-import';
+import { resolveCanonicalProductSlug } from '../src/lib/product-canonicalization';
 
 const DEFAULT_LEGACY_API_URL = 'https://aivora-supply-radar.sabrinamisan090.workers.dev';
 const MAX_RESPONSE_BYTES = 4 * 1024 * 1024;
@@ -107,9 +108,7 @@ async function mapConcurrent<T, R>(items: T[], mapper: (item: T) => Promise<R>):
 
 async function main() {
   const sourceBase = apiBase();
-  const supabase = createClient(requiredEnv('SUPABASE_URL'), requiredEnv('SUPABASE_SERVICE_ROLE_KEY'), {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
+  const dryRun = process.argv.includes('--dry-run');
   const optionalFeeds = Promise.allSettled([
     fetchData<LegacyOpportunityForImport>(`${sourceBase}/api/v1/opportunities`),
     fetchData<LegacyPriceChangeForImport>(`${sourceBase}/api/v1/changes`),
@@ -134,6 +133,37 @@ async function main() {
   const offers = offersByProduct.flatMap(({ product, offers: productOffers }) => (
     productOffers.map((offer) => ({ product, offer }))
   ));
+
+  if (dryRun) {
+    const [opportunityResult, changeResult] = await optionalFeeds;
+    const canonicalProducts = new Set(products.map((product) => resolveCanonicalProductSlug(product.slug)));
+    const aliasesResolved = products.filter((product) => resolveCanonicalProductSlug(product.slug) !== product.slug).length;
+    const normalizedOpportunities = opportunityResult.status === 'fulfilled'
+      ? opportunityResult.value.slice(0, 100).map(normalizeLegacyOpportunity).filter(Boolean).length
+      : 0;
+    const normalizedChanges = changeResult.status === 'fulfilled'
+      ? changeResult.value.slice(0, 1_000).map(normalizeLegacyPriceChange).filter(Boolean).length
+      : 0;
+    console.log(JSON.stringify({
+      source: sourceBase,
+      mode: 'dry-run',
+      sourceProducts: products.length,
+      canonicalProducts: canonicalProducts.size,
+      aliasesResolved,
+      productsWithOffers: productsWithOffers.length,
+      merchants: merchants.length,
+      offers: offers.length,
+      opportunities: normalizedOpportunities,
+      priceChanges: normalizedChanges,
+      databaseWrites: 0,
+      validation: 'passed',
+    }));
+    return;
+  }
+
+  const supabase = createClient(requiredEnv('SUPABASE_URL'), requiredEnv('SUPABASE_SERVICE_ROLE_KEY'), {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
 
   const platformNames = [...new Set(products.map((product) => product.platform.trim()).filter(Boolean))];
   const { data: platforms, error: platformError } = await supabase
@@ -191,30 +221,49 @@ async function main() {
     reconciledTargets += 1;
   }
 
-  const catalogRows = products.map((product, index) => {
+  const canonicalSlugs = [...new Set(products.map((product) => resolveCanonicalProductSlug(product.slug)))];
+  const { data: existingCanonicalRows, error: existingCanonicalError } = await supabase
+    .from('product_catalog')
+    .select('slug')
+    .in('slug', canonicalSlugs);
+  if (existingCanonicalError) throw existingCanonicalError;
+  const existingCanonicalSlugs = new Set((existingCanonicalRows || []).map((row) => row.slug));
+
+  const catalogRowsBySlug = new Map(products.map((product, index) => {
     const platformId = platformIds.get(product.platform);
     if (!platformId) throw new Error(`missing_platform:${product.platform}`);
-    return {
-      slug: product.slug,
+    const canonicalSlug = resolveCanonicalProductSlug(product.slug);
+    return [canonicalSlug, {
+      slug: canonicalSlug,
       name: product.name,
       short_desc: product.description || product.subtitle || '',
-      search_keywords: buildLegacySearchKeywords(product),
+      search_keywords: [...new Set([...buildLegacySearchKeywords(product), product.slug, canonicalSlug])],
       is_active: true,
       platform_id: platformId,
       sort_order: products.length - index,
       is_catch_all: product.slug === 'other-products',
-    };
-  });
+    }] as const;
+  }));
+  const catalogRows = [...catalogRowsBySlug.values()].filter((row) => (
+    products.some((product) => product.slug === row.slug)
+    || !existingCanonicalSlugs.has(row.slug)
+  ));
+  if (catalogRows.length) {
+    const { error: catalogUpsertError } = await supabase
+      .from('product_catalog')
+      .upsert(catalogRows, { onConflict: 'slug' });
+    if (catalogUpsertError) throw catalogUpsertError;
+  }
   const { data: catalog, error: catalogError } = await supabase
     .from('product_catalog')
-    .upsert(catalogRows, { onConflict: 'slug' })
-    .select('id,slug');
+    .select('id,slug')
+    .in('slug', canonicalSlugs);
   if (catalogError) throw catalogError;
   const catalogIds = new Map((catalog || []).map((row) => [row.slug, row.id]));
 
   const offerRows = offers.map(({ product, offer }) => {
     const targetId = targetIdsBySlug.get(offer.merchant_slug);
-    const catalogId = catalogIds.get(product.slug);
+    const catalogId = catalogIds.get(resolveCanonicalProductSlug(product.slug));
     if (!targetId) throw new Error(`missing_target:${offer.merchant_slug}`);
     if (!catalogId) throw new Error(`missing_catalog:${product.slug}`);
     return {
@@ -264,6 +313,7 @@ async function main() {
     const rows = changeResult.value
       .slice(0, 1000)
       .map(normalizeLegacyPriceChange)
+      .map((row) => row ? { ...row, product_slug: resolveCanonicalProductSlug(row.product_slug) } : null)
       .filter((row): row is NonNullable<typeof row> => row !== null);
     if (rows.length) {
       const { error } = await supabase

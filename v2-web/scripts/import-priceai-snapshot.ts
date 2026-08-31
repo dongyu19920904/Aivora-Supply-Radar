@@ -14,6 +14,7 @@ import {
   type PriceAiOfferForImport,
   type PriceAiSnapshotCoverage,
 } from '../src/lib/priceai-import';
+import { resolveCanonicalProductSlug } from '../src/lib/product-canonicalization';
 
 const PAGE_SIZE = 100;
 const PAGE_OVERLAP = 20;
@@ -323,21 +324,22 @@ async function main() {
   if (platformError) throw platformError;
   const platformIds = new Map((platforms || []).map((row) => [row.name, row.id]));
 
-  const catalogRows = products.map((product, index) => {
+  const catalogRows = [...new Map(products.map((product, index) => {
     const platformId = platformIds.get(product.platform);
     if (!platformId) throw new Error(`priceai_missing_platform:${product.platform}`);
-    return {
-      slug: product.slug,
+    const canonicalSlug = resolveCanonicalProductSlug(product.slug);
+    return [canonicalSlug, {
+      slug: canonicalSlug,
       name: product.displayName,
       short_desc: product.summary || product.spec || '',
-      search_keywords: [...new Set([product.platform, product.displayName, product.productType, product.spec, ...(product.aliases || [])].filter(Boolean))],
+      search_keywords: [...new Set([product.platform, product.displayName, product.productType, product.spec, product.slug, canonicalSlug, ...(product.aliases || [])].filter(Boolean))],
       is_active: true,
       platform_id: platformId,
       sort_order: catalogSortOrderForSourceIndex(index),
       is_catch_all: false,
       updated_at: product.updatedAt || explorer.generatedAt,
-    };
-  });
+    }] as const;
+  })).values()];
   const { data: catalog, error: catalogError } = await supabase
     .from('product_catalog')
     .upsert(catalogRows, { onConflict: 'slug' })
@@ -377,7 +379,8 @@ async function main() {
 
   const offerRowsWithContext = [...grouped.values()].map(({ product, offer, count }) => {
     const targetId = targetIds.get(`${base}/api/offers?source=${encodeURIComponent(offer.sourceId)}`);
-    const catalogId = catalogIds.get(product.slug);
+    const canonicalSlug = resolveCanonicalProductSlug(product.slug);
+    const catalogId = catalogIds.get(canonicalSlug);
     if (!targetId) throw new Error(`priceai_missing_target:${offer.sourceId}`);
     if (!catalogId) throw new Error(`priceai_missing_catalog:${product.slug}`);
     const observedAt = offer.lastSeenAt || offer.capturedAt || explorer.generatedAt;
@@ -396,7 +399,7 @@ async function main() {
       updated_at: offer.sourceUpdatedAt || observedAt,
       is_manual_override: false,
       changeContext: {
-        productSlug: product.slug,
+        productSlug: canonicalSlug,
         productName: product.displayName,
         merchantName: (offer.sourceStoreName || offer.sourceName || offer.sourceId).slice(0, 240),
         sourceUrl: validHttpsUrl(offer.url) as string,

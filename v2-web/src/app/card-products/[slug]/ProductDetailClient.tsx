@@ -12,6 +12,7 @@ import { YoufenkAffiliateBanner } from '../../../components/YoufenkAffiliateAd';
 import { useBuyAction } from '../../../hooks/useBuyAction';
 import { PlatformCountBadge } from '../../../components/PlatformCountBadge';
 import type { ProductOfferAvailability } from '../../../lib/product-offer-query';
+import { getRelativeTime } from '../../../lib/utils';
 
 interface ProductDetailClientProps {
   slug: string;
@@ -129,6 +130,12 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ slug, 
     { value: 'available', label: '可购买', count: availableTotal },
     { value: 'unavailable', label: '缺货 / 下架', count: unavailableTotal },
   ];
+  const lowestPrice = selectedProduct.lowestPrice && selectedProduct.lowestPrice > 0
+    ? `¥${selectedProduct.lowestPrice.toFixed(2)}`
+    : '暂无报价';
+  const warrantyPrice = selectedProduct.warrantyPrice && selectedProduct.warrantyPrice > 0
+    ? `¥${selectedProduct.warrantyPrice.toFixed(2)}`
+    : null;
 
   return (
     <>
@@ -150,6 +157,33 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ slug, 
         </div>
 
         <div className="flex flex-col relative">
+          <section
+            data-product-decision-summary
+            className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3"
+            aria-label="商品市场摘要"
+          >
+            <div className="rounded-xl border border-emerald-100 bg-emerald-50/70 p-3 sm:p-4">
+              <p className="text-xs font-medium text-emerald-700">当前最低可买</p>
+              <p className="mt-1 font-mono text-lg font-bold tabular-nums text-emerald-800">{lowestPrice}</p>
+            </div>
+            <div className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4">
+              <p className="text-xs font-medium text-gray-500">可购买报价</p>
+              <p className="mt-1 font-mono text-lg font-bold tabular-nums text-gray-950">{availableTotal}</p>
+            </div>
+            <div className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4">
+              <p className="text-xs font-medium text-gray-500">缺货 / 下架</p>
+              <p className="mt-1 font-mono text-lg font-bold tabular-nums text-gray-950">{unavailableTotal}</p>
+            </div>
+            <div className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4">
+              <p className="text-xs font-medium text-gray-500">{warrantyPrice ? '明确质保最低价' : '最近报价更新'}</p>
+              <p suppressHydrationWarning className="mt-1 text-sm font-bold text-gray-950 sm:text-base">
+                {warrantyPrice || (selectedProduct.updatedAt ? getRelativeTime(selectedProduct.updatedAt) : '待首次采集')}
+              </p>
+            </div>
+          </section>
+          <p className="mb-4 text-xs leading-5 text-gray-500">
+            已合并同一标准商品的授权聚合与爱窝啦来源；自营报价不固定置顶，默认按可购买优先、价格从低到高排列。
+          </p>
           <div
             className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-gray-200 bg-white p-2 shadow-sm"
             aria-label="报价库存筛选"

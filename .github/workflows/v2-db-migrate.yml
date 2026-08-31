@@ -1,0 +1,45 @@
+name: Supply Radar V2 Database Migrate
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supply-radar-v2-database-migrate
+  cancel-in-progress: false
+
+defaults:
+  run:
+    working-directory: v2-web
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.34.5
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: v2-web/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - name: Validate and apply pending migrations
+        shell: bash
+        run: |
+          set -euo pipefail
+          encoded_password="$(node -e 'process.stdout.write(encodeURIComponent(process.env.SUPABASE_DB_PASSWORD))')"
+          echo "::add-mask::$encoded_password"
+          db_url="postgresql://postgres.${SUPABASE_PROJECT_REF}:${encoded_password}@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres"
+          pnpm exec supabase db push --db-url "$db_url" --dry-run
+          pnpm exec supabase db push --db-url "$db_url" --yes
+          unset db_url encoded_password

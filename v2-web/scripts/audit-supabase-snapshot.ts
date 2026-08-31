@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { PRODUCT_SLUG_ALIASES } from '../src/lib/product-canonicalization';
 
 const PAGE_SIZE = 1_000;
 
@@ -20,6 +21,7 @@ interface CatalogRow {
   id: string;
   slug: string;
   name: string;
+  is_active: boolean;
 }
 
 interface TargetRow {
@@ -71,7 +73,7 @@ async function main() {
 
   const [platformCount, catalog, targets, offers, publicSummary] = await Promise.all([
     exactCount(admin, 'product_platforms'),
-    fetchAll<CatalogRow>(admin, 'product_catalog', 'id,slug,name'),
+    fetchAll<CatalogRow>(admin, 'product_catalog', 'id,slug,name,is_active'),
     fetchAll<TargetRow>(admin, 'crawler_targets', 'id,name'),
     fetchAll<OfferRow>(admin, 'market_offers', 'id,target_id,canonical_product_id,product_title,price,status,url,tags,inventory_level,updated_at,last_crawled_at'),
     publicClient.rpc('get_product_catalog_summary'),
@@ -79,6 +81,16 @@ async function main() {
   if (publicSummary.error) throw publicSummary.error;
 
   const catalogById = new Map(catalog.map((row) => [row.id, row]));
+  const activeCatalog = catalog.filter((row) => row.is_active);
+  const aliasSlugs = new Set(Object.keys(PRODUCT_SLUG_ALIASES));
+  const aliasCatalogIds = new Set(catalog.filter((row) => aliasSlugs.has(row.slug)).map((row) => row.id));
+  const activeAliasSlugs = catalog.filter((row) => row.is_active && aliasSlugs.has(row.slug)).map((row) => row.slug);
+  const activeNames = new Map<string, string[]>();
+  for (const row of activeCatalog) {
+    const normalizedName = row.name.trim().toLocaleLowerCase('zh-CN');
+    activeNames.set(normalizedName, [...(activeNames.get(normalizedName) || []), row.slug]);
+  }
+  const duplicateActiveNames = [...activeNames.values()].filter((slugs) => slugs.length > 1);
   const targetById = new Map(targets.map((row) => [row.id, row]));
   const offerCountsByProduct = new Map<string, number>();
   const offerCountsByTarget = new Map<string, number>();
@@ -94,6 +106,7 @@ async function main() {
   let inStockWithNonPositivePrice = 0;
   let newestCrawledAt = '';
   let oldestCrawledAt = '';
+  let offersOnAliasCatalog = 0;
   const productsWithAvailableOffers = new Set<string>();
 
   for (const offer of offers) {
@@ -103,6 +116,7 @@ async function main() {
     sourceCounts[source] += 1;
     if (!offer.url.startsWith('https://')) invalidHttpsUrls += 1;
     if (!offer.canonical_product_id || !catalogById.has(offer.canonical_product_id)) missingCatalog += 1;
+    if (offer.canonical_product_id && aliasCatalogIds.has(offer.canonical_product_id)) offersOnAliasCatalog += 1;
     if (!offer.target_id || !targetById.has(offer.target_id)) missingTarget += 1;
     if (offer.status === 'in_stock') {
       if (offer.inventory_level === 0) inStockWithZeroInventory += 1;
@@ -140,6 +154,12 @@ async function main() {
   const audit = {
     platformCount,
     catalogCount: catalog.length,
+    activeCatalogCount: activeCatalog.length,
+    inactiveCatalogCount: catalog.length - activeCatalog.length,
+    knownAliasCatalogCount: aliasCatalogIds.size,
+    activeAliasSlugs,
+    duplicateActiveNames,
+    offersOnAliasCatalog,
     targetCount: targets.length,
     offerCount: offers.length,
     productsWithOffers: offerCountsByProduct.size,
@@ -150,7 +170,7 @@ async function main() {
     publicSummaryRows: summaryRows.length,
     publicSummaryMaxChannelCount: Math.max(0, ...summaryRows.map((row) => Number(row.channel_count || 0))),
     productsWithAvailableOffers: productsWithAvailableOffers.size,
-    productsWithoutAvailableOffers: catalog.length - productsWithAvailableOffers.size,
+    productsWithoutAvailableOffers: activeCatalog.length - productsWithAvailableOffers.size,
     inStockWithZeroInventory,
     outOfStockWithPositiveInventory,
     inStockWithNonPositivePrice,
@@ -164,6 +184,8 @@ async function main() {
       inStockWithZeroInventory: chatGptPlusOffers.filter(
         (offer) => offer.status === 'in_stock' && offer.inventory_level === 0,
       ).length,
+      priceAi: chatGptPlusOffers.filter((offer) => offer.tags?.includes('source:priceai')).length,
+      legacyV1: chatGptPlusOffers.filter((offer) => offer.tags?.includes('source:legacy-v1')).length,
     },
     invalidHttpsUrls,
     missingCatalog,
@@ -176,7 +198,13 @@ async function main() {
   if (invalidHttpsUrls || missingCatalog || missingTarget || duplicateKeys.size) {
     throw new Error(`audit_integrity_failed:${JSON.stringify(audit)}`);
   }
-  if (summaryRows.length !== catalog.length) throw new Error('audit_public_summary_catalog_mismatch');
+  if (activeAliasSlugs.length || duplicateActiveNames.length || offersOnAliasCatalog) {
+    throw new Error(`audit_canonicalization_failed:${JSON.stringify(audit)}`);
+  }
+  if (sourceCounts.legacyV1 > 0 && (!audit.chatGptPlus.priceAi || !audit.chatGptPlus.legacyV1)) {
+    throw new Error(`audit_chatgpt_plus_source_merge_failed:${JSON.stringify(audit.chatGptPlus)}`);
+  }
+  if (summaryRows.length !== activeCatalog.length) throw new Error('audit_public_summary_catalog_mismatch');
   console.log(JSON.stringify(audit));
 }
 

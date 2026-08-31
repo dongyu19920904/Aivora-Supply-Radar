@@ -1,6 +1,7 @@
 import { cache } from 'react';
 
 import type { ProductType } from '../data';
+import { mergeCanonicalCatalogProducts } from './product-canonicalization';
 import { supabase } from './supabase';
 
 interface CatalogSummaryRow {
@@ -57,7 +58,7 @@ export function mapCatalogSummaryRows(rows: readonly CatalogSummaryRow[]): Produ
 export const listCatalogSummaryProducts = cache(async (): Promise<ProductType[]> => {
   const summaryResponse = await supabase.rpc('get_product_catalog_summary');
   if (!summaryResponse.error) {
-    return mapCatalogSummaryRows((summaryResponse.data || []) as CatalogSummaryRow[]);
+    return mergeCanonicalCatalogProducts(mapCatalogSummaryRows((summaryResponse.data || []) as CatalogSummaryRow[]));
   }
 
   console.warn('Catalog summary RPC unavailable; returning catalog without price aggregates:', summaryResponse.error.message);
@@ -70,7 +71,7 @@ export const listCatalogSummaryProducts = cache(async (): Promise<ProductType[]>
     return [];
   }
 
-  return ((fallback.data || []) as unknown as CatalogFallbackRow[]).map((row) => {
+  return mergeCanonicalCatalogProducts(((fallback.data || []) as unknown as CatalogFallbackRow[]).map((row) => {
     const platform = firstRelation(row.product_platforms);
     return {
       id: row.id,
@@ -87,5 +88,5 @@ export const listCatalogSummaryProducts = cache(async (): Promise<ProductType[]>
       display_id: row.display_id,
       platform_sort_order: platform?.sort_order || 0,
     };
-  });
+  }));
 });

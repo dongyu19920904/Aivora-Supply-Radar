@@ -1,8 +1,11 @@
 # 爱窝啦·货源雷达核心功能与跨来源商品审计报告
 
-审计日期：2026-08-31（Asia/Shanghai）  
-生产基线：<https://supply.aivora.cn/>  
-代码基线：`Aivora-Supply-Radar origin/main`，提交 `f01b03af5039912c15b819b8a2f1fd59880f69ac`  
+审计日期：2026-08-31（Asia/Shanghai）
+
+生产基线：<https://supply.aivora.cn/>
+
+代码基线：`Aivora-Supply-Radar origin/main`，提交 `f01b03af5039912c15b819b8a2f1fd59880f69ac`
+
 对标页面：<https://priceai.cc/channels>、<https://closeman.asia/>、<https://www.openprice.cc/card-products>、<https://withai.homes/>
 
 ## 1. 结论先行

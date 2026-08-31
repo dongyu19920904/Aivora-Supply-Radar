@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server';
 
 import { supabase } from '@/lib/supabase';
 import { parseProductOfferQuery } from '@/lib/product-offer-query';
+import {
+  productSlugsForCanonical,
+  resolveCanonicalProductSlug,
+} from '@/lib/product-canonicalization';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,13 +48,15 @@ async function findTargetIds(term: string): Promise<string[]> {
 export async function GET(request: Request, context: { params: Promise<{ slug: string }> }) {
   try {
     const { slug } = await context.params;
-    const { data: product, error: productError } = await supabase
+    const canonicalSlug = resolveCanonicalProductSlug(slug);
+    const { data: products, error: productError } = await supabase
       .from('product_catalog')
-      .select('id')
-      .eq('slug', slug)
-      .eq('is_active', true)
-      .single();
-    if (productError || !product) return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+      .select('id,slug,is_active')
+      .in('slug', productSlugsForCanonical(canonicalSlug));
+    if (productError || !products?.some((product) => product.is_active)) {
+      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+    }
+    const productIds = products.map((product) => product.id);
 
     const params = parseProductOfferQuery(new URL(request.url).searchParams);
     const allTerms = [...new Set([...params.searchTerms, ...params.excludedTerms])];
@@ -64,7 +70,7 @@ export async function GET(request: Request, context: { params: Promise<{ slug: s
         'id, product_title, price, status, url, tags, inventory_level, updated_at, canonical_product_id, target_id, crawler_targets(name, scraper_type, created_at)',
         { count: 'exact' },
       )
-      .eq('canonical_product_id', product.id)
+      .in('canonical_product_id', productIds)
       .neq('status', 'blacklisted');
 
     if (params.minPrice !== null) query = query.gte('price', params.minPrice);

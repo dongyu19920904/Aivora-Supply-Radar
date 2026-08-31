@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { resolveCanonicalProductSlug } from './product-canonicalization';
 
 const MAX_ITEMS = 100;
 
@@ -63,7 +64,7 @@ export function parsePriceChangeRow(value: unknown): PriceChange | null {
   if (!sourceUrl.startsWith('https://')) return null;
 
   return {
-    product_slug: text(value.product_slug, 160),
+    product_slug: resolveCanonicalProductSlug(text(value.product_slug, 160)),
     product_name: text(value.product_name, 240),
     merchant_name: text(value.merchant_name, 240),
     source_url: sourceUrl,

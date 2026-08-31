@@ -16,6 +16,7 @@ const allCases = [
   { name: 'all-products-mobile-light', path: '/card-products/all', width: 390, height: 844, theme: 'light', mockOffers: false },
   { name: 'product-detail-desktop-light', path: '/card-products/chatgpt-plus', width: 1440, height: 1000, theme: 'light', mockOffers: false },
   { name: 'product-detail-mobile-dark', path: '/card-products/chatgpt-plus', width: 390, height: 844, theme: 'dark', mockOffers: false },
+  { name: 'product-alias-redirect', path: '/card-products/chatgpt-plus-trial', width: 390, height: 844, theme: 'light', mockOffers: false },
   { name: 'opportunities-mobile-light', path: '/opportunities', width: 390, height: 844, theme: 'light', mockOffers: false },
   { name: 'changes-desktop-dark', path: '/changes', width: 1440, height: 1000, theme: 'dark', mockOffers: false },
 ] as const;
@@ -109,6 +110,7 @@ try {
         return states.some((active, index) => !active && states.slice(index + 1).includes(true));
       });
       return {
+        currentUrl: window.location.href,
         title: document.title,
         dark: document.documentElement.classList.contains('dark'),
         overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
@@ -118,6 +120,8 @@ try {
         mainText: document.querySelector('main')?.textContent?.trim().length ?? 0,
         catalogProductCount: visibleCatalogRows.length,
         catalogFirstNames: visibleCatalogRows.slice(0, 3).map((row) => row.dataset.catalogName || ''),
+        catalogSlugs: visibleCatalogRows.map((row) => row.dataset.catalogSlug || ''),
+        catalogNamesUnique: new Set(visibleCatalogRows.map((row) => row.dataset.catalogName || '')).size === visibleCatalogRows.length,
         catalogUnavailableBeforeAvailable: catalogActiveStates.some(
           (active, index) => !active && catalogActiveStates.slice(index + 1).includes(true),
         ),
@@ -141,6 +145,7 @@ try {
         opportunityProductLinkCount: document.querySelectorAll('[data-opportunity-product-link]').length,
         opportunitySupplyMap: Boolean(document.querySelector('[data-opportunity-supply-map]')),
         opportunityIndustryArchive: Boolean(document.querySelector('[data-opportunity-industry-archive]')),
+        productDecisionSummary: Boolean(document.querySelector('[data-product-decision-summary]')),
         };
       })),
       catalogDropdownOptionIds,
@@ -160,6 +165,13 @@ try {
           unavailableFilter.click(),
         ]);
         await page.waitForLoadState('networkidle', { timeout: 8_000 }).catch(() => undefined);
+        await page.waitForFunction(() => {
+          const rows = Array.from(document.querySelectorAll<HTMLElement>('[data-offer-status]'))
+            .filter((row) => row.getClientRects().length > 0);
+          return rows.length > 0
+            && rows.every((row) => row.dataset.offerStatus !== 'in_stock')
+            && rows.every((row) => Boolean(row.querySelector('button:disabled')));
+        }, undefined, { timeout: 10_000 }).catch(() => undefined);
         const unavailableFilterDiagnostics = await page.evaluate(() => {
           const rows = Array.from(document.querySelectorAll<HTMLElement>('[data-offer-status]'))
             .filter((row) => row.getClientRects().length > 0);
@@ -179,8 +191,16 @@ try {
     const status = response?.status() || 0;
     const themeMatches = diagnostics.dark === (auditCase.theme === 'dark');
     const catalogFailed = auditCase.path === '/card-products' && (
-      diagnostics.catalogProductCount !== 71
+      diagnostics.catalogProductCount !== 49
       || !diagnostics.catalogFirstNames[0]?.includes('ChatGPT')
+      || !diagnostics.catalogNamesUnique
+      || diagnostics.catalogSlugs.some((slug) => [
+        'chatgpt-plus-trial',
+        'chatgpt-plus-renewal',
+        'chatgpt-account',
+        'chatgpt-team',
+        'claude-pro',
+      ].includes(slug))
       || diagnostics.catalogCategoryIds[0] !== 'chatgpt'
       || diagnostics.catalogCategoryIds.join(',') !== 'chatgpt,claude,gemini,grok,ai-coding,ai-creative,email,verification,social,api-payment,other'
       || !diagnostics.catalogCategoryIdsUnique
@@ -191,6 +211,7 @@ try {
     );
     const detailFailed = auditCase.path === '/card-products/chatgpt-plus' && (
       diagnostics.offerAvailabilityFilterCount !== 3
+      || !diagnostics.productDecisionSummary
       || diagnostics.offerZeroInventoryText
       || diagnostics.offerUnavailableBeforeAvailable
       || diagnostics.unavailableFilterOnlyUnavailable !== true
@@ -203,6 +224,8 @@ try {
       || !diagnostics.opportunitySupplyMap
       || !diagnostics.opportunityIndustryArchive
     );
+    const aliasRedirectFailed = auditCase.path === '/card-products/chatgpt-plus-trial'
+      && !diagnostics.currentUrl.endsWith('/card-products/chatgpt-plus');
     const caseFailed = status !== 200
       || diagnostics.overflow > 1
       || diagnostics.brokenImages.length > 0
@@ -211,7 +234,8 @@ try {
       || consoleErrors.length > 0
       || catalogFailed
       || detailFailed
-      || opportunityFailed;
+      || opportunityFailed
+      || aliasRedirectFailed;
     failed ||= caseFailed;
     results.push({
       name: auditCase.name,
@@ -221,6 +245,7 @@ try {
       catalogFailed,
       detailFailed,
       opportunityFailed,
+      aliasRedirectFailed,
       consoleErrors,
       screenshot,
       result: caseFailed ? 'failed' : 'passed',
