@@ -12,3 +12,10 @@ test('public worker converts unhandled OpenNext failures into a branded 503 boun
   assert.match(workerSource, /X-Robots-Tag/);
   assert.match(workerSource, /catch \(error\)/);
 });
+
+test('buyer and seller conversion routes participate in the public HTML cache boundary', async () => {
+  const workerSource = await readFile(new URL('../../cloudflare-worker.mjs', import.meta.url), 'utf8');
+
+  assert.match(workerSource, /'\/commercial'/);
+  assert.match(workerSource, /'\/wholesale'/);
+});

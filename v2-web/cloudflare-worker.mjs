@@ -12,12 +12,14 @@ const PUBLIC_HTML_ROUTES = [
   '/card-products',
   '/changes',
   '/channels',
+  '/commercial',
   '/community',
   '/guide',
   '/methodology',
   '/official-prices',
   '/opportunities',
   '/submit',
+  '/wholesale',
 ];
 const EDGE_CACHE_SECONDS = 300;
 
