@@ -103,40 +103,35 @@ export const CardProductsClient: React.FC<CardProductsClientProps> = ({ initialP
 
   return (
     <div className="relative">
-      <div className="mb-6 pt-2">
-        <div className="mb-3 flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
-          <h1 className="text-xl font-bold tracking-tight text-gray-900 sm:text-2xl">
-            AI 订阅比价与卡网渠道报价聚合
-          </h1>
-          <Link
-            href="/card-products/all"
-            className="inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-900 transition-colors hover:border-gray-500 hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
-          >
-            查看全部报价
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2"><path d="m9 18 6-6-6-6"/></svg>
-          </Link>
-        </div>
-        <p className="max-w-4xl text-sm leading-relaxed text-gray-500">
-          先按 ChatGPT、Claude、Gemini、Grok 等热门平台分类，再在同类商品中比较可购买报价、价格和更新时间。分类不代表销量，购买或上架前仍需核验原始链接、交付与售后。
+      <div className="mb-6 pt-2 text-center sm:mb-8 sm:pt-4">
+        <span className="radar-kicker">Subscription marketplace</span>
+        <h1 className="market-display mx-auto mt-3 max-w-3xl text-3xl sm:text-5xl">AI 订阅货源市场</h1>
+        <p className="mx-auto mt-4 max-w-3xl text-sm leading-7 text-gray-600 sm:text-base">
+          先选标准商品，再比较同类渠道。ChatGPT 等热门平台排在前面，可购买商品优先，无货商品在分类内沉底。
         </p>
+        <nav className="mx-auto mt-6 inline-flex max-w-full gap-1 overflow-x-auto rounded-full border border-gray-200 bg-white p-1" aria-label="货源市场视图">
+          <Link href="/card-products" aria-current="page" className="whitespace-nowrap rounded-full bg-gray-900 px-4 py-2 text-sm font-bold text-white">标准商品</Link>
+          <Link href="/card-products/all" className="whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100 hover:text-gray-950">全部报价</Link>
+          <Link href="/channels" className="whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100 hover:text-gray-950">渠道商</Link>
+        </nav>
       </div>
 
-      <div className="mb-4 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-gray-200 bg-gray-200 sm:grid-cols-4" aria-label="标准商品数据概览">
+      <div className="mb-4 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-gray-200 bg-gray-200 sm:grid-cols-4" aria-label="标准商品数据概览">
         <div className="bg-white px-4 py-3">
           <div className="font-mono text-xl font-bold tabular-nums text-gray-950">{initialProducts.length}</div>
-          <div className="mt-0.5 text-xs text-gray-500">标准商品，完整保留</div>
+          <div className="mt-0.5 text-xs text-gray-500">标准商品</div>
         </div>
         <div className="bg-white px-4 py-3">
           <div className="font-mono text-xl font-bold tabular-nums text-emerald-700">{availableCount}</div>
-          <div className="mt-0.5 text-xs text-gray-500">当前可购买商品</div>
+          <div className="mt-0.5 text-xs text-gray-500">当前可购买</div>
         </div>
         <div className="bg-white px-4 py-3">
           <div className="font-mono text-xl font-bold tabular-nums text-gray-600">{unavailableCount}</div>
-          <div className="mt-0.5 text-xs text-gray-500">暂不可购买，分类内沉底</div>
+          <div className="mt-0.5 text-xs text-gray-500">暂无可售报价</div>
         </div>
         <Link href="/channels" className="group bg-white px-4 py-3 transition-colors hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-amber-500">
           <div className="font-mono text-xl font-bold tabular-nums text-gray-950">{platformCount}</div>
-          <div className="mt-0.5 text-xs text-gray-500 group-hover:text-gray-900">渠道来源，查看目录 →</div>
+          <div className="mt-0.5 text-xs text-gray-500 group-hover:text-gray-900">公开渠道 →</div>
         </Link>
       </div>
 
@@ -166,15 +161,15 @@ export const CardProductsClient: React.FC<CardProductsClientProps> = ({ initialP
           />
         </FilterBar>
 
-        <nav className="mb-3 overflow-x-auto rounded-xl border border-gray-200 bg-white p-2" aria-label="热门平台分类">
+        <nav className="mb-3 overflow-x-auto rounded-2xl border border-gray-200 bg-white p-2" aria-label="热门平台分类">
           <div className="flex min-w-max gap-1.5">
             <button
               type="button"
               data-catalog-category-filter="all"
               aria-pressed={!selectedCategory}
               onClick={() => handleCategoryChange('')}
-              className={`rounded-lg px-3 py-2 text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${
-                !selectedCategory ? 'bg-gray-950 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-950'
+              className={`rounded-full px-3 py-2 text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
+                !selectedCategory ? 'bg-emerald-700 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-950'
               }`}
             >
               全部分类 <span className="font-mono tabular-nums">{initialProducts.length}</span>
@@ -188,8 +183,8 @@ export const CardProductsClient: React.FC<CardProductsClientProps> = ({ initialP
                   data-catalog-category-filter={option.value}
                   aria-pressed={active}
                   onClick={() => handleCategoryChange(option.value)}
-                  className={`rounded-lg px-3 py-2 text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${
-                    active ? 'bg-gray-950 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-950'
+                  className={`rounded-full px-3 py-2 text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
+                    active ? 'bg-emerald-700 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-950'
                   }`}
                 >
                   {option.label} <span className="font-mono tabular-nums">{option.count}</span>
@@ -199,7 +194,7 @@ export const CardProductsClient: React.FC<CardProductsClientProps> = ({ initialP
           </div>
         </nav>
 
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2.5 sm:px-4 sm:py-3">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-gray-200 bg-white px-3 py-2.5 sm:px-4 sm:py-3">
           <div className="flex min-w-0 items-center gap-2">
             <span className="hidden shrink-0 text-xs font-semibold text-gray-500 sm:inline">报价状态</span>
             <div className="flex flex-wrap gap-1" role="group" aria-label="按报价状态筛选">
@@ -218,7 +213,7 @@ export const CardProductsClient: React.FC<CardProductsClientProps> = ({ initialP
                     onClick={() => setAvailabilityParam(option.value === 'all' ? '' : option.value)}
                     className={`whitespace-nowrap rounded-md px-2.5 py-1.5 text-xs font-semibold transition-colors active:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 ${
                       active
-                        ? 'bg-gray-950 text-white'
+                        ? 'bg-emerald-700 text-white'
                         : 'border border-gray-200 bg-white text-gray-600 hover:border-gray-400 hover:text-gray-950'
                     }`}
                   >

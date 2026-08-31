@@ -5,7 +5,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Hallmark · pre-emit critique: P5 H5 E4 S5 R4 V4 */
+/* Hallmark · pre-emit critique: P5 H5 E4 S5 R5 V4 */
 
 :root {
   --font-size: 18px;
@@ -139,7 +139,7 @@
     /* Next.js injects the font variables on <body>, so define the portable
        aliases in the same scope instead of resolving them prematurely on :root. */
     --font-body: var(--font-noto-sans-sc), "Noto Sans SC", "Microsoft YaHei", sans-serif;
-    --font-display: var(--font-space-grotesk), var(--font-noto-sans-sc), "Noto Sans SC", sans-serif;
+    --font-display: "Songti SC", STSong, SimSun, "Noto Serif CJK SC", serif;
     font-family: var(--font-body);
     @apply bg-background text-foreground;
   }
@@ -253,7 +253,7 @@ input[type="number"] {
   width: min(320px, calc(50vw - 42.5rem));
 }
 
-/* Hallmark · genre: modern-minimal · macrostructure: Workbench · design-system: design.md · designed-as-app */
+/* Hallmark · genre: modern-minimal · macrostructure: Purchase-path + Data catalogue · design-system: design.md · studied-DNA: PriceAI */
 .radar-page {
   min-height: 100vh;
   background: var(--color-paper-2);
@@ -374,6 +374,60 @@ input[type="number"] {
   color: inherit;
   background: linear-gradient(180deg, transparent 38%, var(--color-accent) 38%, var(--color-accent) 90%, transparent 90%);
   padding-inline: var(--space-3xs);
+}
+
+.market-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 50% 0%, color-mix(in oklch, var(--color-accent) 7%, transparent), transparent 31rem),
+    var(--color-paper-2);
+  color: var(--color-ink);
+}
+
+.market-shell {
+  width: min(100%, 80rem);
+  margin-inline: auto;
+  padding-inline: var(--page-gutter);
+}
+
+.market-display {
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.05;
+}
+
+.market-pill {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: var(--radius-pill);
+  padding-inline: 1.1rem;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  transition: border-color var(--dur-short), background var(--dur-short), color var(--dur-short);
+}
+
+.market-pill--primary { background: var(--color-accent); color: var(--color-accent-ink); }
+.market-pill--primary:hover { filter: brightness(0.92); }
+.market-pill--secondary { border: 1px solid var(--color-rule); background: var(--color-paper); color: var(--color-ink); }
+.market-pill--secondary:hover { border-color: var(--color-accent); color: var(--color-accent); }
+
+.market-card {
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-card);
+  background: var(--color-paper);
+}
+
+.dark .market-page { background: var(--color-paper-2); }
+.dark .announcement-badge,
+.dark .announcement-close {
+  border-color: var(--color-accent) !important;
+  background: var(--color-paper) !important;
+  color: var(--color-ink) !important;
 }
 
 header nav a, footer a, button { white-space: nowrap; }

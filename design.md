@@ -1,114 +1,97 @@
 # Design — 爱窝啦·货源雷达
 
-A locked design system for the supply marketplace. Public pages must feel like a
-decision tool for buyers and sellers, not a generic SaaS landing page. Extend
-this file when the system grows; do not invent a separate visual theme per page.
+这是货源市场的唯一公共设计契约。它吸收 PriceAI 的公开信息架构与交互优点，保留爱窝啦自己的品牌、内容、数据和视觉资产；所有页面应让买家更快完成“选商品 → 看可售报价 → 核验风险 → 决定购买”，让卖家完成“看需求 → 找货 → 算利润 → 跟踪变化”。
 
 ## Genre
 
-Modern-minimal, technical and utilitarian. Chinese data density is deliberate.
+Modern-minimal marketplace：安静、可信、紧凑但不拥挤。商品和交易证据是主角，不做传统 SaaS 式大口号或仪表盘堆砌。
 
 ## Macrostructure family
 
-- Marketing entry: Workbench overview with live dataset facts and direct task entry points.
-- App pages: Workbench with compact page head, persistent filters and tabular spec sheets.
-- Content pages: Long Document, 60–68ch measure, evidence links in blue.
+- 营销入口：Purchase-path entry。首页先展示三种用户意图，再进入数据模块、可信边界和指南。
+- 市场页面：Data catalogue。紧凑页头、明确的标准商品/全部报价/渠道商切换、平台与库存筛选、桌面表格和移动决策卡。
+- 商品详情：Decision sheet。状态、最低价、可售报价、更新鲜度和风险边界必须先于长说明。
+- 内容页面：Long document，正文 60–68ch，公开证据链接保持蓝色。
 
-Chrome uses N1b dense three-section navigation (utility rail + grouped routes +
-single submission CTA) and an Ft2-style compact inline footer.
+导航采用居中的胶囊分段导航，顶部允许一条可关闭的经营日报公告；移动端使用抽屉菜单，不再占用屏幕底部。页脚按买家工具、商家经营、项目信息分组。
 
 ## Theme
 
-- `--color-paper`: engineered warm white.
-- `--color-paper-2`: cool gray work surface.
-- `--color-ink`: near-black data ink.
-- `--color-ink-2`: muted slate copy.
-- `--color-rule`: visible neutral divider.
-- `--color-accent`: Aivora signal yellow; no more than 5% of a viewport.
-- `--color-link`: evidence blue.
-- `--color-focus`: amber focus ring.
+- `--color-paper`：温暖白色内容纸面。
+- `--color-paper-2`：极浅森林灰背景。
+- `--color-ink`：深森林墨色。
+- `--color-ink-2`：次级说明文字。
+- `--color-rule`：轻但可见的边界。
+- `--color-accent`：森林绿，用于主行动、活动状态与正向供应信号。
+- `--color-brand`：爱窝啦黄色，只用于品牌圆点、利润提示等小面积语义，不超过视口 2%。
+- `--color-link`：证据蓝。
+- `--color-focus`：高可见绿色焦点环。
 
-Exact light and dark OKLCH values live in `v2-web/src/app/tokens.css`.
+精确明暗 OKLCH 值位于 `v2-web/src/app/tokens.css`，仓库根目录保留同步副本。
 
 ## Typography
 
-- Display: system Chinese sans, weight 700, normal.
-- Body: system Chinese sans, weight 400–500.
-- Mono: SFMono-Regular / Consolas, weight 500, for prices, dates and counts.
-- Display tracking: `-0.025em`.
-- Type scale anchor: `--text-display = clamp(2rem, 4vw, 3.6rem)`.
+- Display：宋体系统栈，标题重量 600–700，营造编辑型市场气质。
+- Body：构建期 Noto Sans SC / 系统中文无衬线，400–600。
+- Mono：SFMono-Regular / Consolas，用于价格、库存、日期和计数。
+- Display tracking：`-0.02em`；正文不要使用超宽字距。
+- 数值列使用 tabular figures。
 
-No remote font request is required. Numeric columns use tabular figures.
+不请求远程字体，不复制参考站字体文件。
 
-## Spacing
+## Shape, spacing and motion
 
-4-point named scale in `tokens.css`. New system components use named tokens;
-legacy pages migrate gradually without breaking imported authorized templates.
-
-## Motion
-
-- Ease: `--ease-out: cubic-bezier(0.16, 1, 0.3, 1)`.
-- No page reveal choreography; data is present immediately.
-- Hover is color/border only. No card lift.
-- Reduced motion disables nonessential transitions.
-
-## Microinteractions stance
-
-- Success and error states are inline and announced with `aria-live`.
-- Focus is immediate and visibly amber.
-- Destructive or outbound actions keep explicit labels.
+- 4-point 命名间距体系见 `tokens.css`。
+- 面板 16px、输入 12px、行动按钮胶囊形；一个组件只使用一套半径逻辑。
+- Hover 只改变颜色和边界，不做卡片上浮。
+- 数据立即出现，不做页面 reveal choreography。
+- `prefers-reduced-motion` 关闭非必要过渡。
 
 ## CTA voice
 
-- Primary: ink fill, 6px radius, verb + object (for example “查看全网货源”).
-- Secondary: paper background, visible rule, same geometry.
-- Evidence links: blue, underlined on hover; never disguised as buttons.
+- 主行动：森林绿或深墨胶囊，使用“查看可售报价”“开始比价”等动词短语。
+- 次行动：白底可见边框，几何与主行动一致。
+- 证据链接：蓝色，hover 下划线，不伪装成按钮。
+- 禁止笼统“了解更多”；写清动作结果。
 
-## Per-page allowances
+## Shared contracts
 
-- Homepage may use one compact signal-yellow status rail.
-- App pages use no decorative illustration; current data carries the page.
-- Content pages use typography, rules and evidence links only.
+- 品牌固定为“爱窝啦·货源雷达”，主站品牌固定为“爱窝啦·AI账号店”。
+- 首页、目录、详情页共享森林绿、编辑型标题、胶囊按钮和证据蓝。
+- 所有目录先展示可购买商品；无库存商品保留但在分类内沉底，并有明确分界。
+- 桌面以表格压缩比较成本，移动端按“状态 → 商品 → 价格/库存 → 更新 → 行动”转为决策卡。
+- 空状态必须解释原因与下一步，远端故障必须是品牌化 503，不能泄露 Cloudflare 原始错误页。
+- 深浅主题必须共享层级，不能只做反色。
 
-## What pages MUST share
+## Allowed variation
 
-- Text wordmark “爱窝啦·货源雷达”.
-- Signal yellow and evidence blue roles.
-- System sans + mono numeric pairing.
-- 6px control radius, 10px panel radius, visible 1px rules.
-- Functional kicker → heading → plain-language decision guidance rhythm.
+- 表格、卡片或长文根据任务选择，不强制所有页面一个模板。
+- 商家工具可用绿/红表达收益和风险。
+- 官方价格与第三方货源必须保持身份分离。
 
-## What pages MAY differ on
+## Provenance
 
-- Table, list or memo layout based on the task.
-- Filter density and sticky behavior.
-- Seller tools may use emerald/red only to express positive/negative outcomes.
+PriceAI 作为用户指定且已取得商业授权的体验参考。本项目学习其购买路径、信息密度、目录切换和移动端决策顺序，但不复制 PriceAI 名称、Logo、插画、文案或抓取到的品牌资产。
 
 ## Hallmark stamp
 
-Public UI CSS is stamped:
-
-`/* Hallmark · genre: modern-minimal · macrostructure: Workbench · design-system: design.md · designed-as-app */`
+`/* Hallmark · genre: modern-minimal · macrostructure: Purchase-path + Data catalogue · design-system: design.md · studied-DNA: PriceAI */`
 
 ## Exports
-
-### tokens.css
-
-The canonical runtime file is `v2-web/src/app/tokens.css`; a portable copy is
-kept at the repository root as `tokens.css`.
 
 ### Tailwind v4 `@theme`
 
 ```css
 @theme {
-  --color-paper: oklch(0.995 0.004 95);
-  --color-ink: oklch(0.19 0.012 255);
-  --color-accent: oklch(0.86 0.18 91);
+  --color-paper: oklch(0.995 0.003 145);
+  --color-ink: oklch(0.22 0.018 155);
+  --color-accent: oklch(0.50 0.12 152);
+  --color-brand: oklch(0.86 0.18 91);
   --color-link: oklch(0.51 0.2 257);
-  --font-display: var(--font-space-grotesk), sans-serif;
+  --font-display: "Songti SC", STSong, SimSun, serif;
   --font-body: var(--font-noto-sans-sc), sans-serif;
   --spacing-md: 1.5rem;
-  --radius-card: 10px;
+  --radius-card: 16px;
 }
 ```
 
@@ -117,13 +100,13 @@ kept at the repository root as `tokens.css`.
 ```json
 {
   "color": {
-    "paper": { "$value": "oklch(0.995 0.004 95)", "$type": "color" },
-    "ink": { "$value": "oklch(0.19 0.012 255)", "$type": "color" },
-    "accent": { "$value": "oklch(0.86 0.18 91)", "$type": "color" },
-    "link": { "$value": "oklch(0.51 0.2 257)", "$type": "color" }
+    "paper": { "$value": "oklch(0.995 0.003 145)", "$type": "color" },
+    "ink": { "$value": "oklch(0.22 0.018 155)", "$type": "color" },
+    "accent": { "$value": "oklch(0.50 0.12 152)", "$type": "color" },
+    "brand": { "$value": "oklch(0.86 0.18 91)", "$type": "color" }
   },
   "space": { "md": { "$value": "1.5rem", "$type": "dimension" } },
-  "radius": { "card": { "$value": "10px", "$type": "dimension" } }
+  "radius": { "card": { "$value": "16px", "$type": "dimension" } }
 }
 ```
 
@@ -131,14 +114,14 @@ kept at the repository root as `tokens.css`.
 
 ```css
 :root {
-  --background: 0.995 0.004 95;
-  --foreground: 0.19 0.012 255;
-  --primary: 0.19 0.012 255;
-  --primary-foreground: 0.995 0.004 95;
-  --muted: 0.965 0.006 255;
-  --muted-foreground: 0.47 0.018 255;
-  --border: 0.87 0.012 255;
-  --ring: 0.74 0.18 78;
-  --radius: 6px;
+  --background: 0.995 0.003 145;
+  --foreground: 0.22 0.018 155;
+  --primary: 0.50 0.12 152;
+  --primary-foreground: 0.99 0.004 145;
+  --muted: 0.975 0.006 145;
+  --muted-foreground: 0.47 0.025 155;
+  --border: 0.89 0.012 145;
+  --ring: 0.61 0.15 151;
+  --radius: 12px;
 }
 ```

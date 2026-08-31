@@ -7,6 +7,8 @@ export interface ProductOfferQueryParams {
   excludedTerms: string[];
   minPrice: number | null;
   maxPrice: number | null;
+  minInventory: number | null;
+  updatedWithinHours: number | null;
   availability: ProductOfferAvailability;
 }
 
@@ -30,6 +32,13 @@ function boundedPrice(value: string | null): number | null {
   return Math.min(parsed, 1_000_000_000);
 }
 
+function optionalBoundedInteger(value: string | null, min: number, max: number): number | null {
+  if (!value) return null;
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isFinite(parsed)) return null;
+  return Math.min(Math.max(parsed, min), max);
+}
+
 export function parseProductOfferQuery(searchParams: URLSearchParams): ProductOfferQueryParams {
   const common = parseOfferQuery(searchParams);
   const minPrice = boundedPrice(searchParams.get('min'));
@@ -42,6 +51,8 @@ export function parseProductOfferQuery(searchParams: URLSearchParams): ProductOf
     excludedTerms: common.excludedTerms,
     minPrice,
     maxPrice: minPrice !== null && maxPrice !== null && maxPrice < minPrice ? minPrice : maxPrice,
+    minInventory: optionalBoundedInteger(searchParams.get('inventory'), 1, 1_000_000),
+    updatedWithinHours: optionalBoundedInteger(searchParams.get('hours'), 1, 720),
     availability: availability(searchParams.get('availability')),
   };
 }

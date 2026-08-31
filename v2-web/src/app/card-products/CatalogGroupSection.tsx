@@ -24,16 +24,16 @@ export function CatalogGroupSection({
       id={`category-${category.id}`}
       data-catalog-category={category.id}
       data-catalog-category-name={category.name}
-      className="scroll-mt-40 border-t-2 border-t-gray-950 pt-4"
+      className="scroll-mt-40 pt-2"
       aria-labelledby={`category-${category.id}-title`}
     >
-      <header className="mb-3 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+      <header className="mb-3 grid gap-3 rounded-t-2xl border-x border-t border-gray-200 bg-white px-4 py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end sm:px-5">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-mono text-xs font-semibold tabular-nums text-gray-400">
               {String(order).padStart(2, '0')}
             </span>
-            <h2 id={`category-${category.id}-title`} className="text-xl font-bold tracking-tight text-gray-950 sm:text-2xl">
+            <h2 id={`category-${category.id}-title`} className="market-display text-xl sm:text-2xl">
               {category.name}
             </h2>
           </div>
@@ -45,7 +45,7 @@ export function CatalogGroupSection({
           <div className="flex items-baseline gap-1"><dt>在售报价</dt><dd className="font-mono font-semibold tabular-nums text-blue-700">{availableOffers}</dd></div>
         </dl>
       </header>
-      <MasterTable products={products} startIndex={startIndex} />
+      <div className="-mt-3"><MasterTable products={products} startIndex={startIndex} /></div>
     </section>
   );
 }

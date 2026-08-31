@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from 'react';
+import Link from 'next/link';
 import { FilterBar } from '../../components/FilterBar';
 import { getRelativeTime } from '../../lib/utils';
 import { ViewDetailsButton } from '../../components/ViewDetailsButton';
@@ -63,17 +64,21 @@ export const ChannelsClient: React.FC<ChannelsClientProps> = ({ initialChannels 
   };
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 relative">
+    <div className="relative">
       <PlatformCountBadge count={initialChannels.length} />
-      <div className="mb-6 flex flex-col md:flex-row items-start gap-4 md:gap-6">
+      <div className="mb-7 text-center">
         <div className="flex-1 w-full">
-          <h1 className="text-xl font-bold tracking-tight text-gray-900 sm:text-2xl mb-2 flex items-center gap-3">
-            渠道商列表
-          </h1>
-          <p className="text-sm text-gray-500 max-w-2xl leading-relaxed mb-3">
-            在这里可以查看所有被收录并正在活跃更新的渠道，感谢各位渠道商和用户的提交，共同维护这片生态。
+          <span className="radar-kicker">Source directory</span>
+          <h1 className="market-display mt-3 text-3xl sm:text-5xl">公开渠道商目录</h1>
+          <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-gray-600">
+            查看已收录渠道的商品覆盖和更新时间。渠道收录不等于平台背书，交易前仍需打开原始商品页面核验。
           </p>
-          <div className="inline-flex items-center gap-1.5 text-sm text-blue-700 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100/50 shadow-sm">
+          <nav className="mx-auto mt-6 inline-flex max-w-full gap-1 overflow-x-auto rounded-full border border-gray-200 bg-white p-1" aria-label="货源市场视图">
+            <Link href="/card-products" className="whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100">标准商品</Link>
+            <Link href="/card-products/all" className="whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100">全部报价</Link>
+            <Link href="/channels" aria-current="page" className="whitespace-nowrap rounded-full bg-gray-900 px-4 py-2 text-sm font-bold text-white">渠道商</Link>
+          </nav>
+          <div className="mx-auto mt-4 inline-flex max-w-3xl items-center gap-1.5 rounded-xl border border-blue-100 bg-blue-50 px-3 py-1.5 text-sm text-blue-700">
             <Info className="w-4 h-4 shrink-0" />
             <span>为保证展示公平，所有渠道均根据其<strong>最新成功抓取更新的时间</strong>自动排序。</span>
           </div>
@@ -121,17 +126,17 @@ export const ChannelsClient: React.FC<ChannelsClientProps> = ({ initialChannels 
         </div>
 
         {/* Desktop Table Layout */}
-        <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden relative">
+        <div className="hidden md:block bg-white rounded-2xl border border-gray-200 overflow-hidden relative">
           <div className="overflow-x-auto min-h-[400px]">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-100">
-                  <th className="px-6 py-4 text-sm font-semibold text-gray-600 whitespace-nowrap">渠道名称</th>
-                  <th className="px-6 py-4 text-sm font-semibold text-gray-600 whitespace-nowrap">系统类型</th>
-                  <th className="px-6 py-4 text-sm font-semibold text-gray-600 whitespace-nowrap">收录商品数</th>
-                  <th className="px-6 py-4 text-sm font-semibold text-gray-600 whitespace-nowrap">收录时间</th>
-                  <th className="px-6 py-4 text-sm font-semibold text-gray-600 whitespace-nowrap">最近更新</th>
-                  <th className="px-6 py-4 text-sm font-semibold text-gray-600 whitespace-nowrap text-right">操作</th>
+                  <th className="px-5 py-3 text-sm font-semibold text-gray-600 whitespace-nowrap">渠道名称</th>
+                  <th className="px-5 py-3 text-sm font-semibold text-gray-600 whitespace-nowrap">系统类型</th>
+                  <th className="px-5 py-3 text-sm font-semibold text-gray-600 whitespace-nowrap">商品覆盖</th>
+                  <th className="px-5 py-3 text-sm font-semibold text-gray-600 whitespace-nowrap">收录时间</th>
+                  <th className="px-5 py-3 text-sm font-semibold text-gray-600 whitespace-nowrap">最近更新</th>
+                  <th className="px-5 py-3 text-sm font-semibold text-gray-600 whitespace-nowrap text-right">操作</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">

@@ -3,22 +3,33 @@
 import { useEffect, useRef, useState, useTransition } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Calculator, Plus, X } from 'lucide-react';
+import { ArrowRight, Handshake, Menu, Plus, X } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 
 const navItems = [
-  { href: '/card-products', label: '货源市场' },
-  { href: '/channels', label: '渠道商' },
-  { href: '/official-prices', label: '官方价' },
-  { href: '/changes', label: '异动' },
-  { href: '/opportunities', label: '账号商机' },
+  { href: '/', label: '首页' },
+  { href: '/card-products', label: '订阅货源' },
+  { href: '/official-prices', label: '官方价格' },
+  { href: '/opportunities', label: '商家经营' },
   { href: '/guide', label: '指南' },
+] as const;
+
+const moreItems = [
+  { href: '/channels', label: '渠道商目录' },
+  { href: '/card-products/all', label: '全部原始报价' },
+  { href: '/changes', label: '价格与库存异动' },
+  { href: '/profit-calculator', label: '利润计算器' },
+  { href: '/wholesale', label: '批发供需合作' },
+  { href: '/commercial', label: '企业与商用采购' },
+  { href: '/community', label: '货源社区' },
 ] as const;
 
 export function Header() {
   const pathname = usePathname();
   const formRef = useRef<HTMLFormElement>(null);
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isAnnouncementOpen, setIsAnnouncementOpen] = useState(true);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -34,6 +45,17 @@ export function Header() {
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
   }, [isSubmitModalOpen]);
+
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const handleKey = (event: KeyboardEvent) => { if (event.key === 'Escape') setIsMenuOpen(false); };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [isMenuOpen]);
 
   const openSubmission = () => { setFeedback(null); setIsSubmitModalOpen(true); };
 
@@ -55,33 +77,54 @@ export function Header() {
 
   return (
     <>
-      <div className="bg-gray-950 text-white">
-        <div className="mx-auto flex min-h-8 max-w-7xl items-center justify-between gap-4 px-4 text-[11px] sm:px-6 lg:px-8">
-          <span className="font-mono uppercase tracking-[0.14em] text-gray-300">Aivora supply workbench</span>
-          <div className="flex items-center gap-4">
-            <Link href="/changes" className="hover:text-amber-300">查看今日异动</Link>
-            <Link href="/profit-calculator" className="hidden items-center gap-1 text-amber-300 hover:text-amber-200 sm:inline-flex"><Calculator className="h-3 w-3" />利润计算器</Link>
+      {isAnnouncementOpen && (
+        <div className="border-b border-emerald-100 bg-emerald-50 text-emerald-950">
+          <div className="mx-auto grid min-h-10 max-w-7xl grid-cols-[1fr_auto] items-center gap-3 px-4 text-xs sm:px-6 lg:px-8">
+            <Link href="/opportunities" className="flex min-w-0 items-center justify-center gap-2 font-medium hover:text-emerald-700">
+              <span className="announcement-badge shrink-0 whitespace-nowrap rounded-full border border-emerald-200 bg-white px-2 py-1 text-[11px] font-bold">货源日报</span>
+              <span className="truncate">账号商家经营日报已关联实时库存与报价</span>
+              <ArrowRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            </Link>
+            <button type="button" onClick={() => setIsAnnouncementOpen(false)} aria-label="关闭公告" className="announcement-close rounded-full border border-emerald-200 bg-white p-1.5 text-emerald-800 hover:bg-emerald-100"><X className="h-3.5 w-3.5" /></button>
           </div>
         </div>
-      </div>
-      <header className="sticky top-0 z-30 border-b border-gray-200 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-7xl items-center gap-5 px-4 sm:px-6 lg:px-8">
-          <Link href="/" className="flex shrink-0 items-center gap-2" aria-label="爱窝啦·货源雷达首页">
-            <span className="flex h-8 w-8 items-center justify-center rounded-md bg-amber-300 font-mono text-xs font-black text-gray-950">AI</span>
-            <span className="text-base font-bold tracking-tight text-gray-950 sm:text-lg">爱窝啦<span className="text-gray-500">·货源雷达</span></span>
+      )}
+      <header className="sticky top-0 z-30 border-b border-gray-200 bg-white/95 shadow-sm backdrop-blur">
+        <div className="mx-auto flex h-[4.5rem] max-w-7xl items-center gap-4 px-4 sm:px-6 lg:px-8">
+          <button type="button" onClick={() => setIsMenuOpen(true)} aria-label="打开主菜单" className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-800 hover:bg-gray-50 lg:hidden"><Menu className="h-5 w-5" /></button>
+          <Link href="/" className="flex shrink-0 items-center gap-2.5" aria-label="爱窝啦·货源雷达首页">
+            <span className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-emerald-700 bg-white font-mono text-[11px] font-black text-emerald-800">AI</span>
+            <span className="text-lg font-black tracking-tight text-gray-950 sm:text-xl">爱窝啦<span className="ml-1 text-xs font-semibold tracking-[0.12em] text-gray-500 sm:text-sm">货源雷达</span></span>
           </Link>
-          <nav className="hidden min-w-0 flex-1 items-center justify-center gap-1 lg:flex" aria-label="主导航">
+          <nav className="mx-auto hidden min-w-0 items-center gap-1 rounded-full bg-gray-100 p-1 lg:flex" aria-label="主导航">
             {navItems.map((item) => {
-              const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
-              return <Link key={item.href} href={item.href} aria-current={active ? 'page' : undefined} className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${active ? 'bg-gray-950 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-950'}`}>{item.label}</Link>;
+              const active = item.href === '/' ? pathname === '/' : pathname === item.href || pathname.startsWith(`${item.href}/`);
+              return <Link key={item.href} href={item.href} aria-current={active ? 'page' : undefined} className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${active ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-600 hover:bg-white hover:text-gray-950'}`}>{item.label}</Link>;
             })}
           </nav>
           <div className="ml-auto flex shrink-0 items-center gap-2">
+            <Link href="/wholesale" className="hidden items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-800 hover:border-emerald-300 hover:text-emerald-800 xl:inline-flex"><Handshake className="h-4 w-4" />批发合作</Link>
             <ThemeToggle />
-            <button type="button" onClick={openSubmission} className="inline-flex items-center gap-1.5 rounded-md border border-gray-950 bg-gray-950 px-3 py-2 text-xs font-semibold text-white hover:bg-gray-800 sm:text-sm"><Plus className="h-4 w-4" /><span className="hidden sm:inline">提交渠道</span><span className="sm:hidden">提交</span></button>
+            <button type="button" onClick={openSubmission} className="hidden items-center gap-1.5 rounded-full border border-gray-900 bg-gray-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-gray-700 sm:inline-flex"><Plus className="h-4 w-4" />提交渠道</button>
           </div>
         </div>
       </header>
+
+      {isMenuOpen && (
+        <div className="fixed inset-0 z-[70] bg-gray-950/45 lg:hidden" onMouseDown={(event) => { if (event.target === event.currentTarget) setIsMenuOpen(false); }}>
+          <nav role="dialog" aria-modal="true" aria-label="移动端主菜单" className="h-full w-[min(88vw,22rem)] overflow-y-auto bg-white p-5 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-gray-200 pb-4"><strong className="text-lg text-gray-950">爱窝啦·货源雷达</strong><button type="button" onClick={() => setIsMenuOpen(false)} aria-label="关闭主菜单" className="rounded-full border border-gray-200 p-2 text-gray-600 hover:bg-gray-50"><X className="h-5 w-5" /></button></div>
+            <div className="grid gap-2 py-5">
+              {navItems.map((item) => {
+                const active = item.href === '/' ? pathname === '/' : pathname === item.href || pathname.startsWith(`${item.href}/`);
+                return <Link key={item.href} href={item.href} aria-current={active ? 'page' : undefined} className={`rounded-xl px-4 py-3 text-base font-semibold ${active ? 'bg-emerald-50 text-emerald-900' : 'text-gray-800 hover:bg-gray-50'}`}>{item.label}</Link>;
+              })}
+            </div>
+            <div className="border-t border-gray-200 pt-4"><p className="mb-2 px-4 text-xs font-semibold text-gray-400">更多工具</p><div className="grid gap-1">{moreItems.map((item) => <Link key={item.href} href={item.href} className="rounded-xl px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-950">{item.label}</Link>)}</div></div>
+            <button type="button" onClick={() => { setIsMenuOpen(false); openSubmission(); }} className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full bg-gray-900 px-4 py-3 text-sm font-semibold text-white"><Plus className="h-4 w-4" />提交公开渠道</button>
+          </nav>
+        </div>
+      )}
 
       {isSubmitModalOpen && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-gray-950/55 p-4" onMouseDown={(event) => { if (event.target === event.currentTarget) setIsSubmitModalOpen(false); }}>

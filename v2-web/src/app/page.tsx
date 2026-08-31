@@ -1,19 +1,33 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Activity, ArrowRight, Calculator, Database, Newspaper, Search, Store, TrendingDown } from 'lucide-react';
+import {
+  ArrowRight,
+  BadgeDollarSign,
+  Bot,
+  Calculator,
+  Code2,
+  Database,
+  Newspaper,
+  Search,
+  ShieldCheck,
+  Sparkles,
+  Store,
+  Tags,
+  TrendingDown,
+} from 'lucide-react';
 import { JsonLd } from '@/components/JsonLd';
 import { supabase } from '@/lib/supabase';
 import { DEFAULT_SHARE_IMAGE } from '@/lib/site';
 import { listAccountOpportunities } from '@/lib/legacy-radar';
 import { getChannelProviderCount } from './actions';
 
-const homeTitle = '爱窝啦·货源雷达 | AI账号货源、全网比价与每日商机';
-const homeDescription = '聚合 AI 账号与数字商品货源、渠道报价、官方地区价格、价格异动和账号商机日报，让买家更快比价，让卖家更快找到可执行的利润机会。';
+const homeTitle = '爱窝啦·货源雷达 | AI账号货源、订阅比价与商家经营日报';
+const homeDescription = '聚合 AI 账号与订阅货源、渠道报价、官方地区价格、库存变化和账号商机日报，让买家更快找到可售报价，让卖家算清真实利润。';
 
 export const metadata: Metadata = {
   title: homeTitle,
   description: homeDescription,
-  keywords: ['AI订阅比价', 'AI订阅价格', '卡网渠道比价', 'ChatGPT Plus价格', 'Claude Pro价格', 'AI代充价格', '成品号价格'],
+  keywords: ['AI订阅比价', 'AI账号货源', 'ChatGPT Plus价格', 'Claude Pro价格', 'AI代充价格', '成品号价格'],
   alternates: { canonical: '/' },
   openGraph: { title: homeTitle, description: homeDescription, url: '/', type: 'website', images: [DEFAULT_SHARE_IMAGE] },
   twitter: { card: 'summary_large_image', title: homeTitle, description: homeDescription, images: [DEFAULT_SHARE_IMAGE] },
@@ -22,11 +36,10 @@ export const metadata: Metadata = {
 export const dynamic = 'force-dynamic';
 
 const faqItems = [
-  { question: 'ChatGPT Plus 代充价格怎么查询？', answer: '在货源市场选择 ChatGPT 平台或搜索代充关键词，可查看公开报价、可购买状态、库存、更新时间和原始商品链接。' },
-  { question: 'Claude Pro 成品号和代充有什么区别？', answer: '成品号通常交付已经开通订阅的账号；代充面向买家已有账号。账号归属、开通方式和售后边界不同，不能只比较价格。' },
-  { question: 'AI 订阅比价应该看哪些信息？', answer: '至少同时核验商品类型、库存、更新时间、原始链接、售后说明和渠道稳定性。最低价只是一项信号。' },
-  { question: '官方订阅不同地区价格在哪里看？', answer: '官方价格页比较 ChatGPT、Claude 和 Grok 在不同 App Store 地区的公开订阅价格，并区分月付与年付计划。' },
-  { question: '卖家怎样判断一条货源值不值得卖？', answer: '先用商机日报确认需求与停止条件，再核验当前渠道报价，最后把支付费、退款、售后与获客成本放进利润计算器。' },
+  { question: '怎样最快找到 ChatGPT Plus 可购买货源？', answer: '进入订阅货源，ChatGPT 默认排在分类首位；同一标准商品内先显示可购买报价，再比较价格、库存、更新时间和售后说明。' },
+  { question: '为什么最低价不一定最值得买？', answer: '低价可能对应共享、短保、低库存或很久未更新的商品。购买前至少同时核验交付类型、库存、更新时间、原始链接和售后边界。' },
+  { question: '官方价格和第三方货源有什么区别？', answer: '官方价格页用于判断地区与周期差价；第三方货源来自公开渠道。两者身份分离，第三方低价不代表官方授权或风险更低。' },
+  { question: '商家经营日报怎样使用实时货源？', answer: '日报把需求信号与当前可售报价、库存、价差和停止条件放在一起。卖家可以继续进入商品页核验货源，再用利润计算器测算。' },
 ];
 
 async function getHomeStats() {
@@ -46,95 +59,127 @@ async function getHomeStats() {
   }
 }
 
-const buyerTasks = [
-  { href: '/card-products', icon: Search, label: '按标准商品比价', detail: '先选 ChatGPT、Claude、Gemini、Grok 或 Cursor，再看同类货源。' },
-  { href: '/card-products/all', icon: Database, label: '搜索全部渠道商品', detail: '按商品、店铺、平台和类目筛选海量原始报价。' },
-  { href: '/official-prices', icon: TrendingDown, label: '比较官方地区价格', detail: '确认官方订阅与第三方代充是否真的存在价差。' },
+const entryPaths = [
+  {
+    href: '/card-products',
+    icon: Sparkles,
+    eyebrow: '新手买订阅',
+    title: '按标准商品找货',
+    description: 'ChatGPT、Claude 等热门平台已经归类。同一商品集中比价，不必在几千条标题中碰运气。',
+    action: '选择订阅商品',
+  },
+  {
+    href: '/card-products/all',
+    icon: Tags,
+    eyebrow: '熟悉货源市场',
+    title: '搜索全部原始报价',
+    description: '需要代充、成品号、共享或冷门规格时，直接按平台、渠道、库存和关键词筛选。',
+    action: '搜索全部报价',
+  },
+  {
+    href: '/opportunities',
+    icon: BadgeDollarSign,
+    eyebrow: 'AI账号卖家',
+    title: '从今日商机开始经营',
+    description: '把需求、实时可售货源、利润空间和停止条件放在一起，先算清楚再上架。',
+    action: '查看商家经营日报',
+  },
 ];
 
-const sellerTasks = [
-  { href: '/opportunities', icon: Newspaper, label: '读取今日账号商机', detail: '看证据、买家需求、售后边界和明确停止条件。' },
-  { href: '/changes', icon: Activity, label: '跟踪价格与库存异动', detail: '只展示连续有效快照确认的变化，不把首次采集当涨跌。' },
-  { href: '/profit-calculator', icon: Calculator, label: '计算利润与保本价', detail: '把进货、支付、退款、售后和固定成本放进同一张账。' },
+const modules = [
+  { href: '/card-products', icon: Database, title: '第三方订阅货源', text: '标准商品聚合、库存优先、原始报价可核验。' },
+  { href: '/official-prices', icon: TrendingDown, title: '官方地区价格', text: '比较官方月付、年付与地区定价，识别真实价差。' },
+  { href: '/channels', icon: Store, title: '渠道商目录', text: '查看来源覆盖和在售商品，减少重复寻找渠道。' },
+  { href: '/profit-calculator', icon: Calculator, title: '卖家利润工具', text: '把进货、支付费、退款、售后和获客成本算在一起。' },
 ];
-
-function TaskList({ title, description, tasks }: { title: string; description: string; tasks: typeof buyerTasks }) {
-  return (
-    <section className="radar-panel">
-      <div className="radar-panel__head"><div><span className="radar-kicker">工作台</span><h2>{title}</h2></div><p className="hidden max-w-xs text-right text-xs leading-5 text-gray-500 sm:block">{description}</p></div>
-      <div className="divide-y divide-gray-200">
-        {tasks.map((task, index) => {
-          const Icon = task.icon;
-          return (
-            <Link key={task.href} href={task.href} className="group grid grid-cols-[2rem_1fr_auto] items-start gap-3 px-5 py-5 transition-colors hover:bg-gray-50">
-              <span className="font-mono text-xs text-gray-400">0{index + 1}</span>
-              <span><strong className="flex items-center gap-2 text-base text-gray-950"><Icon className="h-4 w-4 text-amber-500" />{task.label}</strong><small className="mt-1 block max-w-xl text-sm leading-6 text-gray-500">{task.detail}</small></span>
-              <ArrowRight className="mt-1 h-4 w-4 text-gray-400 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
-            </Link>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
 
 export default async function HomePage() {
   const [platformCount, stats] = await Promise.all([getChannelProviderCount(), getHomeStats()]);
   const statItems = [
-    ['渠道', platformCount.toLocaleString('zh-CN')],
+    ['公开渠道', platformCount.toLocaleString('zh-CN')],
     ['标准商品', stats.products.toLocaleString('zh-CN')],
-    ['当前在售', stats.offers.toLocaleString('zh-CN')],
-    ['最新商机', stats.latestOpportunity],
+    ['当前可售报价', stats.offers.toLocaleString('zh-CN')],
+    ['日报日期', stats.latestOpportunity],
   ];
 
   return (
-    <main className="radar-page">
+    <main className="market-page">
       <JsonLd data={{ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faqItems.map((item) => ({ '@type': 'Question', name: item.question, acceptedAnswer: { '@type': 'Answer', text: item.answer } })) }} />
-      <div className="radar-shell py-8 sm:py-12">
-        <header className="grid gap-8 border-b border-gray-300 pb-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(20rem,0.8fr)] lg:items-end">
-          <div>
-            <span className="radar-kicker">Supply intelligence / Asia·Shanghai</span>
-            <h1 className="mt-4 max-w-4xl font-display text-[clamp(2.35rem,6vw,5.25rem)] font-bold leading-[0.98] tracking-[-0.045em] text-gray-950">从全网货源到<br /><mark className="radar-highlight">可执行利润</mark></h1>
-          </div>
-          <div className="grid gap-5">
-            <p className="text-base leading-7 text-gray-600">不再把货源列表和商机日报分开看。先确认需求，再比较渠道与官方价格，最后算清售后和退款之后真正能留下的钱。</p>
-            <div className="flex flex-wrap gap-3">
-              <Link href="/card-products" className="inline-flex items-center gap-2 rounded-md bg-gray-950 px-5 py-3 text-sm font-semibold text-white hover:bg-gray-800">查看全网货源 <ArrowRight className="h-4 w-4" /></Link>
-              <Link href="/profit-calculator" className="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-5 py-3 text-sm font-semibold text-gray-950 hover:border-gray-500">测算一单利润</Link>
-            </div>
-          </div>
-        </header>
 
-        <section className="grid grid-cols-2 border-b border-gray-300 sm:grid-cols-4" aria-label="当前数据规模">
-          {statItems.map(([label, value]) => <div key={label} className="border-gray-300 py-5 pr-4 even:border-l even:pl-4 sm:border-l sm:first:border-l-0 sm:pl-5 sm:first:pl-0"><span className="block text-xs font-medium text-gray-500">{label}</span><strong className="mt-1 block font-mono text-xl tabular-nums text-gray-950 sm:text-2xl">{value}</strong></div>)}
-        </section>
-
-        <div className="grid gap-6 py-8 lg:grid-cols-2">
-          <TaskList title="我要买：更快找到靠谱报价" description="从标准商品进入，保留原始链接和更新证据。" tasks={buyerTasks} />
-          <TaskList title="我要卖：先判断利润和风险" description="商机不是结论，必须经过报价与成本验证。" tasks={sellerTasks} />
+      <section className="market-shell grid gap-7 pb-14 pt-12 sm:pb-20 sm:pt-20 lg:grid-cols-[minmax(0,1.25fr)_minmax(20rem,0.75fr)] lg:items-end">
+        <div>
+          <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-800"><span className="h-2 w-2 rounded-full bg-emerald-500" /> 公开货源持续更新</span>
+          <h1 className="market-display mt-6 max-w-4xl text-[clamp(2.7rem,7vw,5.8rem)]">找货、比价、<br />算利润</h1>
         </div>
+        <div className="pb-1">
+          <p className="max-w-2xl text-base leading-8 text-gray-600 sm:text-lg">为 AI 订阅买家和账号卖家整理公开货源。先找到真正可购买的商品，再核验库存、价格、售后与利润。</p>
+          <div className="mt-7 flex flex-wrap items-center gap-3"><Link href="/card-products" className="market-pill market-pill--primary"><Search className="h-4 w-4" />开始找货</Link><Link href="/opportunities" className="market-pill market-pill--secondary"><Newspaper className="h-4 w-4" />看经营日报</Link></div>
+        </div>
+      </section>
 
-        <section className="grid gap-6 border-y border-gray-300 py-8 lg:grid-cols-[0.72fr_1.28fr]">
-          <div><span className="radar-kicker">Decision loop / 04 steps</span><h2 className="mt-3 text-2xl font-bold tracking-tight text-gray-950">把日报变成一条可复用的卖货流程</h2><p className="mt-3 text-sm leading-6 text-gray-600">每一步都可以回到公开证据。任一关键条件不成立，就暂停，而不是用低质量货源凑数量。</p></div>
-          <ol className="divide-y divide-gray-300 border-y border-gray-300">
-            {[['需求', '从账号商机日报确认谁会买、为什么现在买。'], ['货源', '核验同类商品、渠道库存、更新时间与原始页面。'], ['利润', '计算支付费、退款、售后、获客成本后的保本价。'], ['复盘', '跟踪价格与库存异动，达到停止条件立即下架或换货源。']].map(([title, text], index) => <li key={title} className="grid grid-cols-[2.5rem_5rem_1fr] gap-3 py-4 text-sm"><span className="font-mono text-gray-400">0{index + 1}</span><strong className="text-gray-950">{title}</strong><span className="leading-6 text-gray-600">{text}</span></li>)}
-          </ol>
-        </section>
+      <section className="market-shell pb-14" aria-labelledby="choose-path">
+        <div className="mb-5 flex items-end justify-between gap-4">
+          <div className="text-left"><span className="radar-kicker">Choose a path</span><h2 id="choose-path" className="market-display mt-2 text-2xl sm:text-3xl">你现在想解决什么？</h2></div>
+          <span className="hidden text-sm text-gray-500 sm:block">三条路径都使用同一份实时货源数据</span>
+        </div>
+        <div className="grid gap-4 lg:grid-cols-12">
+          {entryPaths.map((item, index) => {
+            const Icon = item.icon;
+            return (
+              <Link key={item.href} href={item.href} className={`market-card group flex flex-col p-6 transition-colors hover:border-emerald-400 sm:p-7 ${index === 0 ? 'lg:col-span-7 lg:row-span-2 lg:min-h-[32rem]' : 'lg:col-span-5 lg:min-h-[15.5rem]'}`}>
+                <div className="flex items-start justify-between gap-3"><span className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-50 text-emerald-800"><Icon className="h-5 w-5" /></span><span className="font-mono text-xs text-gray-400">0{index + 1}</span></div>
+                <span className="mt-7 text-xs font-semibold text-emerald-700">{item.eyebrow}</span>
+                <h3 className="market-display mt-2 text-2xl">{item.title}</h3>
+                <p className="mt-3 flex-1 text-sm leading-6 text-gray-600">{item.description}</p>
+                <span className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-gray-950 group-hover:text-emerald-700">{item.action}<ArrowRight className="h-4 w-4" /></span>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
 
-        <section className="grid gap-6 py-8 lg:grid-cols-[0.72fr_1.28fr]">
-          <div><span className="radar-kicker">Evidence rules</span><h2 className="mt-3 text-2xl font-bold tracking-tight text-gray-950">这里聚合信息，不替第三方交易背书</h2></div>
-          <div className="grid gap-4 text-sm leading-6 text-gray-600 sm:grid-cols-2"><p>价格、库存和售后可能随时变化。购买或上架前必须打开原始商品页复核；没有可靠报价时页面明确显示“暂无报价”。</p><p>官方价格、渠道货源和自营商品保持身份分离。低价不等于低风险，商机日报也不构成收益承诺。</p></div>
-        </section>
-
-        <section className="border-t border-gray-300 py-8">
-          <div className="flex flex-wrap items-end justify-between gap-4"><div><span className="radar-kicker">FAQ</span><h2 className="mt-2 text-2xl font-bold tracking-tight text-gray-950">开始比价前的五个问题</h2></div><Link href="/guide" className="text-sm font-semibold text-blue-700 hover:underline">阅读完整指南 →</Link></div>
-          <div className="mt-6 divide-y divide-gray-300 border-y border-gray-300">
-            {faqItems.map((item) => <details key={item.question} className="group py-4"><summary className="cursor-pointer list-none font-semibold text-gray-950 marker:hidden">{item.question}<span className="float-right font-mono text-gray-400 group-open:rotate-45">+</span></summary><p className="mt-3 max-w-3xl text-sm leading-6 text-gray-600">{item.answer}</p></details>)}
+      <section className="border-y border-gray-200 bg-white/75 py-12 sm:py-16">
+        <div className="market-shell">
+          <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
+            <div><span className="radar-kicker">Live marketplace</span><h2 className="market-display mt-3 text-3xl sm:text-4xl">数据规模不等于可用，<br />可购买才排在前面</h2><p className="mt-4 max-w-lg text-sm leading-7 text-gray-600">目录保留完整商品，但分类内优先展示有库存、有有效报价的项目。无法确认的数据不会伪装成零元或有货。</p></div>
+            <dl className="grid grid-cols-2 overflow-hidden rounded-2xl border border-gray-200 bg-gray-100 sm:grid-cols-4">
+              {statItems.map(([label, value]) => <div key={label} className="bg-white px-4 py-5 text-left sm:px-5"><dt className="text-xs text-gray-500">{label}</dt><dd className="mt-2 break-words font-mono text-xl font-bold tabular-nums text-gray-950">{value}</dd></div>)}
+            </dl>
           </div>
-        </section>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 border border-gray-300 border-t-2 border-t-amber-400 bg-white px-5 py-4 text-sm"><span className="text-gray-700">有稳定公开页面或结构化接口的货源方，可以提交审核；不接收卡密、账号密码和客户资料。</span><Link href="/submit" className="inline-flex items-center gap-2 font-semibold text-gray-950 hover:underline"><Store className="h-4 w-4 text-amber-500" />提交渠道</Link></div>
-      </div>
+          <div className="mt-10 grid gap-px overflow-hidden rounded-2xl border border-gray-200 bg-gray-200 sm:grid-cols-2 lg:grid-cols-4">
+            {modules.map((item) => { const Icon = item.icon; return <Link key={item.href} href={item.href} className="group bg-white p-6 hover:bg-emerald-50/40"><Icon className="h-5 w-5 text-emerald-700" /><h3 className="mt-5 font-bold text-gray-950">{item.title}</h3><p className="mt-2 text-sm leading-6 text-gray-500">{item.text}</p><span className="mt-5 inline-flex items-center gap-1 text-xs font-bold text-emerald-700">打开模块 <ArrowRight className="h-3.5 w-3.5" /></span></Link>; })}
+          </div>
+        </div>
+      </section>
+
+      <section className="market-shell grid gap-8 py-14 lg:grid-cols-[0.8fr_1.2fr] lg:py-16">
+        <div><span className="radar-kicker">Merchant loop</span><h2 className="market-display mt-3 text-3xl sm:text-4xl">日报不是新闻摘要，<br />而是一张经营清单</h2><p className="mt-4 max-w-lg text-sm leading-7 text-gray-600">需求信号只负责告诉你“为什么值得看”。是否能卖，必须回到当天货源、实际成本、售后风险和停止条件。</p><Link href="/opportunities" className="market-pill market-pill--primary mt-6">打开今日经营日报<ArrowRight className="h-4 w-4" /></Link></div>
+        <ol className="market-card divide-y divide-gray-200 px-5 sm:px-7">
+          {[
+            [Bot, '确认需求', '看买家是谁、为什么现在需要，以及证据日期。'],
+            [Database, '核验货源', '打开关联商品，确认可售报价、库存、更新时间和原页。'],
+            [Calculator, '测算利润', '加入支付、退款、售后、获客成本，得到保本价。'],
+            [Code2, '设置停止条件', '库存失效、价格倒挂或证据过期时立即暂停。'],
+          ].map(([Icon, title, text], index) => {
+            const StepIcon = Icon as typeof Bot;
+            return <li key={String(title)} className="grid grid-cols-[2.5rem_1fr] gap-3 py-5 sm:grid-cols-[2.5rem_8rem_1fr] sm:items-center"><span className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-700"><StepIcon className="h-4 w-4" /></span><strong className="text-sm text-gray-950"><span className="mr-2 font-mono text-xs text-gray-400">0{index + 1}</span>{String(title)}</strong><span className="text-sm leading-6 text-gray-600">{String(text)}</span></li>;
+          })}
+        </ol>
+      </section>
+
+      <section className="border-y border-gray-200 bg-white py-12">
+        <div className="market-shell grid gap-8 lg:grid-cols-[0.75fr_1.25fr]">
+          <div><span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-emerald-50 text-emerald-800"><ShieldCheck className="h-5 w-5" /></span><h2 className="market-display mt-5 text-3xl">公开信息有边界</h2></div>
+          <div className="grid gap-5 text-sm leading-7 text-gray-600 sm:grid-cols-2"><p>本站聚合公开页面，不代收货款、不保管账号、不替第三方交易背书。购买前必须打开原始商品页复核。</p><p>价格、库存、交付和售后可能变化。暂无可靠报价时明确显示“暂无报价”，不会用无关商品或虚构数据补位。</p></div>
+        </div>
+      </section>
+
+      <section className="market-shell py-14">
+        <div className="flex flex-wrap items-end justify-between gap-4"><div><span className="radar-kicker">FAQ</span><h2 className="market-display mt-2 text-3xl">开始交易前先问清楚</h2></div><Link href="/guide" className="text-sm font-bold text-blue-700 hover:underline">阅读完整购买指南 →</Link></div>
+        <div className="mt-6 divide-y divide-gray-200 border-y border-gray-200">{faqItems.map((item) => <details key={item.question} className="group py-5"><summary className="cursor-pointer list-none font-semibold text-gray-950 marker:hidden">{item.question}<span className="float-right font-mono text-gray-400 group-open:rotate-45">+</span></summary><p className="mt-3 max-w-3xl text-sm leading-7 text-gray-600">{item.answer}</p></details>)}</div>
+        <div className="mt-10 flex flex-col items-start justify-between gap-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-6 sm:flex-row sm:items-center"><div><strong className="text-gray-950">你有稳定且可公开核验的货源？</strong><p className="mt-1 text-sm text-gray-600">提交公开 HTTPS 页面或结构化接口，审核通过后进入渠道目录。</p></div><Link href="/submit" className="market-pill market-pill--secondary"><Store className="h-4 w-4" />提交渠道</Link></div>
+      </section>
     </main>
   );
 }

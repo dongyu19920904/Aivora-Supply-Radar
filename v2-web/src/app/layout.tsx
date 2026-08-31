@@ -1,5 +1,4 @@
 import { Header } from '../components/Header';
-import { MobileNav } from '../components/MobileNav';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { Noto_Sans_SC, Space_Grotesk } from 'next/font/google';
 import NextTopLoader from 'nextjs-toploader';
@@ -83,11 +82,10 @@ export default function RootLayout({
         ]} />
         <NextTopLoader color="#f5c518" showSpinner={false} shadow="none" />
         <Header />
-        <div className="flex-1 pb-11 md:pb-0">
+        <div className="flex-1">
           {children}
         </div>
         <Footer />
-        <MobileNav />
         {gaId && <GoogleAnalytics gaId={gaId} />}
       </body>
     </html>

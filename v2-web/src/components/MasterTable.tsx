@@ -20,18 +20,19 @@ export const MasterTable: React.FC<MasterTableProps> = ({ products, startIndex =
   return (
     <div className="flex flex-col gap-4">
       {products.length > 0 && (
-        <div className="overflow-hidden rounded-xl bg-white shadow-sm border border-gray-200">
+        <div className="overflow-hidden rounded-b-2xl bg-white border border-gray-200">
             
             <div data-catalog-view="desktop" className="hidden md:block overflow-x-auto">
               <table className="min-w-full text-left text-sm">
                 <thead className="bg-gray-50/80">
                   <tr>
-                    <th scope="col" className="w-[7%] px-5 py-4 font-semibold text-gray-900">序号</th>
-                    <th scope="col" className="w-[43%] px-5 py-4 font-semibold text-gray-900">标准商品</th>
-                    <th scope="col" className="w-[13%] px-5 py-4 font-semibold text-gray-900">最低价</th>
-                    <th scope="col" className="w-[12%] px-5 py-4 font-semibold text-gray-900">可购买报价</th>
-                    <th scope="col" className="w-[12%] px-5 py-4 font-semibold text-gray-900">最近更新</th>
-                    <th scope="col" className="w-[13%] px-5 py-4 font-semibold text-gray-900 text-right">操作</th>
+                    <th scope="col" className="w-[6%] px-4 py-3 font-semibold text-gray-500">#</th>
+                    <th scope="col" className="w-[36%] px-4 py-3 font-semibold text-gray-700">商品 / 平台</th>
+                    <th scope="col" className="w-[12%] px-4 py-3 font-semibold text-gray-700">最低价</th>
+                    <th scope="col" className="w-[12%] px-4 py-3 font-semibold text-gray-700">保障参考</th>
+                    <th scope="col" className="w-[12%] px-4 py-3 font-semibold text-gray-700">可售报价</th>
+                    <th scope="col" className="w-[12%] px-4 py-3 font-semibold text-gray-700">最近更新</th>
+                    <th scope="col" className="w-[10%] px-4 py-3 text-right font-semibold text-gray-700">操作</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white">
@@ -39,7 +40,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({ products, startIndex =
                     <React.Fragment key={product.id}>
                       {firstUnavailableIndex > 0 && index === firstUnavailableIndex && (
                         <tr>
-                          <td colSpan={6} className="border-y border-gray-200 bg-gray-100 px-5 py-2.5 text-xs font-semibold text-gray-600">
+                          <td colSpan={7} className="border-y border-gray-200 bg-gray-100 px-4 py-2.5 text-xs font-semibold text-gray-600">
                             以下商品当前暂无可购买报价，仍保留在完整目录中
                           </td>
                         </tr>
@@ -52,8 +53,8 @@ export const MasterTable: React.FC<MasterTableProps> = ({ products, startIndex =
                         className="even:bg-gray-50/60 hover:bg-blue-50/40 transition-colors cursor-pointer group border-b border-gray-100 last:border-0"
                         onClick={() => router.push(`/card-products/${product.slug}`)}
                       >
-                        <td className="px-5 py-4 font-mono text-xs tabular-nums text-gray-500">#{String(startIndex + index + 1).padStart(2, '0')}</td>
-                        <td className="px-5 py-4">
+                        <td className="px-4 py-3.5 font-mono text-xs tabular-nums text-gray-500">{String(startIndex + index + 1).padStart(2, '0')}</td>
+                        <td className="px-4 py-3.5">
                           <div className="flex flex-wrap items-center gap-2">
                             <span className="font-semibold text-gray-950">{product.name}</span>
                             <span className="rounded border border-gray-200 bg-gray-50 px-1.5 py-0.5 text-[11px] font-semibold text-gray-600">{product.platform}</span>
@@ -63,14 +64,15 @@ export const MasterTable: React.FC<MasterTableProps> = ({ products, startIndex =
                             <p className="mt-1 line-clamp-1 max-w-2xl text-xs leading-5 text-gray-500">{product.shortDesc}</p>
                           )}
                         </td>
-                        <td className={`px-5 py-4 font-mono font-semibold tabular-nums ${product.lowestPrice === null ? 'text-gray-400' : 'text-emerald-700'}`}>{priceLabel(product.lowestPrice)}</td>
-                        <td className={`px-5 py-4 font-medium tabular-nums ${product.channelCount === 0 ? 'text-gray-400' : 'text-gray-700'}`}>
+                        <td className={`px-4 py-3.5 font-mono font-semibold tabular-nums ${product.lowestPrice === null ? 'text-gray-400' : 'text-emerald-700'}`}>{priceLabel(product.lowestPrice)}</td>
+                        <td className={`px-4 py-3.5 font-mono text-xs font-semibold tabular-nums ${product.warrantyPrice === null ? 'text-gray-400' : 'text-gray-700'}`}>{product.warrantyPrice === null ? '待核验' : priceLabel(product.warrantyPrice)}</td>
+                        <td className={`px-4 py-3.5 font-medium tabular-nums ${product.channelCount === 0 ? 'text-gray-400' : 'text-gray-700'}`}>
                           {product.channelCount === 0 ? '暂无可购买' : product.channelCount}
                         </td>
-                        <td suppressHydrationWarning className="px-5 py-4 text-xs text-gray-500">
+                        <td suppressHydrationWarning className="px-4 py-3.5 text-xs text-gray-500">
                           {product.updatedAt ? getRelativeTime(product.updatedAt) : '待首次采集'}
                         </td>
-                        <td className="px-5 py-4 text-right">
+                        <td className="px-4 py-3.5 text-right">
                           <ViewDetailsButton
                             href={`/card-products/${product.slug}`}
                             onClick={(e) => e.stopPropagation()}
@@ -108,7 +110,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({ products, startIndex =
                         </div>
                         <h3 className="font-semibold text-gray-950 leading-snug">{product.name}</h3>
                       </div>
-                      <span className={`whitespace-nowrap font-mono font-bold tabular-nums ${product.lowestPrice === null ? 'text-gray-400' : 'text-emerald-700'}`}>{priceLabel(product.lowestPrice)}</span>
+                      <div className="shrink-0 text-right"><span className={`block whitespace-nowrap font-mono font-bold tabular-nums ${product.lowestPrice === null ? 'text-gray-400' : 'text-emerald-700'}`}>{priceLabel(product.lowestPrice)}</span><span className="mt-0.5 block text-[10px] text-gray-400">当前最低</span></div>
                     </div>
                     {product.shortDesc && (
                       <p className="mb-2 line-clamp-2 text-xs leading-5 text-gray-500">{product.shortDesc}</p>
@@ -117,6 +119,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({ products, startIndex =
                       <span className={`rounded px-1.5 py-0.5 font-semibold ${product.channelCount === 0 ? 'bg-gray-100 text-gray-500' : 'bg-blue-50 text-blue-700'}`}>
                         {product.channelCount === 0 ? '暂无可购买' : `可购买 ${product.channelCount}`}
                       </span>
+                      {product.warrantyPrice !== null && <span className="font-mono text-gray-500">保障参考 {priceLabel(product.warrantyPrice)}</span>}
                       <span suppressHydrationWarning className="text-gray-400">
                         {product.updatedAt ? getRelativeTime(product.updatedAt) : '待首次采集'}
                       </span>

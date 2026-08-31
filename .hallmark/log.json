@@ -9,5 +9,16 @@
     "footer": "Ft2 compact inline rule",
     "brief": "Supply marketplace, opportunity intelligence and seller profit workflow",
     "responsive_validation": "pass: 320, 390, 768 and 1280 px; light and dark; no overflow, wrapped affordances, broken images or console errors"
+  },
+  {
+    "date": "2026-09-01",
+    "scope": "app",
+    "macrostructure": "Purchase-path + Data catalogue",
+    "theme": "warm paper and forest marketplace",
+    "enrichment": "studied-DNA: PriceAI public UX",
+    "nav": "centered segmented pill with mobile drawer",
+    "footer": "grouped buyer, seller and project links",
+    "brief": "PriceAI-parity buying flow with Aivora supply intelligence and merchant daily",
+    "responsive_validation": "local pass: 320, 375, 414, 768 and 1440 px; light and dark; zero overflow, broken images and console errors"
   }
 ]

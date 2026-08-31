@@ -11,24 +11,39 @@ export const metadata: Metadata = {
   alternates: { canonical: '/channels' },
 };
 
-export default async function ChannelsPage() {
-  const summary = await supabaseAdmin.rpc('get_active_channel_summary');
-  let channelsWithCounts = (summary.data || []).map((target) => ({
-    ...target,
-    productCount: Number(target.product_count || 0),
-  }));
+interface ChannelRow {
+  id: string;
+  name: string;
+  scraper_type: string;
+  created_at: string;
+  updated_at: string;
+  product_count?: number | string | null;
+  productCount: number;
+}
 
-  if (summary.error) {
-    console.error('Channel summary RPC unavailable; using a bounded channel fallback:', summary.error);
-    const fallback = await supabaseAdmin.from('crawler_targets').select('id, name, scraper_type, created_at, updated_at').eq('is_active', true).order('updated_at', { ascending: false }).limit(1_000);
-    channelsWithCounts = (fallback.data || []).map((target) => ({ ...target, productCount: 0 }));
+export default async function ChannelsPage() {
+  let channelsWithCounts: ChannelRow[] = [];
+  try {
+    const summary = await supabaseAdmin.rpc('get_active_channel_summary');
+    channelsWithCounts = ((summary.data || []) as Omit<ChannelRow, 'productCount'>[]).map((target) => ({
+      ...target,
+      productCount: Number(target.product_count || 0),
+    }));
+
+    if (summary.error) {
+      console.warn('Channel summary RPC unavailable; using a bounded channel fallback:', summary.error.message);
+      const fallback = await supabaseAdmin.from('crawler_targets').select('id, name, scraper_type, created_at, updated_at').eq('is_active', true).order('updated_at', { ascending: false }).limit(1_000);
+      channelsWithCounts = ((fallback.data || []) as Omit<ChannelRow, 'productCount'>[]).map((target) => ({ ...target, productCount: 0 }));
+    }
+  } catch (error) {
+    console.warn('Channel list unavailable:', error instanceof Error ? error.message : 'unknown');
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
-      <React.Suspense fallback={<div className="py-8 text-center text-gray-500">Loading channels...</div>}>
+    <main className="market-page py-8 sm:py-12"><div className="market-shell">
+      <React.Suspense fallback={<div className="py-8 text-center text-gray-500">正在加载渠道目录…</div>}>
         <ChannelsClient initialChannels={channelsWithCounts} />
       </React.Suspense>
-    </div>
+    </div></main>
   );
 }

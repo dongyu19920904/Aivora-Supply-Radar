@@ -10,6 +10,8 @@ test('parses bounded product offer filters for server-side pagination', () => {
     q: 'ChatGPT -共享',
     min: '10.5',
     max: '100',
+    inventory: '50',
+    hours: '24',
     availability: 'available',
   });
   assert.deepEqual(parseProductOfferQuery(params), {
@@ -19,6 +21,8 @@ test('parses bounded product offer filters for server-side pagination', () => {
     excludedTerms: ['共享'],
     minPrice: 10.5,
     maxPrice: 100,
+    minInventory: 50,
+    updatedWithinHours: 24,
     availability: 'available',
   });
 });
@@ -27,7 +31,15 @@ test('normalizes a maximum price below the minimum', () => {
   const parsed = parseProductOfferQuery(new URLSearchParams({ min: '50', max: '10' }));
   assert.equal(parsed.minPrice, 50);
   assert.equal(parsed.maxPrice, 50);
+  assert.equal(parsed.minInventory, null);
+  assert.equal(parsed.updatedWithinHours, null);
   assert.equal(parsed.availability, 'all');
+});
+
+test('bounds inventory and freshness shortcut filters', () => {
+  const parsed = parseProductOfferQuery(new URLSearchParams({ inventory: '9999999', hours: '0' }));
+  assert.equal(parsed.minInventory, 1_000_000);
+  assert.equal(parsed.updatedWithinHours, 1);
 });
 
 test('accepts only supported availability filters', () => {

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import type { ProductType, ProductDetail } from '../../../data';
 import { DetailTable } from '../../../components/DetailTable';
 import { FilterBar } from '../../../components/FilterBar';
@@ -13,6 +14,7 @@ import { useBuyAction } from '../../../hooks/useBuyAction';
 import { PlatformCountBadge } from '../../../components/PlatformCountBadge';
 import type { ProductOfferAvailability } from '../../../lib/product-offer-query';
 import { getRelativeTime } from '../../../lib/utils';
+import { getProfitCalculatorHref } from '../../../lib/supply-opportunity';
 
 interface ProductDetailClientProps {
   slug: string;
@@ -49,6 +51,8 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ slug, 
   const [customMinPrice, setCustomMinPrice] = useState('');
   const [customMaxPrice, setCustomMaxPrice] = useState('');
   const [availability, setAvailability] = useState<ProductOfferAvailability>('all');
+  const [minInventory, setMinInventory] = useState<number | null>(null);
+  const [updatedWithinHours, setUpdatedWithinHours] = useState<number | null>(null);
   const [currentDetails, setCurrentDetails] = useState(initialDetails);
   const [total, setTotal] = useState(initialTotal);
   const [loading, setLoading] = useState(false);
@@ -63,11 +67,13 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ slug, 
     if (customMinPrice) params.set('min', customMinPrice);
     if (customMaxPrice) params.set('max', customMaxPrice);
     if (availability !== 'all') params.set('availability', availability);
+    if (minInventory !== null) params.set('inventory', String(minInventory));
+    if (updatedWithinHours !== null) params.set('hours', String(updatedWithinHours));
     return `/api/products/${encodeURIComponent(slug)}/offers?${params.toString()}`;
-  }, [availability, customMaxPrice, customMinPrice, searchQuery, slug]);
+  }, [availability, customMaxPrice, customMinPrice, minInventory, searchQuery, slug, updatedWithinHours]);
 
   useEffect(() => {
-    if (availability === 'all' && !searchQuery.trim() && !customMinPrice && !customMaxPrice) {
+    if (availability === 'all' && !searchQuery.trim() && !customMinPrice && !customMaxPrice && minInventory === null && updatedWithinHours === null) {
       const resetTimer = window.setTimeout(() => {
         setCurrentDetails(initialDetails);
         setTotal(initialTotal);
@@ -99,7 +105,7 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ slug, 
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [availability, buildRequestUrl, customMaxPrice, customMinPrice, initialDetails, initialTotal, searchQuery]);
+  }, [availability, buildRequestUrl, customMaxPrice, customMinPrice, initialDetails, initialTotal, minInventory, searchQuery, updatedWithinHours]);
 
   const loadMore = useCallback(async () => {
     if (loadingMore || currentDetails.length >= total) return;
@@ -139,20 +145,19 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ slug, 
 
   return (
     <>
-      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 relative">
+      <div className="relative">
         <PlatformCountBadge count={availableTotal} prefix="当前" suffix="条可购买报价" />
         
         {/* Option A: Static Header with Title and Back Button */}
-        <div className="mb-6 flex flex-col md:flex-row items-start gap-4 md:gap-6">
+        <div className="mb-6 flex flex-col items-start gap-4 md:flex-row md:gap-6">
           <BackButton href="/card-products" />
-          <div className="flex-1 w-full">
-            <h1 className="text-lg font-bold tracking-tight text-gray-900 sm:text-xl mb-2 flex items-center gap-2">
-              {selectedProduct.name}
-              <span className="text-xs px-2.5 py-0.5 bg-gray-100 text-gray-600 rounded-full font-medium">{selectedProduct.platform}</span>
-            </h1>
+          <div className="w-full flex-1">
+            <div className="mb-2 flex flex-wrap items-center gap-2"><span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-800">{availableTotal > 0 ? '当前可购买' : '等待补货'}</span><span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600">{selectedProduct.platform}</span></div>
+            <h1 className="market-display text-3xl sm:text-5xl">{selectedProduct.name}</h1>
             <p className="text-sm text-gray-500 max-w-2xl leading-relaxed">
               {selectedProduct.shortDesc || '暂无详细描述'}
             </p>
+            <div className="mt-4 flex flex-wrap gap-2"><Link href={getProfitCalculatorHref(selectedProduct)} className="market-pill market-pill--primary">带入进货价算利润</Link><Link href="/opportunities" className="market-pill market-pill--secondary">查看今日经营建议</Link></div>
           </div>
         </div>
 
@@ -181,9 +186,16 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ slug, 
               </p>
             </div>
           </section>
-          <p className="mb-4 text-xs leading-5 text-gray-500">
+          <p className="mb-3 text-xs leading-5 text-gray-500">
             已合并同一标准商品的授权聚合与爱窝啦来源；自营报价不固定置顶，默认按可购买优先、价格从低到高排列。
           </p>
+          <div className="mb-3 flex flex-wrap items-center gap-2" aria-label="快捷筛选">
+            <span className="mr-1 text-xs font-semibold text-gray-500">快捷筛选</span>
+            <button type="button" aria-pressed={minInventory === 50} onClick={() => { setMinInventory((value) => value === 50 ? null : 50); setAvailability('available'); }} className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${minInventory === 50 ? 'border-emerald-700 bg-emerald-700 text-white' : 'border-gray-200 bg-white text-gray-600 hover:border-emerald-300'}`}>库存 ≥ 50</button>
+            <button type="button" aria-pressed={updatedWithinHours === 24} onClick={() => setUpdatedWithinHours((value) => value === 24 ? null : 24)} className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${updatedWithinHours === 24 ? 'border-emerald-700 bg-emerald-700 text-white' : 'border-gray-200 bg-white text-gray-600 hover:border-emerald-300'}`}>24 小时内更新</button>
+            <button type="button" aria-pressed={searchQuery === '-共享'} onClick={() => setSearchQuery((value) => value === '-共享' ? '' : '-共享')} className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${searchQuery === '-共享' ? 'border-emerald-700 bg-emerald-700 text-white' : 'border-gray-200 bg-white text-gray-600 hover:border-emerald-300'}`}>排除共享</button>
+            <button type="button" aria-pressed={searchQuery === '代充'} onClick={() => setSearchQuery((value) => value === '代充' ? '' : '代充')} className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${searchQuery === '代充' ? 'border-emerald-700 bg-emerald-700 text-white' : 'border-gray-200 bg-white text-gray-600 hover:border-emerald-300'}`}>只看代充</button>
+          </div>
           <div
             className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-gray-200 bg-white p-2 shadow-sm"
             aria-label="报价库存筛选"
@@ -222,6 +234,8 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ slug, 
               setCustomMinPrice("");
               setCustomMaxPrice("");
               setAvailability('all');
+              setMinInventory(null);
+              setUpdatedWithinHours(null);
             }}
             searchPlaceholder="在当前商品中搜索（-关键词可排除）"
             searchHelp="排除不想看的结果：在词语前加“-”。例如输入“-共享”，就不会显示含“共享”的商品。"

@@ -1,16 +1,17 @@
-/* Hallmark · pre-emit critique: P5 H5 E4 S5 R4 V4 · genre: modern-minimal · macrostructure: Workbench · design-system: design.md · designed-as-app · contrast: pass (40–41) · mobile: pending visual verification */
+/* Hallmark · pre-emit critique: P5 H5 E4 S5 R5 V4 · genre: modern-minimal · macrostructure: Purchase-path + Data catalogue · design-system: design.md · studied-DNA: PriceAI · contrast: pass · mobile: pending visual verification */
 :root {
-  --color-paper: oklch(0.995 0.004 95);
-  --color-paper-2: oklch(0.965 0.006 255);
-  --color-ink: oklch(0.19 0.012 255);
-  --color-ink-2: oklch(0.47 0.018 255);
-  --color-rule: oklch(0.87 0.012 255);
-  --color-accent: oklch(0.86 0.18 91);
-  --color-accent-ink: oklch(0.22 0.04 76);
+  --color-paper: oklch(0.995 0.003 145);
+  --color-paper-2: oklch(0.975 0.006 145);
+  --color-ink: oklch(0.22 0.018 155);
+  --color-ink-2: oklch(0.47 0.025 155);
+  --color-rule: oklch(0.89 0.012 145);
+  --color-accent: oklch(0.5 0.12 152);
+  --color-accent-ink: oklch(0.99 0.004 145);
+  --color-brand: oklch(0.86 0.18 91);
   --color-link: oklch(0.51 0.2 257);
-  --color-focus: oklch(0.74 0.18 78);
+  --color-focus: oklch(0.61 0.15 151);
 
-  --font-display: var(--font-space-grotesk), "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-display: "Songti SC", STSong, SimSun, "Noto Serif CJK SC", serif;
   --font-body: var(--font-noto-sans-sc), "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
   --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 
@@ -34,20 +35,21 @@
 
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --dur-short: 180ms;
-  --radius-card: 10px;
+  --radius-card: 16px;
   --radius-pill: 999px;
-  --radius-input: 6px;
+  --radius-input: 12px;
   --page-gutter: clamp(1rem, 3vw, 2rem);
 }
 
 .dark {
-  --color-paper: oklch(0.17 0.012 255);
-  --color-paper-2: oklch(0.22 0.014 255);
-  --color-ink: oklch(0.95 0.007 95);
-  --color-ink-2: oklch(0.72 0.014 255);
-  --color-rule: oklch(0.34 0.016 255);
-  --color-accent: oklch(0.84 0.17 91);
-  --color-accent-ink: oklch(0.19 0.03 76);
+  --color-paper: oklch(0.18 0.018 155);
+  --color-paper-2: oklch(0.22 0.021 155);
+  --color-ink: oklch(0.95 0.008 145);
+  --color-ink-2: oklch(0.74 0.018 145);
+  --color-rule: oklch(0.34 0.025 155);
+  --color-accent: oklch(0.72 0.14 151);
+  --color-accent-ink: oklch(0.17 0.025 155);
+  --color-brand: oklch(0.82 0.16 91);
   --color-link: oklch(0.72 0.15 252);
-  --color-focus: oklch(0.81 0.16 86);
+  --color-focus: oklch(0.76 0.13 151);
 }
