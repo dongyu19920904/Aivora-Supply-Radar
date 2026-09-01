@@ -1,6 +1,6 @@
 const CACHE_FRESH_SECONDS = 5 * 60;
 const CACHE_STALE_SECONDS = 24 * 60 * 60;
-const CACHE_VERSION = "2026-09-01-1";
+const CACHE_VERSION = "release-development";
 const MAX_UPSTREAM_ATTEMPTS = 4;
 const TRANSIENT_STATUSES = new Set([500, 502, 503, 504]);
 

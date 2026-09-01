@@ -92,6 +92,11 @@ try {
       waitUntil: 'networkidle',
       timeout: 45_000,
     });
+    await page.waitForFunction(
+      () => Boolean(document.documentElement && document.body),
+      undefined,
+      { timeout: 10_000 },
+    );
     await page.evaluate(() => document.fonts.ready);
     let catalogDropdownOptionIds: string[] = [];
     if (auditCase.path === '/card-products') {
@@ -127,11 +132,13 @@ try {
           .map((row) => row.dataset.activeOffer === 'true');
         return states.some((active, index) => !active && states.slice(index + 1).includes(true));
       });
+      const root = document.documentElement;
+      const bodyText = document.body?.innerText || '';
       return {
         currentUrl: window.location.href,
         title: document.title,
-        dark: document.documentElement.classList.contains('dark'),
-        overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        dark: root?.classList.contains('dark') ?? false,
+        overflow: root ? root.scrollWidth - root.clientWidth : Number.POSITIVE_INFINITY,
         brokenImages: Array.from(document.images)
           .filter((image) => image.complete && image.naturalWidth === 0)
           .map((image) => image.currentSrc || image.src),
@@ -151,7 +158,7 @@ try {
         catalogCategoryFilterIds: Array.from(document.querySelectorAll<HTMLElement>('[data-catalog-category-filter]'))
           .map((button) => button.dataset.catalogCategoryFilter || ''),
         offerAvailabilityFilterCount: document.querySelectorAll('[data-offer-availability]').length,
-        offerZeroInventoryText: /库存\s*[:：]?\s*0(?:\D|$)/.test(document.body.innerText),
+        offerZeroInventoryText: /库存\s*[:：]?\s*0(?:\D|$)/.test(bodyText),
         offerUnavailableBeforeAvailable: offerStatuses.some(
           (status, index) => status !== 'in_stock' && offerStatuses.slice(index + 1).includes('in_stock'),
         ),
