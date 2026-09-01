@@ -9,6 +9,8 @@ await mkdir(outputDir, { recursive: true });
 const allCases = [
   { name: 'home-desktop-light', path: '/', width: 1440, height: 1000, theme: 'light', mockOffers: false },
   { name: 'home-desktop-dark', path: '/', width: 1440, height: 1000, theme: 'dark', mockOffers: false },
+  { name: 'home-mobile-light', path: '/', width: 390, height: 844, theme: 'light', mockOffers: false },
+  { name: 'home-mobile-dark', path: '/', width: 390, height: 844, theme: 'dark', mockOffers: false },
   { name: 'products-desktop-light', path: '/card-products', width: 1440, height: 1000, theme: 'light', mockOffers: false },
   { name: 'products-desktop-dark', path: '/card-products', width: 1440, height: 1000, theme: 'dark', mockOffers: false },
   { name: 'products-mobile-light', path: '/card-products', width: 390, height: 844, theme: 'light', mockOffers: false },

@@ -21,7 +21,7 @@ const moreItems = [
   { href: '/changes', label: '价格与库存异动' },
   { href: '/profit-calculator', label: '利润计算器' },
   { href: '/wholesale', label: '批发供需合作' },
-  { href: '/commercial', label: '企业与商用采购' },
+  { href: '/commercial', label: '企业客户经营' },
   { href: '/community', label: '货源社区' },
 ] as const;
 

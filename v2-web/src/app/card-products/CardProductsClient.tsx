@@ -107,7 +107,7 @@ export const CardProductsClient: React.FC<CardProductsClientProps> = ({ initialP
         <span className="radar-kicker">Subscription marketplace</span>
         <h1 className="market-display mx-auto mt-3 max-w-3xl text-3xl sm:text-5xl">AI 订阅货源市场</h1>
         <p className="mx-auto mt-4 max-w-3xl text-sm leading-7 text-gray-600 sm:text-base">
-          先选标准商品，再比较同类渠道。ChatGPT 等热门平台排在前面，可购买商品优先，无货商品在分类内沉底。
+          先选标准商品，再比较同类渠道。ChatGPT 等热门平台排在前面，可采购商品优先，无货商品在分类内沉底。
         </p>
         <nav className="mx-auto mt-6 inline-flex max-w-full gap-1 overflow-x-auto rounded-full border border-gray-200 bg-white p-1" aria-label="货源市场视图">
           <Link href="/card-products" aria-current="page" className="whitespace-nowrap rounded-full bg-gray-900 px-4 py-2 text-sm font-bold text-white">标准商品</Link>
@@ -123,11 +123,11 @@ export const CardProductsClient: React.FC<CardProductsClientProps> = ({ initialP
         </div>
         <div className="bg-white px-4 py-3">
           <div className="font-mono text-xl font-bold tabular-nums text-emerald-700">{availableCount}</div>
-          <div className="mt-0.5 text-xs text-gray-500">当前可购买</div>
+          <div className="mt-0.5 text-xs text-gray-500">当前可采购</div>
         </div>
         <div className="bg-white px-4 py-3">
           <div className="font-mono text-xl font-bold tabular-nums text-gray-600">{unavailableCount}</div>
-          <div className="mt-0.5 text-xs text-gray-500">暂无可售报价</div>
+          <div className="mt-0.5 text-xs text-gray-500">暂无可采购报价</div>
         </div>
         <Link href="/channels" className="group bg-white px-4 py-3 transition-colors hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-amber-500">
           <div className="font-mono text-xl font-bold tabular-nums text-gray-950">{platformCount}</div>

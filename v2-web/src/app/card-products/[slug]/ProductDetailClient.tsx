@@ -133,7 +133,7 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ slug, 
   const unavailableTotal = Math.max(0, initialTotal - availableTotal);
   const availabilityOptions: Array<{ value: ProductOfferAvailability; label: string; count: number }> = [
     { value: 'all', label: '全部报价', count: initialTotal },
-    { value: 'available', label: '可购买', count: availableTotal },
+    { value: 'available', label: '可采购', count: availableTotal },
     { value: 'unavailable', label: '缺货 / 下架', count: unavailableTotal },
   ];
   const lowestPrice = selectedProduct.lowestPrice && selectedProduct.lowestPrice > 0
@@ -146,13 +146,13 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ slug, 
   return (
     <>
       <div className="relative">
-        <PlatformCountBadge count={availableTotal} prefix="当前" suffix="条可购买报价" />
+        <PlatformCountBadge count={availableTotal} prefix="当前" suffix="条可采购报价" />
         
         {/* Option A: Static Header with Title and Back Button */}
         <div className="mb-6 flex flex-col items-start gap-4 md:flex-row md:gap-6">
           <BackButton href="/card-products" />
           <div className="w-full flex-1">
-            <div className="mb-2 flex flex-wrap items-center gap-2"><span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-800">{availableTotal > 0 ? '当前可购买' : '等待补货'}</span><span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600">{selectedProduct.platform}</span></div>
+            <div className="mb-2 flex flex-wrap items-center gap-2"><span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-800">{availableTotal > 0 ? '当前可采购' : '等待补货'}</span><span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600">{selectedProduct.platform}</span></div>
             <h1 className="market-display text-3xl sm:text-5xl">{selectedProduct.name}</h1>
             <p className="text-sm text-gray-500 max-w-2xl leading-relaxed">
               {selectedProduct.shortDesc || '暂无详细描述'}
@@ -168,11 +168,11 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ slug, 
             aria-label="商品市场摘要"
           >
             <div className="rounded-xl border border-emerald-100 bg-emerald-50/70 p-3 sm:p-4">
-              <p className="text-xs font-medium text-emerald-700">当前最低可买</p>
+              <p className="text-xs font-medium text-emerald-700">当前最低进货价</p>
               <p className="mt-1 font-mono text-lg font-bold tabular-nums text-emerald-800">{lowestPrice}</p>
             </div>
             <div className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4">
-              <p className="text-xs font-medium text-gray-500">可购买报价</p>
+              <p className="text-xs font-medium text-gray-500">可采购报价</p>
               <p className="mt-1 font-mono text-lg font-bold tabular-nums text-gray-950">{availableTotal}</p>
             </div>
             <div className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4">
@@ -187,7 +187,7 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ slug, 
             </div>
           </section>
           <p className="mb-3 text-xs leading-5 text-gray-500">
-            已合并同一标准商品的授权聚合与爱窝啦来源；自营报价不固定置顶，默认按可购买优先、价格从低到高排列。
+            已合并同一标准商品的授权聚合与爱窝啦来源；自营报价不固定置顶，默认按可采购优先、价格从低到高排列。
           </p>
           <div className="mb-3 flex flex-wrap items-center gap-2" aria-label="快捷筛选">
             <span className="mr-1 text-xs font-semibold text-gray-500">快捷筛选</span>
@@ -223,7 +223,7 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ slug, 
               );
             })}
             <span className="ml-auto hidden text-xs text-gray-500 sm:inline">
-              默认可购买优先；缺货记录保留用于观察补货机会
+              默认可采购优先；缺货记录保留用于观察补货机会
             </span>
           </div>
           <FilterBar

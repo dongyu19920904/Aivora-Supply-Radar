@@ -6,7 +6,7 @@ import { PROJECT_REPOSITORY_URL } from '@/lib/site';
 
 export const metadata: Metadata = {
   title: '货源情报社区 | 爱窝啦·货源雷达',
-  description: '面向 AI 账号买家、卖家和渠道方的货源提交、商机讨论、错误反馈与项目建议入口。',
+  description: '面向 AI 账号卖家和渠道方的货源提交、商机讨论、错误反馈与项目建议入口。',
   alternates: { canonical: '/community' },
 };
 

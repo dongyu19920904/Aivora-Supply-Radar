@@ -30,7 +30,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({ products, startIndex =
                     <th scope="col" className="w-[36%] px-4 py-3 font-semibold text-gray-700">商品 / 平台</th>
                     <th scope="col" className="w-[12%] px-4 py-3 font-semibold text-gray-700">最低价</th>
                     <th scope="col" className="w-[12%] px-4 py-3 font-semibold text-gray-700">保障参考</th>
-                    <th scope="col" className="w-[12%] px-4 py-3 font-semibold text-gray-700">可售报价</th>
+                    <th scope="col" className="w-[12%] px-4 py-3 font-semibold text-gray-700">可采购报价</th>
                     <th scope="col" className="w-[12%] px-4 py-3 font-semibold text-gray-700">最近更新</th>
                     <th scope="col" className="w-[10%] px-4 py-3 text-right font-semibold text-gray-700">操作</th>
                   </tr>
@@ -41,7 +41,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({ products, startIndex =
                       {firstUnavailableIndex > 0 && index === firstUnavailableIndex && (
                         <tr>
                           <td colSpan={7} className="border-y border-gray-200 bg-gray-100 px-4 py-2.5 text-xs font-semibold text-gray-600">
-                            以下商品当前暂无可购买报价，仍保留在完整目录中
+                            以下商品当前暂无可采购报价，仍保留在完整目录中
                           </td>
                         </tr>
                       )}
@@ -67,7 +67,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({ products, startIndex =
                         <td className={`px-4 py-3.5 font-mono font-semibold tabular-nums ${product.lowestPrice === null ? 'text-gray-400' : 'text-emerald-700'}`}>{priceLabel(product.lowestPrice)}</td>
                         <td className={`px-4 py-3.5 font-mono text-xs font-semibold tabular-nums ${product.warrantyPrice === null ? 'text-gray-400' : 'text-gray-700'}`}>{product.warrantyPrice === null ? '待核验' : priceLabel(product.warrantyPrice)}</td>
                         <td className={`px-4 py-3.5 font-medium tabular-nums ${product.channelCount === 0 ? 'text-gray-400' : 'text-gray-700'}`}>
-                          {product.channelCount === 0 ? '暂无可购买' : product.channelCount}
+                          {product.channelCount === 0 ? '暂无可采购' : product.channelCount}
                         </td>
                         <td suppressHydrationWarning className="px-4 py-3.5 text-xs text-gray-500">
                           {product.updatedAt ? getRelativeTime(product.updatedAt) : '待首次采集'}
@@ -90,7 +90,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({ products, startIndex =
                 <React.Fragment key={product.id}>
                   {firstUnavailableIndex > 0 && index === firstUnavailableIndex && (
                     <div className="bg-gray-100 px-4 py-2.5 text-xs font-semibold text-gray-600">
-                      以下商品当前暂无可购买报价
+                      以下商品当前暂无可采购报价
                     </div>
                   )}
                   <div
@@ -117,7 +117,7 @@ export const MasterTable: React.FC<MasterTableProps> = ({ products, startIndex =
                     )}
                     <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-gray-500">
                       <span className={`rounded px-1.5 py-0.5 font-semibold ${product.channelCount === 0 ? 'bg-gray-100 text-gray-500' : 'bg-blue-50 text-blue-700'}`}>
-                        {product.channelCount === 0 ? '暂无可购买' : `可购买 ${product.channelCount}`}
+                        {product.channelCount === 0 ? '暂无可采购' : `可采购 ${product.channelCount}`}
                       </span>
                       {product.warrantyPrice !== null && <span className="font-mono text-gray-500">保障参考 {priceLabel(product.warrantyPrice)}</span>}
                       <span suppressHydrationWarning className="text-gray-400">

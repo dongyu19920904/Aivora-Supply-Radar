@@ -7,9 +7,9 @@ import { BookOpen, CheckCircle, Star, ChevronRight, Scale } from 'lucide-react';
 
 const NAV_SECTIONS = [
   {
-    name: '用户指南',
+    name: '卖家进货指南',
     items: [
-      { name: '官方订阅与卡网渠道', href: '/guide/official-vs-card-products', icon: Scale },
+      { name: '官方成本与第三方货源', href: '/guide/official-vs-card-products', icon: Scale },
     ],
   },
   {

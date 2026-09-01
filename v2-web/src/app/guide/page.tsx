@@ -1,23 +1,23 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import { ArrowRight, CheckCircle, Scale, Star, Store, UserRound } from 'lucide-react';
+import { ArrowRight, BriefcaseBusiness, CheckCircle, Scale, Star, Store } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: '爱窝啦·货源雷达 指南｜用户购买指南与渠道商接入',
-  description: '按用户和渠道商分类查看 爱窝啦·货源雷达 指南，了解官方订阅与卡网渠道的区别、渠道收录方式和商品展示建议。',
+  title: '爱窝啦·货源雷达 指南｜卖家进货核验与渠道商接入',
+  description: '面向 AI 账号卖家和货源方，说明官方成本与第三方货源的差别、渠道收录方式和商品展示规则。',
   alternates: { canonical: '/guide' },
 };
 
 const sections = [
   {
-    title: '用户指南',
-    description: '帮助普通用户看懂不同购买方式，在价格、稳定性和风险之间做出适合自己的选择。',
-    icon: UserRound,
+    title: '卖家进货指南',
+    description: '帮助账号卖家核对进货来源、成本、账号归属、售后和接单风险。',
+    icon: BriefcaseBusiness,
     tone: 'emerald',
     links: [
       {
-        title: '官方订阅与卡网渠道有什么区别？',
-        description: '了解购买来源、账号归属、售后和常见风险。',
+        title: '官方成本与第三方货源怎样比较？',
+        description: '核对进货来源、账号归属、售后和常见风险。',
         href: '/guide/official-vs-card-products',
         icon: Scale,
       },
@@ -51,7 +51,7 @@ export default function GuidePage() {
       <header className="mb-8 border-b border-gray-100 pb-6">
         <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">爱窝啦·货源雷达 指南</h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-500">
-          根据你的身份选择指南。普通用户可以先了解购买方式，渠道商可以查看收录和展示规则。
+          账号卖家先看进货核验，货源方可以查看收录和展示规则。
         </p>
       </header>
 

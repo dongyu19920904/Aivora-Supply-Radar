@@ -31,7 +31,7 @@ export const BuyDisclaimerModal: React.FC<BuyDisclaimerModalProps> = ({ isOpen, 
             <p className="text-sm text-gray-500 leading-relaxed">
               本平台仅作为独立的渠道聚合与信息展示工具。
               <br /><br />
-              <strong className="text-gray-900 font-medium">商品细节、交付内容、售后规则及最终解释权仍以原店铺为准。</strong> 请在购买前仔细甄别风险。
+              <strong className="text-gray-900 font-medium">商品细节、交付内容、售后规则及最终解释权仍以原店铺为准。</strong> 请在采购和接单前仔细核验风险。
             </p>
           </div>
         </div>
@@ -58,7 +58,7 @@ export const BuyDisclaimerModal: React.FC<BuyDisclaimerModalProps> = ({ isOpen, 
             onClick={() => onConfirm(doNotRemindToday)}
             className="px-5 py-2.5 text-sm font-medium text-white bg-emerald-500 rounded-lg hover:bg-emerald-600 transition-colors"
           >
-            我知道了，继续前往
+            继续查看原始货源
           </button>
         </div>
       </div>

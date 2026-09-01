@@ -41,7 +41,7 @@ export function CatalogGroupSection({
         </div>
         <dl className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500">
           <div className="flex items-baseline gap-1"><dt>商品</dt><dd className="font-mono font-semibold tabular-nums text-gray-950">{products.length}</dd></div>
-          <div className="flex items-baseline gap-1"><dt>可购买</dt><dd className="font-mono font-semibold tabular-nums text-emerald-700">{availableProducts}</dd></div>
+          <div className="flex items-baseline gap-1"><dt>可采购</dt><dd className="font-mono font-semibold tabular-nums text-emerald-700">{availableProducts}</dd></div>
           <div className="flex items-baseline gap-1"><dt>在售报价</dt><dd className="font-mono font-semibold tabular-nums text-blue-700">{availableOffers}</dd></div>
         </dl>
       </header>

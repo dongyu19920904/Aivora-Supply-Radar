@@ -114,7 +114,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const title = `${product.name}价格对比｜AI订阅卡网渠道比价 - 爱窝啦·货源雷达`;
   const description = channelCount > 0 && lowestPrice > 0
-    ? `${descriptionSubject}。爱窝啦·货源雷达 当前收录 ${channelCount} 条可购买报价，最低价约 ¥${lowestPrice}，可购买优先并展示库存和更新时间，不参与交易。`
+    ? `${descriptionSubject}。爱窝啦·货源雷达当前收录 ${channelCount} 条可采购报价，最低价约 ¥${lowestPrice}，可采购优先并展示库存和更新时间，不参与交易。`
     : `${descriptionSubject}。爱窝啦·货源雷达 聚合公开渠道价格，支持 AI 订阅和数字产品多渠道比价，不参与交易。`;
 
   return {

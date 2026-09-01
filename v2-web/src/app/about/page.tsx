@@ -7,7 +7,7 @@ import { PROJECT_REPOSITORY_URL } from '@/lib/site';
 
 export const metadata: Metadata = {
   title: '关于 | 爱窝啦·货源雷达',
-  description: '爱窝啦·货源雷达 是一个完全开源、中立的 AI 订阅全网比价聚合平台。我们致力于打破信息孤岛，通过自动追踪全网优质卡网渠道的实时底价与库存，帮你低价买到最靠谱的 ChatGPT、Claude 及 Cursor AI 订阅产品。',
+  description: '爱窝啦·货源雷达是面向 AI 账号卖家的开源货源与经营平台，持续整理公开渠道的价格、库存、异动和账号商机，帮助卖家核验进货成本与交付风险。',
   alternates: { canonical: '/about' },
 };
 
@@ -22,11 +22,11 @@ export default function AboutPage() {
             <span>关于 爱窝啦·货源雷达 开源项目</span>
           </div>
           <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl mb-6">
-            打破信息茧房，<br className="hidden sm:block"/>
-            <span className="text-emerald-600">做 AI订阅产品的搬运工</span>
+            聚合公开货源，<br className="hidden sm:block"/>
+            <span className="text-emerald-600">帮 AI 账号卖家算清每一单</span>
           </h1>
           <p className="text-lg text-gray-600 leading-relaxed">
-            爱窝啦·货源雷达 顾名思义是“开放价格”。我们是一个依托于开源社区的项目，致力于收录全网卡网渠道的各种 AI 订阅及数字产品价格。我们不提供 AI 服务，只为拉进顾客与渠道商之间的距离。
+            爱窝啦·货源雷达依托开源社区，整理全网公开卡网渠道的 AI 订阅及数字产品价格。平台不提供 AI 服务，主要帮助账号卖家缩短找货、核价和判断风险的时间。
           </p>
         </div>
       </div>
@@ -38,7 +38,7 @@ export default function AboutPage() {
           <div className="text-center mb-12">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">为什么要做这个项目？</h2>
             <p className="text-gray-500 max-w-2xl mx-auto">
-              市面上有非常多高性价比的AI订阅产品，但它们往往散落在各个微信群、TG群、各种发卡网中。这种信息不对称导致了双输的局面：
+              AI 账号货源散落在微信群、TG 群和各种发卡网中。账号卖家难以持续核价，渠道商也很难稳定触达合适的分销方。
             </p>
           </div>
           
@@ -46,9 +46,9 @@ export default function AboutPage() {
             <div className="bg-gray-50 rounded-2xl p-8 border border-gray-100 relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-32 h-32 bg-blue-100 rounded-bl-full -mr-16 -mt-16 transition-transform group-hover:scale-110"></div>
               <Users className="w-10 h-10 text-blue-600 mb-5 relative z-10" />
-              <h3 className="text-xl font-bold text-gray-900 mb-3 relative z-10">消费者的困境</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-3 relative z-10">账号卖家的困境</h3>
               <p className="text-gray-600 leading-relaxed relative z-10">
-                想要购买便宜靠谱的 ChatGPT、Claude 或流媒体账号，却需要花费大量时间四处寻找渠道。更糟的是，由于信息闭塞，往往花了大量时间不仅没买到合适的产品，反而容易花高价当了“韭菜”。
+                ChatGPT、Claude 等货源更新很快，卖家需要在多个渠道之间反复核对库存、规格、价格和售后。信息过期会直接造成报价倒挂、延迟交付和售后亏损。
               </p>
             </div>
             
@@ -57,7 +57,7 @@ export default function AboutPage() {
               <Store className="w-10 h-10 text-emerald-600 mb-5 relative z-10" />
               <h3 className="text-xl font-bold text-gray-900 mb-3 relative z-10">渠道商的痛点</h3>
               <p className="text-gray-600 leading-relaxed relative z-10">
-                手里握有优质的货源和全网最低的价格，却苦于没有集中曝光的流量池。不懂营销，就像曾经的我一样，导致有好的产品却无人问津。
+                手里有稳定货源，却缺少面向账号卖家的集中展示和结构化数据。商品规格不清、库存不准或更新不及时，也会让真正需要补货的卖家无法判断。
               </p>
             </div>
           </div>
@@ -93,7 +93,7 @@ export default function AboutPage() {
               </div>
               <h3 className="text-lg font-bold text-gray-900 mb-3">与商家生态共建</h3>
               <p className="text-gray-600 text-sm leading-relaxed">
-                支持主流发卡系统一键免费收录，针对自建商城的渠道，如果页面有嵌入 JSON-LD 结构化数据，也可以被收录。所有流程均不收费，这是一个我们、顾客、商家的共赢项目。
+                支持主流发卡系统一键免费收录。自建商城提供 JSON-LD 结构化数据后也可以申请收录，让账号卖家与货源方基于同一份公开信息协作。
               </p>
             </div>
           </div>

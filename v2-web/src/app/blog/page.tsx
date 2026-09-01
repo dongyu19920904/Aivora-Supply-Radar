@@ -7,19 +7,19 @@ import { blogCoverThumbnailUrl } from '@/lib/blog-cover';
 
 export const metadata: Metadata = {
   title: '博客 | 爱窝啦·货源雷达',
-  description: '爱窝啦·货源雷达 官方博客 - 为您提供最新、最全的 AI 订阅教程、买号避坑指南及防封号攻略。全面涵盖 ChatGPT Plus 充值、Claude Pro 防封、AI 工具使用技巧等前沿动态。每天五分钟，跟上最新技术。',
+  description: '爱窝啦·货源雷达官方博客为 AI 账号卖家提供货源核验、交付风控、售后边界、经营复盘和平台更新。',
   alternates: { canonical: '/blog' },
   openGraph: {
-    title: '爱窝啦·货源雷达 博客｜AI 订阅教程与购买指南',
-    description: '获取 AI 订阅教程、购买指南、避坑建议和 爱窝啦·货源雷达 平台动态。',
+    title: '爱窝啦·货源雷达 博客｜AI账号卖家经营指南',
+    description: '获取货源核验、交付风控、售后边界、经营复盘和平台更新。',
     type: 'website',
     url: '/blog',
     images: [DEFAULT_SHARE_IMAGE],
   },
   twitter: {
     card: 'summary_large_image',
-    title: '爱窝啦·货源雷达 博客｜AI 订阅教程与购买指南',
-    description: '获取 AI 订阅教程、购买指南、避坑建议和 爱窝啦·货源雷达 平台动态。',
+    title: '爱窝啦·货源雷达 博客｜AI账号卖家经营指南',
+    description: '获取货源核验、交付风控、售后边界、经营复盘和平台更新。',
     images: [DEFAULT_SHARE_IMAGE],
   },
 };
@@ -43,7 +43,7 @@ export default async function BlogPage() {
           </div>
           <div>
             <h1 className="text-xl font-bold text-gray-900 mb-0.5">博客</h1>
-            <p className="text-xs text-gray-500">获取最新的行业动态、使用教程和平台更新</p>
+            <p className="text-xs text-gray-500">查看卖家经营方法、货源核验和平台更新</p>
           </div>
         </div>
 

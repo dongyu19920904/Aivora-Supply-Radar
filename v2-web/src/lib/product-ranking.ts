@@ -9,8 +9,8 @@ export const catalogSortOptions = [
 
 export const catalogAvailabilityOptions = [
   { value: 'all', label: '全部' },
-  { value: 'available', label: '可购买' },
-  { value: 'unavailable', label: '暂不可购买' },
+  { value: 'available', label: '可采购' },
+  { value: 'unavailable', label: '暂不可采购' },
 ] as const;
 
 export type CatalogSortMode = (typeof catalogSortOptions)[number]['value'];

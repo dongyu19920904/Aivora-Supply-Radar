@@ -38,7 +38,7 @@ export default function ApprovalModal({
           <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-start gap-3">
             <Info className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
             <p className="text-sm text-blue-800 dark:text-blue-300">
-              普通用户只提交了基础信息。请您作为管理员，在此补全<strong>爬虫接口 URL</strong> 和 <strong>引擎类型</strong>。保存后，该数据将正式转入 <code>crawler_targets</code> 队列并立刻激活。
+              投稿人只提交了基础信息。请您作为管理员，在此补全<strong>爬虫接口 URL</strong> 和 <strong>引擎类型</strong>。保存后，该数据将正式转入 <code>crawler_targets</code> 队列并立刻激活。
             </p>
           </div>
 

@@ -10,12 +10,12 @@ import { Metadata } from 'next';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: '爱窝啦·货源雷达 | AI账号货源、渠道比价与商机日报',
-  description: '爱窝啦·货源雷达聚合 AI 账号与数字商品货源、渠道报价、官方地区价格、价格异动和账号商机日报，帮助买家比价，也帮助卖家发现可执行的利润机会。',
-  keywords: ['AI订阅比价', 'AI订阅价格', '卡网渠道比价', 'ChatGPT Plus价格', 'Claude Pro价格', 'Gemini价格', 'Grok价格', 'Cursor价格', 'AI代充价格', '成品号价格'],
+  title: '爱窝啦·货源雷达 | AI账号卖家货源、渠道核价与商机日报',
+  description: '爱窝啦·货源雷达为 AI 账号卖家聚合数字商品货源、渠道报价、官方地区价格、价格异动和账号商机日报，帮助卖家核验进货成本并发现可执行的利润机会。',
+  keywords: ['AI账号货源', 'AI账号卖家', 'AI账号进货', '卡网渠道核价', 'ChatGPT货源', 'Claude货源', 'AI账号利润', 'AI账号商机日报'],
   openGraph: {
-    title: '爱窝啦·货源雷达 | AI账号货源与商机平台',
-    description: '聚合 AI 账号货源、渠道报价、官方地区价格、价格异动和账号商机日报。',
+    title: '爱窝啦·货源雷达 | AI账号卖家货源与商机平台',
+    description: '为 AI 账号卖家聚合货源、渠道报价、官方地区价格、价格异动和账号商机日报。',
     url: '/',
     siteName: SITE_NAME,
     locale: 'zh_CN',
@@ -24,8 +24,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: '爱窝啦·货源雷达 | AI账号货源与商机平台',
-    description: '聚合 AI 账号货源、渠道报价、官方地区价格、价格异动和账号商机日报。',
+    title: '爱窝啦·货源雷达 | AI账号卖家货源与商机平台',
+    description: '为 AI 账号卖家聚合货源、渠道报价、官方地区价格、价格异动和账号商机日报。',
     images: [DEFAULT_SHARE_IMAGE],
   },
   icons: {

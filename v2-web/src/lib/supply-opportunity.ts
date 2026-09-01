@@ -104,7 +104,7 @@ const RECENT_WINDOW_MS = 24 * 60 * 60 * 1_000;
 const SIGNIFICANT_PRICE_CHANGE = 0.08;
 
 function price(value: number | null): string {
-  return value === null ? '暂无可购买报价' : `¥${value.toFixed(2)}`;
+  return value === null ? '暂无可采购报价' : `¥${value.toFixed(2)}`;
 }
 
 function validTime(value: string | null | undefined): number | null {
@@ -115,8 +115,8 @@ function validTime(value: string | null | undefined): number | null {
 
 function stockState(value: string | null): 'available' | 'unavailable' | 'unknown' {
   const normalized = (value || '').trim().toLowerCase();
-  if (/^(?:in_stock|low_stock|available)$/.test(normalized) || /(?:有货|可购买)/.test(normalized)) return 'available';
-  if (/^(?:out_of_stock|offline|unavailable)$/.test(normalized) || /(?:缺货|下架|不可购买)/.test(normalized)) return 'unavailable';
+  if (/^(?:in_stock|low_stock|available)$/.test(normalized) || /(?:有货|可购买|可采购)/.test(normalized)) return 'available';
+  if (/^(?:out_of_stock|offline|unavailable)$/.test(normalized) || /(?:缺货|下架|不可购买|不可采购)/.test(normalized)) return 'unavailable';
   return 'unknown';
 }
 
@@ -226,9 +226,9 @@ function changeSignal(change: PriceChange, product: ProductType, kind: SupplySig
       kind,
       tone: 'opportunity',
       label: '补货恢复',
-      title: `${product.name} 出现可购买货源`,
-      summary: `${change.merchant_name} 的连续快照从不可购买变为可购买，可以重新核验交付和售后。`,
-      evidence: `库存状态：${change.previous_stock || '未知'} → ${change.current_stock || '未知'}；当前目录最低价 ${price(product.lowestPrice)}，可购买报价 ${product.channelCount} 条。`,
+      title: `${product.name} 出现可采购货源`,
+      summary: `${change.merchant_name} 的连续快照从不可采购变为可采购，可以重新核验交付和售后。`,
+      evidence: `库存状态：${change.previous_stock || '未知'} → ${change.current_stock || '未知'}；当前目录最低价 ${price(product.lowestPrice)}，可采购报价 ${product.channelCount} 条。`,
       buyerAction: '先打开商品详情比较同类报价，再进入原始页面确认库存没有再次变化。',
       sellerAction: `核验该渠道的交付与质保，将 ${price(product.lowestPrice)} 作为进货参考带入利润计算器。`,
       stopCondition: '原始页仍显示缺货、交付信息不完整，或计入退款和售后后没有利润时停止。',
@@ -242,9 +242,9 @@ function changeSignal(change: PriceChange, product: ProductType, kind: SupplySig
       tone: 'warning',
       label: '断货风险',
       title: `${product.name} 有渠道转为缺货`,
-      summary: `${change.merchant_name} 的连续快照从可购买变为不可购买，不能继续按旧库存接单。`,
-      evidence: `库存状态：${change.previous_stock || '未知'} → ${change.current_stock || '未知'}；目录仍有 ${product.channelCount} 条可购买报价。`,
-      buyerAction: '避开已经缺货的原始链接，改看商品详情中仍显示可购买且更新时间更近的渠道。',
+      summary: `${change.merchant_name} 的连续快照从可采购变为不可采购，不能继续按旧库存接单。`,
+      evidence: `库存状态：${change.previous_stock || '未知'} → ${change.current_stock || '未知'}；目录仍有 ${product.channelCount} 条可采购报价。`,
+      buyerAction: '避开已经缺货的原始链接，改看商品详情中仍显示可采购且更新时间更近的渠道。',
       sellerAction: '立即核对自己的同源库存和待交付订单；有替代渠道时重新计算成本，没有时暂停销售。',
       stopCondition: '找不到可验证的替代货源，或替代成本超过当前售价时立即下架。',
       priority: 115,
@@ -258,7 +258,7 @@ function changeSignal(change: PriceChange, product: ProductType, kind: SupplySig
       label: '价格下降',
       title: `${product.name} 出现 ${percentage}% 降价`,
       summary: `${change.merchant_name} 的有效快照价格下降，可能形成新的采购窗口，但不代表质量相同。`,
-      evidence: `${price(change.previous_price)} → ${price(change.current_price)}；当前目录最低价 ${price(product.lowestPrice)}，可购买报价 ${product.channelCount} 条。`,
+      evidence: `${price(change.previous_price)} → ${price(change.current_price)}；当前目录最低价 ${price(product.lowestPrice)}，可采购报价 ${product.channelCount} 条。`,
       buyerAction: '比较降价渠道与同类质保价，确认商品规格、交付方式和售后没有一起缩水。',
       sellerAction: `先用 ${price(change.current_price)} 测算真实成本，再决定是否调整售价或小量测试。`,
       stopCondition: '规格不同、来源过旧、质保缺失，或降价后仍无法覆盖退款和售后成本时停止。',
@@ -272,8 +272,8 @@ function changeSignal(change: PriceChange, product: ProductType, kind: SupplySig
     label: '价格上涨',
     title: `${product.name} 出现 ${percentage}% 涨价`,
     summary: `${change.merchant_name} 的有效快照价格上涨，可能是成本或库存收紧信号，不能继续使用旧成本报价。`,
-    evidence: `${price(change.previous_price)} → ${price(change.current_price)}；当前目录最低价 ${price(product.lowestPrice)}，可购买报价 ${product.channelCount} 条。`,
-    buyerAction: '先比较其他可购买渠道，避免把单一渠道涨价误判为全市场涨价。',
+    evidence: `${price(change.previous_price)} → ${price(change.current_price)}；当前目录最低价 ${price(product.lowestPrice)}，可采购报价 ${product.channelCount} 条。`,
+    buyerAction: '先比较其他可采购渠道，避免把单一渠道涨价误判为全市场涨价。',
     sellerAction: '更新进货成本和保本价；如果利润被压缩，优先调整售价或减少承诺，而不是继续低价接单。',
     stopCondition: '只有单一异常报价上涨、其他渠道没有同步变化时，不据此囤货或涨价。',
     priority: 100,
@@ -292,12 +292,12 @@ function supplyGapSignal(product: ProductType): SupplyOpportunitySignal {
     kind: 'supply_gap',
     tone: 'watch',
     label: hasOffers ? '低供给观察' : '等待补货',
-    title: `${product.name} 当前可购买渠道较少`,
+    title: `${product.name} 当前可采购渠道较少`,
     summary: hasOffers
-      ? `当前只有 ${product.channelCount} 条可购买报价，竞争表面较少，但还没有真实销量证据。`
-      : '当前没有可购买报价；这可能是供给空档，也可能是需求不足，必须先验证。',
-    evidence: `当前目录最低价 ${price(product.lowestPrice)}；可购买报价 ${product.channelCount} 条；最近更新 ${product.updatedAt || '待首次采集'}。`,
-    buyerAction: '不要因为选择少就直接下单；逐条核验现有渠道，必要时等待补货。',
+      ? `当前只有 ${product.channelCount} 条可采购报价，竞争表面较少，但还没有真实销量证据。`
+      : '当前没有可采购报价；这可能是供给空档，也可能是需求不足，必须先验证。',
+    evidence: `当前目录最低价 ${price(product.lowestPrice)}；可采购报价 ${product.channelCount} 条；最近更新 ${product.updatedAt || '待首次采集'}。`,
+    buyerAction: '逐条核验现有渠道，不要因为选择少就直接接单，必要时等待补货。',
     sellerAction: `${hasOffers ? '先小量测试买家询问与交付稳定性' : '先验证是否有真实买家询问'}，再决定是否寻找新货源。`,
     stopCondition: '没有真实询问、没有稳定交付，或只能依赖不可验证来源时停止。',
     product,
@@ -313,9 +313,9 @@ function crowdedSignal(product: ProductType): SupplyOpportunitySignal {
     kind: 'crowded',
     tone: 'warning',
     label: '竞争拥挤',
-    title: `${product.name} 可购买报价已经很密集`,
-    summary: `当前有 ${product.channelCount} 条可购买报价，说明容易比价，也意味着卖家不能只靠低价进入。`,
-    evidence: `当前目录最低价 ${price(product.lowestPrice)}；可购买报价 ${product.channelCount} 条；最近更新 ${product.updatedAt || '待首次采集'}。`,
+    title: `${product.name} 可采购报价已经很密集`,
+    summary: `当前有 ${product.channelCount} 条可采购报价，说明容易核价，也意味着卖家不能只靠低价进入。`,
+    evidence: `当前目录最低价 ${price(product.lowestPrice)}；可采购报价 ${product.channelCount} 条；最近更新 ${product.updatedAt || '待首次采集'}。`,
     buyerAction: '利用充足报价比较质保、交付和更新时间，不只选择最低价。',
     sellerAction: '优先做明确交付、售后和场景说明；计算差异化成本后再决定是否进入。',
     stopCondition: '只能通过低于保本价竞争，或无法提供比现有渠道更清楚的交付与售后时停止。',

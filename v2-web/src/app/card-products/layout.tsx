@@ -2,8 +2,8 @@ import { Metadata } from 'next';
 import React from 'react';
 import { DEFAULT_SHARE_IMAGE } from '@/lib/site';
 
-const title = 'AI订阅全网比价｜卡网渠道报价聚合 - 爱窝啦·货源雷达';
-const description = '爱窝啦·货源雷达 提供卡网渠道报价聚合与 AI 订阅比价，覆盖 ChatGPT、Claude、Gemini、Grok、Cursor 等 AI 订阅，以及代充、成品号、接码、邮箱和账号等数字产品，是一站式 AI 订阅多渠道比价平台。';
+const title = 'AI账号卖家货源｜卡网渠道报价与库存聚合 - 爱窝啦·货源雷达';
+const description = '为 AI 账号卖家聚合 ChatGPT、Claude、Gemini、Grok、Cursor 等公开渠道报价、库存与更新时间，覆盖代充、成品号、接码、邮箱和账号等数字商品。';
 
 export const metadata: Metadata = {
   title,

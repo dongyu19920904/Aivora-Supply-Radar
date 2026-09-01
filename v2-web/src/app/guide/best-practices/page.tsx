@@ -9,12 +9,12 @@ import { ShareLinkButton } from '@/components/ShareLinkButton';
 
 export const metadata: Metadata = {
   title: '如何更好的展示商品？(渠道商最佳实践) | 爱窝啦·货源雷达',
-  description: '了解如何在 爱窝啦·货源雷达 开源比价平台上获得更好的商品展示效果。通过简单的类目 ID 映射，帮助爬虫引擎更精准地分类您的 ChatGPT、Claude 等商品，让买家更容易找到您的优质渠道。',
+  description: '了解如何在爱窝啦·货源雷达获得更好的商品展示效果。通过类目 ID 映射，让爬虫更准确地分类 ChatGPT、Claude 等商品，方便账号卖家核验您的渠道。',
   keywords: ['爱窝啦·货源雷达接入', '商品类目映射', '卡网收录规范', '渠道商指南', '开源比价平台'],
   alternates: { canonical: '/guide/best-practices' },
   openGraph: {
     title: '如何更好的展示商品？(渠道商最佳实践) | 爱窝啦·货源雷达',
-    description: '了解如何在 爱窝啦·货源雷达 开源比价平台上获得更好的商品展示效果。通过简单的类目 ID 映射，帮助爬虫引擎更精准地分类您的 ChatGPT、Claude 等商品，让买家更容易找到您的优质渠道。',
+    description: '通过类目 ID 映射准确分类 ChatGPT、Claude 等商品，方便账号卖家核验您的渠道。',
     type: 'article',
   }
 };

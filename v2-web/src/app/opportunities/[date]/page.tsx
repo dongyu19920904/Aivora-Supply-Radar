@@ -100,7 +100,7 @@ export default async function OpportunityDetailPage({ params }: PageProps) {
                       <h3 className="mt-1 font-bold text-gray-950">{product.name}</h3>
                       <dl className="mt-3 grid grid-cols-2 gap-2 text-xs">
                         <div><dt className="text-gray-500">当前目录最低价</dt><dd className="mt-0.5 font-mono font-semibold tabular-nums text-emerald-700">{product.lowestPrice === null ? '暂无报价' : `¥${product.lowestPrice.toFixed(2)}`}</dd></div>
-                        <div><dt className="text-gray-500">可购买报价</dt><dd className="mt-0.5 font-mono font-semibold tabular-nums text-blue-700">{product.channelCount}</dd></div>
+                        <div><dt className="text-gray-500">可采购报价</dt><dd className="mt-0.5 font-mono font-semibold tabular-nums text-blue-700">{product.channelCount}</dd></div>
                       </dl>
                       <div className="mt-4 flex flex-wrap gap-x-3 gap-y-2 text-xs font-semibold">
                         <Link href={`/card-products/${product.slug}`} data-opportunity-product-link className="text-emerald-700 hover:underline">核验货源 →</Link>

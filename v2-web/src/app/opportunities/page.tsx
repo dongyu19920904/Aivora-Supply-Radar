@@ -28,7 +28,7 @@ export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'AI 账号货源商机与风险 | 爱窝啦·货源雷达',
-  description: '把当前可购买货源、最低价、渠道数量、价格与库存异动组合成可核验的账号货源线索，并保留行业日报作为辅助证据。',
+  description: '把当前可采购货源、最低价、渠道数量、价格与库存异动组合成可核验的账号卖家线索，并保留行业日报作为辅助证据。',
   alternates: { canonical: '/opportunities' },
 };
 
@@ -76,7 +76,7 @@ function SignalCard({ signal, index }: { signal: SupplyOpportunitySignal; index:
       </div>
 
       <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
-        <div className="border-t border-gray-200 pt-3"><dt className="font-semibold text-gray-950">买家怎么做</dt><dd className="mt-1 leading-6 text-gray-600">{signal.buyerAction}</dd></div>
+        <div className="border-t border-gray-200 pt-3"><dt className="font-semibold text-gray-950">卖家怎样核验</dt><dd className="mt-1 leading-6 text-gray-600">{signal.buyerAction}</dd></div>
         <div className="border-t border-gray-200 pt-3"><dt className="font-semibold text-gray-950">卖家怎么做</dt><dd className="mt-1 leading-6 text-gray-600">{signal.sellerAction}</dd></div>
         <div className="border-t border-gray-200 pt-3"><dt className="font-semibold text-red-800">停止条件</dt><dd className="mt-1 leading-6 text-gray-600">{signal.stopCondition}</dd></div>
       </dl>
@@ -107,8 +107,8 @@ export default async function OpportunitiesPage() {
   const dashboard = buildSupplyOpportunityDashboard(products, changes);
   const latestDailyHref = latestAccountOpportunityHref(opportunities);
   const statItems = [
-    { label: '可购买商品', value: dashboard.stats.availableProductCount, detail: `共 ${dashboard.stats.productCount} 个标准商品` },
-    { label: '可购买报价', value: dashboard.stats.availableOfferCount, detail: '按当前在售状态汇总' },
+    { label: '可采购商品', value: dashboard.stats.availableProductCount, detail: `共 ${dashboard.stats.productCount} 个标准商品` },
+    { label: '可采购报价', value: dashboard.stats.availableOfferCount, detail: '按当前在售状态汇总' },
     { label: '24 小时异动', value: dashboard.stats.recentChangeCount, detail: '连续有效快照确认' },
     { label: '低供给观察', value: dashboard.stats.lowSupplyProductCount, detail: '仍需验证真实需求' },
   ];
@@ -132,7 +132,7 @@ export default async function OpportunitiesPage() {
           <div className="border-l-2 border-amber-400 bg-white p-4 text-sm leading-6 text-gray-600">
             <strong className="block text-gray-950">最近有效快照</strong>
             <span>{formatShanghaiTime(dashboard.latestObservedAt)}（Asia/Shanghai）</span>
-            <span className="mt-2 flex gap-2 text-xs text-gray-500"><CircleAlert className="mt-0.5 h-4 w-4 shrink-0" />购买或接单前必须打开原始页面复核库存、规格、交付和售后。</span>
+            <span className="mt-2 flex gap-2 text-xs text-gray-500"><CircleAlert className="mt-0.5 h-4 w-4 shrink-0" />采购或接单前必须打开原始页面复核库存、规格、交付和售后。</span>
           </div>
         </header>
 
@@ -175,7 +175,7 @@ export default async function OpportunitiesPage() {
             </div>
             <div className="overflow-x-auto border-y border-gray-300 bg-white">
               <table className="min-w-full text-left text-sm">
-                <thead className="bg-gray-50 text-xs text-gray-500"><tr><th className="px-4 py-3">平台分类</th><th className="px-4 py-3">商品</th><th className="px-4 py-3">可购买商品</th><th className="px-4 py-3">可购买报价</th><th className="px-4 py-3">最低价</th></tr></thead>
+                <thead className="bg-gray-50 text-xs text-gray-500"><tr><th className="px-4 py-3">平台分类</th><th className="px-4 py-3">商品</th><th className="px-4 py-3">可采购商品</th><th className="px-4 py-3">可采购报价</th><th className="px-4 py-3">最低价</th></tr></thead>
                 <tbody className="divide-y divide-gray-200">
                   {dashboard.categories.map((category) => (
                     <tr key={category.id}>
@@ -194,7 +194,7 @@ export default async function OpportunitiesPage() {
 
         <section className="grid gap-5 py-8 lg:grid-cols-3" aria-label="从货源到利润的执行路径">
           {[
-            { icon: Search, title: '1. 核验具体货源', text: '进入标准商品，确认可购买渠道、更新时间、原始链接、交付和售后。', href: '/card-products', link: '打开分类货源' },
+            { icon: Search, title: '1. 核验具体货源', text: '进入标准商品，确认可采购渠道、更新时间、原始链接、交付和售后。', href: '/card-products', link: '打开分类货源' },
             { icon: Calculator, title: '2. 计算真实利润', text: '把进货、支付、退款、售后和获客成本一起放进保本价。', href: '/profit-calculator', link: '打开利润计算器' },
             { icon: Store, title: '3. 小量验证再放大', text: '没有询问、交付不稳或利润不足就停止，不因“商机”两个字囤货。', href: '/guide/best-practices', link: '查看交易检查清单' },
           ].map((step) => {
