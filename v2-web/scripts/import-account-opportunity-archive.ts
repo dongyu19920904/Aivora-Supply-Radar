@@ -4,6 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { createClient } from '@supabase/supabase-js';
+import { publicOpportunityMarkdown } from '../src/lib/opportunity-markdown';
 
 const DATE_FILE_PATTERN = /^\d{4}-\d{2}-\d{2}\.md$/;
 const FRONT_MATTER_PATTERN = /^---\s*\r?\n([\s\S]*?)\r?\n---\s*\r?\n([\s\S]*)$/;
@@ -42,7 +43,7 @@ export function parseArchiveMarkdown(markdown: string, fileName: string): Archiv
   const match = markdown.match(FRONT_MATTER_PATTERN);
   if (!match) throw new Error(`archive_frontmatter_missing:${fileName}`);
   const fields = frontMatterFields(match[1] || '');
-  const body = (match[2] || '').trim();
+  const body = publicOpportunityMarkdown(match[2] || '');
   const reportDate = fileName.replace(/\.md$/, '');
   const publishedAt = fields.get('date') || `${reportDate}T00:00:00+08:00`;
   if (!/^\d{4}-\d{2}-\d{2}$/.test(reportDate)) throw new Error(`archive_date_invalid:${fileName}`);

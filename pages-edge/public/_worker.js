@@ -1,5 +1,6 @@
 const CACHE_FRESH_SECONDS = 5 * 60;
 const CACHE_STALE_SECONDS = 24 * 60 * 60;
+const CACHE_VERSION = "2026-09-01-1";
 const MAX_UPSTREAM_ATTEMPTS = 4;
 const TRANSIENT_STATUSES = new Set([500, 502, 503, 504]);
 
@@ -44,6 +45,12 @@ function isCacheableResponse(response) {
 
 function getDefaultCache(env) {
   return env.EDGE_CACHE || globalThis.caches?.default || null;
+}
+
+function cacheKey(request) {
+  const url = new URL(request.url);
+  url.searchParams.set("__aivora_edge_cache_v", CACHE_VERSION);
+  return new Request(url, { method: "GET" });
 }
 
 function cacheAgeSeconds(response) {
@@ -121,9 +128,10 @@ const edge = {
     }
 
     const cache = isPublicRequest(request) ? getDefaultCache(env) : null;
+    const key = cache ? cacheKey(request) : null;
     let cached = null;
-    if (cache) {
-      cached = await cache.match(request).catch(() => null);
+    if (cache && key) {
+      cached = await cache.match(key).catch(() => null);
       if (cached && cacheAgeSeconds(cached) <= CACHE_FRESH_SECONDS) {
         return clientResponse(cached, "HIT");
       }
@@ -131,8 +139,8 @@ const edge = {
 
     const response = await fetchWithRetry(request, env.RADAR_SERVICE);
     if (response && !TRANSIENT_STATUSES.has(response.status)) {
-      if (cache && isCacheableResponse(response)) {
-        await putCache(cache, request, response, context);
+      if (cache && key && isCacheableResponse(response)) {
+        await putCache(cache, key, response, context);
       }
       return clientResponse(response, cache ? "MISS" : "BYPASS");
     }

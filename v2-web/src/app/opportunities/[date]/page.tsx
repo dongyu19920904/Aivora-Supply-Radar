@@ -5,6 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import { ArrowLeft, Calculator, PackageSearch, Search } from 'lucide-react';
 import { listCatalogSummaryProducts } from '@/lib/catalog-summary';
 import { getAccountOpportunity } from '@/lib/legacy-radar';
+import { publicOpportunityMarkdown } from '@/lib/opportunity-markdown';
 import { findRelatedCatalogProducts, getProfitCalculatorHref } from '@/lib/supply-opportunity';
 import { classifyCatalogProduct, getCatalogCategory } from '@/lib/catalog-taxonomy';
 
@@ -37,7 +38,11 @@ export default async function OpportunityDetailPage({ params }: PageProps) {
     listCatalogSummaryProducts(),
   ]);
   if (!opportunity) notFound();
-  const relatedProducts = findRelatedCatalogProducts(opportunity, products);
+  const bodyMarkdown = publicOpportunityMarkdown(opportunity.body_markdown);
+  const relatedProducts = findRelatedCatalogProducts(
+    { ...opportunity, body_markdown: bodyMarkdown },
+    products,
+  );
   const articleSchema = {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
@@ -104,7 +109,7 @@ export default async function OpportunityDetailPage({ params }: PageProps) {
           </section>
 
           <div className="prose prose-gray max-w-none p-6 prose-a:text-blue-700 prose-headings:scroll-mt-24 prose-strong:text-gray-950 sm:p-9">
-            <ReactMarkdown>{opportunity.body_markdown}</ReactMarkdown>
+            <ReactMarkdown>{bodyMarkdown}</ReactMarkdown>
           </div>
         </article>
 

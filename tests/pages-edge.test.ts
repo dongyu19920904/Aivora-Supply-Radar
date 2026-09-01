@@ -66,6 +66,8 @@ describe("Pages custom-domain edge", () => {
     });
 
     expect(match).toHaveBeenCalledOnce();
+    const matchedRequest = match.mock.calls[0]?.[0] as Request;
+    expect(new URL(matchedRequest.url).searchParams.get("__aivora_edge_cache_v")).toBeTruthy();
     expect(fetch).not.toHaveBeenCalled();
     expect(response.headers.get("x-aivora-edge-cache")).toBe("HIT");
     await expect(response.text()).resolves.toContain("cached");
