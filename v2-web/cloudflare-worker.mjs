@@ -22,6 +22,11 @@ const PUBLIC_HTML_ROUTES = [
   '/wholesale',
 ];
 const EDGE_CACHE_SECONDS = 300;
+const WORKER_CACHE_VERSION_FALLBACK = 'release-development';
+
+function workerCacheVersion(env) {
+  return env.WORKER_CACHE_VERSION || WORKER_CACHE_VERSION_FALLBACK;
+}
 
 function failureResponse(request, error) {
   const requestUrl = new URL(request.url);
@@ -88,10 +93,20 @@ function cacheBypassReason(request, url) {
   return null;
 }
 
-function withCacheStatus(response, status) {
+function withCacheStatus(response, status, release) {
   const result = new Response(response.body, response);
   result.headers.set('x-aivora-edge-cache', status);
+  result.headers.set('x-aivora-worker-release', release);
   return result;
+}
+
+function publicHtmlCacheKey(url, release) {
+  const cacheUrl = new URL(url);
+  cacheUrl.searchParams.set('__aivora_worker_html_v', release);
+  return new Request(cacheUrl.toString(), {
+    method: 'GET',
+    headers: { accept: 'text/html' },
+  });
 }
 
 function isCacheableHtml(response) {
@@ -109,25 +124,25 @@ export default {
   async fetch(request, env, ctx) {
     try {
       const url = new URL(request.url);
+      const release = workerCacheVersion(env);
       const bypassReason = cacheBypassReason(request, url);
       if (bypassReason) {
         const response = await openNextWorker.fetch(request, env, ctx);
-        return withCacheStatus(response, `BYPASS; reason=${bypassReason}`);
+        return withCacheStatus(response, `BYPASS; reason=${bypassReason}`, release);
       }
 
     // Use a normalized key so incidental browser headers and cookies do not
     // fragment the public HTML cache. Requests with admin cookies never reach
     // this branch.
-      const cacheKey = new Request(url.toString(), {
-        method: 'GET',
-        headers: { accept: 'text/html' },
-      });
+      const cacheKey = publicHtmlCacheKey(url, release);
       const cache = caches.default;
       const cached = await cache.match(cacheKey);
-      if (cached) return withCacheStatus(cached, 'HIT');
+      if (cached) return withCacheStatus(cached, 'HIT', release);
 
       const response = await openNextWorker.fetch(request, env, ctx);
-      if (!isCacheableHtml(response)) return withCacheStatus(response, 'BYPASS; reason=response');
+      if (!isCacheableHtml(response)) {
+        return withCacheStatus(response, 'BYPASS; reason=response', release);
+      }
 
       const cacheResponse = new Response(response.body, response);
       cacheResponse.headers.set(
@@ -137,7 +152,7 @@ export default {
       cacheResponse.headers.delete('set-cookie');
       ctx.waitUntil(cache.put(cacheKey, cacheResponse.clone()));
 
-      return withCacheStatus(cacheResponse, 'MISS');
+      return withCacheStatus(cacheResponse, 'MISS', release);
     } catch (error) {
       return failureResponse(request, error);
     }

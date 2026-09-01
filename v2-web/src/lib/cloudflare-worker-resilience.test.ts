@@ -19,3 +19,12 @@ test('buyer and seller conversion routes participate in the public HTML cache bo
   assert.match(workerSource, /'\/commercial'/);
   assert.match(workerSource, /'\/wholesale'/);
 });
+
+test('public HTML cache is isolated by the immutable Worker release', async () => {
+  const workerSource = await readFile(new URL('../../cloudflare-worker.mjs', import.meta.url), 'utf8');
+
+  assert.match(workerSource, /env\.WORKER_CACHE_VERSION/);
+  assert.match(workerSource, /__aivora_worker_html_v/);
+  assert.match(workerSource, /x-aivora-worker-release/);
+  assert.match(workerSource, /publicHtmlCacheKey\(url, release\)/);
+});
