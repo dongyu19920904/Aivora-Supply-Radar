@@ -5,35 +5,6 @@ import { describe, expect, it, vi } from "vitest";
 import edge from "../pages-edge/public/_worker.js";
 
 describe("Pages custom-domain edge", () => {
-  it("globally purges the entrypoint cache only with the injected deployment token", async () => {
-    const purge = vi.fn(async () => ({ success: true, errors: [] }));
-    const request = new Request(
-      "https://aivora-supply-radar-edge.pages.dev/__aivora_release_cache_purge",
-      {
-        method: "POST",
-        headers: { "x-aivora-cache-purge": "purge-development" },
-      },
-    );
-
-    const response = await edge.fetch(request, {}, { cache: { purge } });
-
-    expect(purge).toHaveBeenCalledWith({ purgeEverything: true });
-    expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toEqual({ success: true });
-  });
-
-  it("does not expose the cache purge operation without the deployment token", async () => {
-    const purge = vi.fn();
-    const response = await edge.fetch(
-      new Request("https://supply.aivora.cn/__aivora_release_cache_purge", { method: "POST" }),
-      {},
-      { cache: { purge } },
-    );
-
-    expect(response.status).toBe(404);
-    expect(purge).not.toHaveBeenCalled();
-  });
-
   it("forwards the original request through the Worker service binding", async () => {
     const request = new Request("https://supply.aivora.cn/products?category=account", {
       headers: { "x-request-id": "domain-smoke" },

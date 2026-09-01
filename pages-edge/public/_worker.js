@@ -1,8 +1,6 @@
 const CACHE_FRESH_SECONDS = 5 * 60;
 const CACHE_STALE_SECONDS = 24 * 60 * 60;
 const CACHE_VERSION = "release-development";
-const CACHE_PURGE_TOKEN = "purge-development";
-const CACHE_PURGE_PATH = "/__aivora_release_cache_purge";
 const MAX_UPSTREAM_ATTEMPTS = 4;
 const TRANSIENT_STATUSES = new Set([500, 502, 503, 504]);
 
@@ -130,29 +128,6 @@ function unavailableResponse() {
 
 const edge = {
   async fetch(request, env, context) {
-    const requestUrl = new URL(request.url);
-    if (requestUrl.pathname === CACHE_PURGE_PATH) {
-      if (
-        request.method !== "POST" ||
-        request.headers.get("x-aivora-cache-purge") !== CACHE_PURGE_TOKEN
-      ) {
-        return new Response("Not found", { status: 404 });
-      }
-      if (!context?.cache || typeof context.cache.purge !== "function") {
-        return Response.json({ success: false }, { status: 503 });
-      }
-      const result = await context.cache
-        .purge({ purgeEverything: true })
-        .catch(() => ({ success: false }));
-      return Response.json(
-        { success: result?.success === true },
-        {
-          status: result?.success === true ? 200 : 503,
-          headers: { "cache-control": "no-store" },
-        },
-      );
-    }
-
     if (!env.RADAR_SERVICE || typeof env.RADAR_SERVICE.fetch !== "function") {
       return new Response("Supply Radar upstream is unavailable", {
         status: 503,
