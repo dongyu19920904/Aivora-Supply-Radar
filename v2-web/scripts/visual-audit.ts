@@ -18,6 +18,10 @@ const allCases = [
   { name: 'product-detail-mobile-dark', path: '/card-products/chatgpt-plus', width: 390, height: 844, theme: 'dark', mockOffers: false },
   { name: 'product-alias-redirect', path: '/card-products/chatgpt-plus-trial', width: 390, height: 844, theme: 'light', mockOffers: false },
   { name: 'opportunities-mobile-light', path: '/opportunities', width: 390, height: 844, theme: 'light', mockOffers: false },
+  { name: 'account-daily-desktop-light', path: '/opportunities/latest', width: 1440, height: 1000, theme: 'light', mockOffers: false },
+  { name: 'account-daily-desktop-dark', path: '/opportunities/latest', width: 1440, height: 1000, theme: 'dark', mockOffers: false },
+  { name: 'account-daily-mobile-light', path: '/opportunities/latest', width: 390, height: 844, theme: 'light', mockOffers: false },
+  { name: 'account-daily-mobile-dark', path: '/opportunities/latest', width: 390, height: 844, theme: 'dark', mockOffers: false },
   { name: 'changes-desktop-dark', path: '/changes', width: 1440, height: 1000, theme: 'dark', mockOffers: false },
 ] as const;
 const requestedCase = process.env.AUDIT_CASE?.trim();
@@ -145,6 +149,16 @@ try {
         opportunityProductLinkCount: document.querySelectorAll('[data-opportunity-product-link]').length,
         opportunitySupplyMap: Boolean(document.querySelector('[data-opportunity-supply-map]')),
         opportunityIndustryArchive: Boolean(document.querySelector('[data-opportunity-industry-archive]')),
+        accountDailyNavVisible: Array.from(document.querySelectorAll<HTMLAnchorElement>('a[href="/opportunities/latest"]'))
+          .some((link) => link.getClientRects().length > 0 && /日报/.test(link.textContent || '')),
+        accountDailyBodyBeforeSupply: (() => {
+          const body = document.querySelector<HTMLElement>('article .prose');
+          const supply = document.querySelector<HTMLElement>('[data-opportunity-related-supply]');
+          return Boolean(body && supply && body.offsetTop < supply.offsetTop);
+        })(),
+        accountDailyFirstHeading: document.querySelector<HTMLElement>('article .prose h2')?.textContent?.trim() || '',
+        accountDailyCanonical: document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.href || '',
+        accountDailySchema: Boolean(document.querySelector('script[type="application/ld+json"]')),
         productDecisionSummary: Boolean(document.querySelector('[data-product-decision-summary]')),
         };
       })),
@@ -226,6 +240,14 @@ try {
     );
     const aliasRedirectFailed = auditCase.path === '/card-products/chatgpt-plus-trial'
       && !diagnostics.currentUrl.endsWith('/card-products/chatgpt-plus');
+    const accountDailyFailed = auditCase.path === '/opportunities/latest' && (
+      !/\/opportunities\/\d{4}-\d{2}-\d{2}$/.test(new URL(diagnostics.currentUrl).pathname)
+      || !diagnostics.accountDailyNavVisible
+      || !diagnostics.accountDailyBodyBeforeSupply
+      || !diagnostics.accountDailyFirstHeading
+      || !diagnostics.accountDailyCanonical.endsWith(new URL(diagnostics.currentUrl).pathname)
+      || !diagnostics.accountDailySchema
+    );
     const caseFailed = status !== 200
       || diagnostics.overflow > 1
       || diagnostics.brokenImages.length > 0
@@ -235,7 +257,8 @@ try {
       || catalogFailed
       || detailFailed
       || opportunityFailed
-      || aliasRedirectFailed;
+      || aliasRedirectFailed
+      || accountDailyFailed;
     failed ||= caseFailed;
     results.push({
       name: auditCase.name,
@@ -246,6 +269,7 @@ try {
       detailFailed,
       opportunityFailed,
       aliasRedirectFailed,
+      accountDailyFailed,
       consoleErrors,
       screenshot,
       result: caseFailed ? 'failed' : 'passed',
