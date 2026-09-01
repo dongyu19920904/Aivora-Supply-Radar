@@ -1,6 +1,8 @@
 const CACHE_FRESH_SECONDS = 5 * 60;
 const CACHE_STALE_SECONDS = 24 * 60 * 60;
 const CACHE_VERSION = "release-development";
+const CACHE_PURGE_TOKEN = "purge-development";
+const CACHE_PURGE_PATH = "/__aivora_release_cache_purge";
 const MAX_UPSTREAM_ATTEMPTS = 4;
 const TRANSIENT_STATUSES = new Set([500, 502, 503, 504]);
 
@@ -61,10 +63,18 @@ function cacheAgeSeconds(response) {
 
 function clientResponse(response, state, warning) {
   const headers = new Headers(response.headers);
+  const contentType = headers.get("content-type") || "";
   headers.delete("x-aivora-edge-stored-at");
   headers.set("x-aivora-edge-cache", state);
-  if (state === "HIT" || state === "STALE") {
-    headers.set("cache-control", "public, max-age=60, stale-if-error=86400");
+  headers.set("x-aivora-edge-release", CACHE_VERSION);
+  if (
+    contentType.includes("text/html") ||
+    contentType.includes("application/xml") ||
+    contentType.includes("text/xml") ||
+    contentType.includes("text/plain")
+  ) {
+    headers.set("cache-control", "private, no-store, no-cache, max-age=0, must-revalidate");
+    headers.set("cloudflare-cdn-cache-control", "no-store");
   }
   if (warning) headers.set("warning", warning);
   return new Response(response.body, {
@@ -120,6 +130,29 @@ function unavailableResponse() {
 
 const edge = {
   async fetch(request, env, context) {
+    const requestUrl = new URL(request.url);
+    if (requestUrl.pathname === CACHE_PURGE_PATH) {
+      if (
+        request.method !== "POST" ||
+        request.headers.get("x-aivora-cache-purge") !== CACHE_PURGE_TOKEN
+      ) {
+        return new Response("Not found", { status: 404 });
+      }
+      if (!context?.cache || typeof context.cache.purge !== "function") {
+        return Response.json({ success: false }, { status: 503 });
+      }
+      const result = await context.cache
+        .purge({ purgeEverything: true })
+        .catch(() => ({ success: false }));
+      return Response.json(
+        { success: result?.success === true },
+        {
+          status: result?.success === true ? 200 : 503,
+          headers: { "cache-control": "no-store" },
+        },
+      );
+    }
+
     if (!env.RADAR_SERVICE || typeof env.RADAR_SERVICE.fetch !== "function") {
       return new Response("Supply Radar upstream is unavailable", {
         status: 503,
