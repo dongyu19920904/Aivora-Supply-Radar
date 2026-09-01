@@ -133,6 +133,18 @@
 5. 桌面与 390px 手机视口检查日间/夜间模式、溢出、跳转和字体。
 6. 检查四个仓库远端 SHA、Actions 结论、Worker 状态和缓存刷新。
 
+## 阶段 8：生产边缘稳定性收口
+
+1. 用重复请求和 Worker Tail 捕获间歇性 1101，记录路径、节点、`outcome`、wall time 和 CPU time。
+2. 在 Pages advanced-mode Worker 增加公开页面成功缓存、V2 瞬时失败重试、24 小时陈旧副本和有限 V1 只读兜底。
+3. 缓存必须排除 Cookie、Authorization、`Set-Cookie`、JSON API 和非 GET 请求；写操作不得自动重放。
+4. 为重试成功、缓存命中、陈旧副本、V1 兜底、写操作单次执行和 API 不降级分别添加回归测试。
+5. 生产部署工作流对首页、货源、渠道、经营台、归档、日报详情、异动、官方价、社区、提交、sitemap 和 robots 连续检查 6 轮，并校验 `X-Aivora-Edge-Cache`。
+6. 只提升 Pages 边缘入口，不重建 V2 Worker、不再次触发日报生产任务；失败时沿用现有 V1 自动回滚。
+7. 部署后从 SEA 节点进行不少于 50 次重复请求，再检查桌面/390px 手机、日间/夜间模式和 canonical/schema。
+
+验收：关键公开路径重复请求无 500/1101；日报正文和 V2 页面保持一致；管理和 API 请求没有被缓存或转发到 V1；Cloudflare 模型调用数不增加。
+
 ## 回滚顺序
 
 1. 货源 V2：使用现有 `rollback-supply-v2` 或生产部署工作流自动回滚到 V1。

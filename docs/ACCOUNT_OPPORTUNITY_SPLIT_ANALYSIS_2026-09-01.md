@@ -159,3 +159,19 @@ supply.aivora.cn
 | 新站部署失败 | 先完成 V2 完整构建和隔离 Worker 验证，再切边缘绑定 | 使用现有 V1 自动回滚流程 |
 | 账号任务失败影响主日报 | 保留 `runIsolatedAccountOpportunity` | 回滚后端提交，主体日报无需回滚 |
 
+## 9. 上线后边缘运行时风险与修正
+
+最终验收发现，V2 并非持续不可用，而是在 SEA 边缘节点间歇返回 Cloudflare 1101。连续请求对照和 Worker Tail 给出了相同结论：主页失败事件为 `outcome=exceededCpu`、CPU 约 10 ms；日报详情失败事件同样为 `exceededCpu`、CPU 约 93 ms。IAD 节点同期 36 次请求全部成功，说明问题与节点执行预算和 SSR 路径有关，不是 Supabase 数据缺失、域名解析错误或日报迁移失败。
+
+当前 Cloudflare Workers 免费套餐的每次请求 CPU 上限为 10 ms。OpenNext SSR 的正常执行时间会随页面、节点和冷启动状态波动，因此仅靠“重新部署同一 Worker”不能消除故障；把 `cpu_ms` 写进 Wrangler 也无法在免费套餐上突破上限。直接升级付费套餐可以提高上限，但涉及新增费用，不应在未获授权时自动购买。
+
+本次采用不增加费用的边缘韧性层：
+
+1. Pages 域名入口只缓存无 Cookie、无 Authorization 的公开 GET HTML/XML/文本响应，绝不缓存管理请求或公开 JSON API。
+2. 最近 5 分钟的成功页面直接由边缘缓存返回，避免重复进入 SSR；成功副本最长保留 24 小时，只在上游失败时作为陈旧可用副本。
+3. GET/HEAD 遇到 500、502、503、504 或服务绑定异常时最多重试 4 次；POST 等写操作只执行一次，防止重复写入。
+4. V2 多次失败且没有缓存时，仅对旧站确实存在的只读页面尝试 V1 服务兜底；不把 V2 API 转发到不兼容的 V1 API。
+5. 所有兜底都失败时返回带 `Retry-After` 的品牌化 503，而不是 Cloudflare 1101；该页面 `noindex`、`no-store`，不会污染收录和缓存。
+6. 响应用 `X-Aivora-Edge-Cache` 标记 `HIT/MISS/BYPASS/STALE/LEGACY/UNAVAILABLE`，部署验收连续检查关键路径，便于区分正常缓存、陈旧兜底和真正故障。
+
+这个方案优先保证买家可访问和日报可读，同时保留 V2 功能。长期最干净的方案仍是把生产 Worker 升级到可配置 CPU 的付费套餐，或把高成本页面预渲染为静态 HTML；两者都应作为后续独立变更评估，而不是混入本次内容拆分。
