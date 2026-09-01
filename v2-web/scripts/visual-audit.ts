@@ -159,6 +159,58 @@ try {
         accountDailyFirstHeading: document.querySelector<HTMLElement>('article .prose h2')?.textContent?.trim() || '',
         accountDailyCanonical: document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.href || '',
         accountDailySchema: Boolean(document.querySelector('script[type="application/ld+json"]')),
+        accountDailyHeroContrast: (() => {
+          const element = document.querySelector<HTMLElement>('[data-account-daily-hero] h1');
+          if (!element) return 0;
+          const parseColor = (value: string) => (value.match(/[\d.]+/g) || []).map(Number);
+          const luminance = ([red = 0, green = 0, blue = 0]: number[]) => {
+            const channels = [red, green, blue].map((value) => {
+              const channel = value / 255;
+              return channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+            });
+            return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+          };
+          const background = (node: HTMLElement) => {
+            let current: HTMLElement | null = node;
+            while (current) {
+              const value = getComputedStyle(current).backgroundColor;
+              const channels = parseColor(value);
+              if (channels.length >= 3 && (channels[3] ?? 1) > 0) return channels;
+              current = current.parentElement;
+            }
+            return [255, 255, 255];
+          };
+          const foregroundLuminance = luminance(parseColor(getComputedStyle(element).color));
+          const backgroundLuminance = luminance(background(element));
+          return (Math.max(foregroundLuminance, backgroundLuminance) + 0.05)
+            / (Math.min(foregroundLuminance, backgroundLuminance) + 0.05);
+        })(),
+        accountDailyHeadingContrast: (() => {
+          const element = document.querySelector<HTMLElement>('article .prose h2');
+          if (!element) return 0;
+          const parseColor = (value: string) => (value.match(/[\d.]+/g) || []).map(Number);
+          const luminance = ([red = 0, green = 0, blue = 0]: number[]) => {
+            const channels = [red, green, blue].map((value) => {
+              const channel = value / 255;
+              return channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+            });
+            return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+          };
+          const background = (node: HTMLElement) => {
+            let current: HTMLElement | null = node;
+            while (current) {
+              const value = getComputedStyle(current).backgroundColor;
+              const channels = parseColor(value);
+              if (channels.length >= 3 && (channels[3] ?? 1) > 0) return channels;
+              current = current.parentElement;
+            }
+            return [255, 255, 255];
+          };
+          const foregroundLuminance = luminance(parseColor(getComputedStyle(element).color));
+          const backgroundLuminance = luminance(background(element));
+          return (Math.max(foregroundLuminance, backgroundLuminance) + 0.05)
+            / (Math.min(foregroundLuminance, backgroundLuminance) + 0.05);
+        })(),
         productDecisionSummary: Boolean(document.querySelector('[data-product-decision-summary]')),
         };
       })),
@@ -247,6 +299,8 @@ try {
       || !diagnostics.accountDailyFirstHeading
       || !diagnostics.accountDailyCanonical.endsWith(new URL(diagnostics.currentUrl).pathname)
       || !diagnostics.accountDailySchema
+      || (auditCase.theme === 'dark' && diagnostics.accountDailyHeroContrast < 4.5)
+      || (auditCase.theme === 'dark' && diagnostics.accountDailyHeadingContrast < 4.5)
     );
     const caseFailed = status !== 200
       || diagnostics.overflow > 1

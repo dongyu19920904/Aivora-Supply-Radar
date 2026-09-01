@@ -63,7 +63,10 @@ export default async function OpportunityDetailPage({ params }: PageProps) {
         </Link>
 
         <article className="mt-5 overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
-          <header className="border-b border-gray-100 bg-gradient-to-br from-emerald-50 via-white to-amber-50 p-6 sm:p-9">
+          <header
+            data-account-daily-hero
+            className="border-b border-gray-100 bg-gradient-to-br from-emerald-50 via-white to-amber-50 p-6 dark:bg-zinc-900 dark:bg-none sm:p-9"
+          >
             <time dateTime={opportunity.report_date} className="text-sm font-semibold text-emerald-700">{opportunity.report_date} · AI 账号商机日报</time>
             <h1 className="mt-3 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">{opportunity.title}</h1>
             <p className="mt-4 max-w-3xl text-base leading-7 text-gray-600">{opportunity.description}</p>
@@ -74,7 +77,7 @@ export default async function OpportunityDetailPage({ params }: PageProps) {
             </div>
           </header>
 
-          <div className="prose prose-gray max-w-none p-6 prose-a:text-blue-700 prose-headings:scroll-mt-24 prose-strong:text-gray-950 sm:p-9">
+          <div className="prose prose-gray max-w-none p-6 prose-a:text-blue-700 prose-headings:scroll-mt-24 prose-strong:text-gray-950 dark:prose-invert dark:prose-a:text-blue-400 dark:prose-strong:text-zinc-100 sm:p-9">
             <ReactMarkdown>{bodyMarkdown}</ReactMarkdown>
           </div>
 
