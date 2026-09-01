@@ -57,7 +57,7 @@ describe("Pages custom-domain edge", () => {
         "x-aivora-edge-stored-at": String(Date.now()),
       },
     });
-    const match = vi.fn(async () => cached);
+    const match = vi.fn(async (_request: Request) => cached);
     const fetch = vi.fn();
 
     const response = await edge.fetch(new Request("https://supply.aivora.cn/card-products"), {
