@@ -32,6 +32,20 @@ const browser = await chromium.launch({ headless: true });
 const results: Array<Record<string, unknown>> = [];
 let failed = false;
 
+function contrastRatio(colors: { foreground: string; background: string }) {
+  const luminance = (value: string) => {
+    const [red = 0, green = 0, blue = 0] = (value.match(/[\d.]+/g) || []).map(Number);
+    const channels = [red, green, blue].map((channelValue) => {
+      const channel = channelValue / 255;
+      return channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+    });
+    return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+  };
+  const foreground = luminance(colors.foreground);
+  const background = luminance(colors.background);
+  return (Math.max(foreground, background) + 0.05) / (Math.min(foreground, background) + 0.05);
+}
+
 try {
   for (const auditCase of cases) {
     const context = await browser.newContext({
@@ -159,57 +173,37 @@ try {
         accountDailyFirstHeading: document.querySelector<HTMLElement>('article .prose h2')?.textContent?.trim() || '',
         accountDailyCanonical: document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.href || '',
         accountDailySchema: Boolean(document.querySelector('script[type="application/ld+json"]')),
-        accountDailyHeroContrast: (() => {
+        accountDailyHeroColors: (() => {
           const element = document.querySelector<HTMLElement>('[data-account-daily-hero] h1');
-          if (!element) return 0;
-          const parseColor = (value: string) => (value.match(/[\d.]+/g) || []).map(Number);
-          const luminance = ([red = 0, green = 0, blue = 0]: number[]) => {
-            const channels = [red, green, blue].map((value) => {
-              const channel = value / 255;
-              return channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
-            });
-            return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
-          };
-          const background = (node: HTMLElement) => {
-            let current: HTMLElement | null = node;
-            while (current) {
-              const value = getComputedStyle(current).backgroundColor;
-              const channels = parseColor(value);
-              if (channels.length >= 3 && (channels[3] ?? 1) > 0) return channels;
-              current = current.parentElement;
+          if (!element) return { foreground: '', background: '' };
+          let background = 'rgb(255, 255, 255)';
+          let current: HTMLElement | null = element;
+          while (current) {
+            const value = getComputedStyle(current).backgroundColor;
+            const channels = (value.match(/[\d.]+/g) || []).map(Number);
+            if (channels.length >= 3 && (channels[3] ?? 1) > 0) {
+              background = value;
+              break;
             }
-            return [255, 255, 255];
-          };
-          const foregroundLuminance = luminance(parseColor(getComputedStyle(element).color));
-          const backgroundLuminance = luminance(background(element));
-          return (Math.max(foregroundLuminance, backgroundLuminance) + 0.05)
-            / (Math.min(foregroundLuminance, backgroundLuminance) + 0.05);
+            current = current.parentElement;
+          }
+          return { foreground: getComputedStyle(element).color, background };
         })(),
-        accountDailyHeadingContrast: (() => {
+        accountDailyHeadingColors: (() => {
           const element = document.querySelector<HTMLElement>('article .prose h2');
-          if (!element) return 0;
-          const parseColor = (value: string) => (value.match(/[\d.]+/g) || []).map(Number);
-          const luminance = ([red = 0, green = 0, blue = 0]: number[]) => {
-            const channels = [red, green, blue].map((value) => {
-              const channel = value / 255;
-              return channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
-            });
-            return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
-          };
-          const background = (node: HTMLElement) => {
-            let current: HTMLElement | null = node;
-            while (current) {
-              const value = getComputedStyle(current).backgroundColor;
-              const channels = parseColor(value);
-              if (channels.length >= 3 && (channels[3] ?? 1) > 0) return channels;
-              current = current.parentElement;
+          if (!element) return { foreground: '', background: '' };
+          let background = 'rgb(255, 255, 255)';
+          let current: HTMLElement | null = element;
+          while (current) {
+            const value = getComputedStyle(current).backgroundColor;
+            const channels = (value.match(/[\d.]+/g) || []).map(Number);
+            if (channels.length >= 3 && (channels[3] ?? 1) > 0) {
+              background = value;
+              break;
             }
-            return [255, 255, 255];
-          };
-          const foregroundLuminance = luminance(parseColor(getComputedStyle(element).color));
-          const backgroundLuminance = luminance(background(element));
-          return (Math.max(foregroundLuminance, backgroundLuminance) + 0.05)
-            / (Math.min(foregroundLuminance, backgroundLuminance) + 0.05);
+            current = current.parentElement;
+          }
+          return { foreground: getComputedStyle(element).color, background };
         })(),
         productDecisionSummary: Boolean(document.querySelector('[data-product-decision-summary]')),
         };
@@ -256,6 +250,8 @@ try {
 
     const status = response?.status() || 0;
     const themeMatches = diagnostics.dark === (auditCase.theme === 'dark');
+    const accountDailyHeroContrast = contrastRatio(diagnostics.accountDailyHeroColors);
+    const accountDailyHeadingContrast = contrastRatio(diagnostics.accountDailyHeadingColors);
     const catalogFailed = auditCase.path === '/card-products' && (
       diagnostics.catalogProductCount !== 49
       || !diagnostics.catalogFirstNames[0]?.includes('ChatGPT')
@@ -299,8 +295,8 @@ try {
       || !diagnostics.accountDailyFirstHeading
       || !diagnostics.accountDailyCanonical.endsWith(new URL(diagnostics.currentUrl).pathname)
       || !diagnostics.accountDailySchema
-      || (auditCase.theme === 'dark' && diagnostics.accountDailyHeroContrast < 4.5)
-      || (auditCase.theme === 'dark' && diagnostics.accountDailyHeadingContrast < 4.5)
+      || (auditCase.theme === 'dark' && accountDailyHeroContrast < 4.5)
+      || (auditCase.theme === 'dark' && accountDailyHeadingContrast < 4.5)
     );
     const caseFailed = status !== 200
       || diagnostics.overflow > 1
@@ -324,6 +320,8 @@ try {
       opportunityFailed,
       aliasRedirectFailed,
       accountDailyFailed,
+      accountDailyHeroContrast,
+      accountDailyHeadingContrast,
       consoleErrors,
       screenshot,
       result: caseFailed ? 'failed' : 'passed',
