@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import type { ProductType } from '../data';
 import type { AccountOpportunity, PriceChange } from './legacy-radar';
+import { SITE_URL } from './site';
 import {
   buildPublicSupplyOpportunitySnapshot,
   buildSupplyOpportunityDashboard,
@@ -102,17 +103,17 @@ test('serializes a bounded V2 public snapshot with a merchant product board', ()
   const snapshot = buildPublicSupplyOpportunitySnapshot(dashboard);
 
   assert.equal(snapshot.schemaVersion, 2);
-  assert.equal(snapshot.source, 'https://supply.aivora.cn/opportunities');
+  assert.equal(snapshot.source, `${SITE_URL}/opportunities`);
   assert.equal(snapshot.stats.recentChangeCountCapped, true);
   assert.ok(snapshot.signals.length <= 10);
   assert.equal(snapshot.signals[0].product.slug, 'chatgpt-plus');
   assert.equal(
     snapshot.signals[0].product.productUrl,
-    'https://supply.aivora.cn/card-products/chatgpt-plus',
+    `${SITE_URL}/card-products/chatgpt-plus`,
   );
   assert.equal(
     snapshot.signals[0].product.profitCalculatorUrl,
-    'https://supply.aivora.cn/profit-calculator?product=ChatGPT+Plus&cost=80.00',
+    `${SITE_URL}/profit-calculator?product=ChatGPT+Plus&cost=80.00`,
   );
   assert.equal('shortDesc' in snapshot.signals[0].product, false);
   assert.equal(snapshot.products.length, products.length);
