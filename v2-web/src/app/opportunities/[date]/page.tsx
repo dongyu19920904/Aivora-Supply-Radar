@@ -64,33 +64,39 @@ export default async function OpportunityDetailPage({ params }: PageProps) {
 
         <article className="mt-5 overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
           <header className="border-b border-gray-100 bg-gradient-to-br from-emerald-50 via-white to-amber-50 p-6 sm:p-9">
-            <time dateTime={opportunity.report_date} className="text-sm font-semibold text-emerald-700">{opportunity.report_date} · 商家经营日报</time>
+            <time dateTime={opportunity.report_date} className="text-sm font-semibold text-emerald-700">{opportunity.report_date} · AI 账号商机日报</time>
             <h1 className="mt-3 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">{opportunity.title}</h1>
             <p className="mt-4 max-w-3xl text-base leading-7 text-gray-600">{opportunity.description}</p>
-            <Link href="/opportunities/archive" className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 hover:text-blue-800">
-              查看全部经营日报归档
-            </Link>
+            <div className="mt-5 flex flex-wrap gap-3 text-sm font-semibold">
+              <Link href="/opportunities" className="rounded-full bg-gray-950 px-4 py-2.5 text-white hover:bg-gray-800">打开实时商机台</Link>
+              <Link href="/profit-calculator" className="rounded-full border border-gray-300 bg-white px-4 py-2.5 text-blue-700 hover:border-blue-300">打开利润计算器</Link>
+              <Link href="/opportunities/archive" className="px-2 py-2.5 text-blue-700 hover:text-blue-800">查看全部日报归档</Link>
+            </div>
           </header>
 
-          <section className="border-b border-gray-200 bg-gray-50 p-6 sm:p-9" data-opportunity-related-supply aria-labelledby="related-supply-title">
+          <div className="prose prose-gray max-w-none p-6 prose-a:text-blue-700 prose-headings:scroll-mt-24 prose-strong:text-gray-950 sm:p-9">
+            <ReactMarkdown>{bodyMarkdown}</ReactMarkdown>
+          </div>
+
+          <section className="border-t border-gray-200 bg-gray-50 p-6 sm:p-9" data-opportunity-related-supply aria-labelledby="related-supply-title">
             <div className="flex items-start gap-3">
               <PackageSearch className="mt-1 h-5 w-5 shrink-0 text-amber-500" />
               <div>
-                <h2 id="related-supply-title" className="text-xl font-bold text-gray-950">这条行业信号与当前哪些货源有关</h2>
-                <p className="mt-1 text-sm leading-6 text-gray-600">下面是按日报正文关键词匹配的当前标准商品快照，不代表日报已经证明这些商品有销量。</p>
+                <h2 id="related-supply-title" className="text-xl font-bold text-gray-950">复核正文中的当前货源</h2>
+                <p className="mt-1 text-sm leading-6 text-gray-600">下面最多保留三个当前商品入口。价格和库存会变化，今天下单或接单前仍要打开原始页面。</p>
               </div>
             </div>
 
             {relatedProducts.length ? (
               <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {relatedProducts.map((product) => {
+                {relatedProducts.slice(0, 3).map((product) => {
                   const category = getCatalogCategory(classifyCatalogProduct(product));
                   return (
                     <article key={product.id} className="border-t-2 border-t-gray-950 bg-white p-4 ring-1 ring-gray-200">
                       <span className="text-xs font-semibold text-gray-500">{category.name}</span>
                       <h3 className="mt-1 font-bold text-gray-950">{product.name}</h3>
                       <dl className="mt-3 grid grid-cols-2 gap-2 text-xs">
-                        <div><dt className="text-gray-500">当前最低价</dt><dd className="mt-0.5 font-mono font-semibold tabular-nums text-emerald-700">{product.lowestPrice === null ? '暂无报价' : `¥${product.lowestPrice.toFixed(2)}`}</dd></div>
+                        <div><dt className="text-gray-500">当前目录最低价</dt><dd className="mt-0.5 font-mono font-semibold tabular-nums text-emerald-700">{product.lowestPrice === null ? '暂无报价' : `¥${product.lowestPrice.toFixed(2)}`}</dd></div>
                         <div><dt className="text-gray-500">可购买报价</dt><dd className="mt-0.5 font-mono font-semibold tabular-nums text-blue-700">{product.channelCount}</dd></div>
                       </dl>
                       <div className="mt-4 flex flex-wrap gap-x-3 gap-y-2 text-xs font-semibold">
@@ -103,14 +109,10 @@ export default async function OpportunityDetailPage({ params }: PageProps) {
               </div>
             ) : (
               <div className="mt-5 border border-dashed border-gray-300 bg-white p-5 text-sm leading-6 text-gray-600">
-                这条日报暂时无法可靠匹配到当前标准商品。请返回实时商机台，从库存、价格和渠道数据开始判断，不强行建立关联。
+                当前无法可靠匹配标准商品。请返回实时商机台，从库存、价格和渠道数据开始判断。
               </div>
             )}
           </section>
-
-          <div className="prose prose-gray max-w-none p-6 prose-a:text-blue-700 prose-headings:scroll-mt-24 prose-strong:text-gray-950 sm:p-9">
-            <ReactMarkdown>{bodyMarkdown}</ReactMarkdown>
-          </div>
         </article>
 
         <aside className="mt-6 grid gap-4 border-t border-gray-200 pt-6 sm:grid-cols-2" aria-label="把商机变成行动">

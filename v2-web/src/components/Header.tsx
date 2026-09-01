@@ -10,11 +10,12 @@ const navItems = [
   { href: '/', label: '首页' },
   { href: '/card-products', label: '订阅货源' },
   { href: '/official-prices', label: '官方价格' },
-  { href: '/opportunities', label: '商家经营' },
+  { href: '/opportunities/latest', label: '账号商机日报' },
   { href: '/guide', label: '指南' },
 ] as const;
 
 const moreItems = [
+  { href: '/opportunities', label: '实时商机台' },
   { href: '/channels', label: '渠道商目录' },
   { href: '/card-products/all', label: '全部原始报价' },
   { href: '/changes', label: '价格与库存异动' },
@@ -47,10 +48,6 @@ export function Header() {
   }, [isSubmitModalOpen]);
 
   useEffect(() => {
-    setIsMenuOpen(false);
-  }, [pathname]);
-
-  useEffect(() => {
     if (!isMenuOpen) return;
     const handleKey = (event: KeyboardEvent) => { if (event.key === 'Escape') setIsMenuOpen(false); };
     window.addEventListener('keydown', handleKey);
@@ -80,9 +77,9 @@ export function Header() {
       {isAnnouncementOpen && (
         <div className="border-b border-emerald-100 bg-emerald-50 text-emerald-950">
           <div className="mx-auto grid min-h-10 max-w-7xl grid-cols-[1fr_auto] items-center gap-3 px-4 text-xs sm:px-6 lg:px-8">
-            <Link href="/opportunities" className="flex min-w-0 items-center justify-center gap-2 font-medium hover:text-emerald-700">
-              <span className="announcement-badge shrink-0 whitespace-nowrap rounded-full border border-emerald-200 bg-white px-2 py-1 text-[11px] font-bold">货源日报</span>
-              <span className="truncate">账号商家经营日报已关联实时库存与报价</span>
+            <Link href="/opportunities/latest" className="flex min-w-0 items-center justify-center gap-2 font-medium hover:text-emerald-700">
+              <span className="announcement-badge shrink-0 whitespace-nowrap rounded-full border border-emerald-200 bg-white px-2 py-1 text-[11px] font-bold">今日已更新</span>
+              <span className="truncate">直接查看今天的 AI 账号商机日报</span>
               <ArrowRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
             </Link>
             <button type="button" onClick={() => setIsAnnouncementOpen(false)} aria-label="关闭公告" className="announcement-close rounded-full border border-emerald-200 bg-white p-1.5 text-emerald-800 hover:bg-emerald-100"><X className="h-3.5 w-3.5" /></button>
@@ -98,7 +95,11 @@ export function Header() {
           </Link>
           <nav className="mx-auto hidden min-w-0 items-center gap-1 rounded-full bg-gray-100 p-1 lg:flex" aria-label="主导航">
             {navItems.map((item) => {
-              const active = item.href === '/' ? pathname === '/' : pathname === item.href || pathname.startsWith(`${item.href}/`);
+              const active = item.href === '/'
+                ? pathname === '/'
+                : item.href === '/opportunities/latest'
+                  ? pathname.startsWith('/opportunities') && pathname !== '/opportunities'
+                  : pathname === item.href || pathname.startsWith(`${item.href}/`);
               return <Link key={item.href} href={item.href} aria-current={active ? 'page' : undefined} className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${active ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-600 hover:bg-white hover:text-gray-950'}`}>{item.label}</Link>;
             })}
           </nav>
@@ -116,11 +117,15 @@ export function Header() {
             <div className="flex items-center justify-between border-b border-gray-200 pb-4"><strong className="text-lg text-gray-950">爱窝啦·货源雷达</strong><button type="button" onClick={() => setIsMenuOpen(false)} aria-label="关闭主菜单" className="rounded-full border border-gray-200 p-2 text-gray-600 hover:bg-gray-50"><X className="h-5 w-5" /></button></div>
             <div className="grid gap-2 py-5">
               {navItems.map((item) => {
-                const active = item.href === '/' ? pathname === '/' : pathname === item.href || pathname.startsWith(`${item.href}/`);
-                return <Link key={item.href} href={item.href} aria-current={active ? 'page' : undefined} className={`rounded-xl px-4 py-3 text-base font-semibold ${active ? 'bg-emerald-50 text-emerald-900' : 'text-gray-800 hover:bg-gray-50'}`}>{item.label}</Link>;
+                const active = item.href === '/'
+                  ? pathname === '/'
+                  : item.href === '/opportunities/latest'
+                    ? pathname.startsWith('/opportunities') && pathname !== '/opportunities'
+                    : pathname === item.href || pathname.startsWith(`${item.href}/`);
+                return <Link key={item.href} href={item.href} onClick={() => setIsMenuOpen(false)} aria-current={active ? 'page' : undefined} className={`rounded-xl px-4 py-3 text-base font-semibold ${active ? 'bg-emerald-50 text-emerald-900' : 'text-gray-800 hover:bg-gray-50'}`}>{item.label}</Link>;
               })}
             </div>
-            <div className="border-t border-gray-200 pt-4"><p className="mb-2 px-4 text-xs font-semibold text-gray-400">更多工具</p><div className="grid gap-1">{moreItems.map((item) => <Link key={item.href} href={item.href} className="rounded-xl px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-950">{item.label}</Link>)}</div></div>
+            <div className="border-t border-gray-200 pt-4"><p className="mb-2 px-4 text-xs font-semibold text-gray-400">更多工具</p><div className="grid gap-1">{moreItems.map((item) => <Link key={item.href} href={item.href} onClick={() => setIsMenuOpen(false)} className="rounded-xl px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-950">{item.label}</Link>)}</div></div>
             <button type="button" onClick={() => { setIsMenuOpen(false); openSubmission(); }} className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full bg-gray-900 px-4 py-3 text-sm font-semibold text-white"><Plus className="h-4 w-4" />提交公开渠道</button>
           </nav>
         </div>

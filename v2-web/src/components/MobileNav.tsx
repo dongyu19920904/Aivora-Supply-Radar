@@ -7,7 +7,7 @@ const navItems = [
   { href: '/card-products', label: '货源' },
   { href: '/official-prices', label: '官方价' },
   { href: '/changes', label: '异动' },
-  { href: '/opportunities', label: '商机' },
+  { href: '/opportunities/latest', label: '日报' },
   { href: '/profit-calculator', label: '利润' },
 ] as const;
 
@@ -21,7 +21,9 @@ export function MobileNav() {
     >
       <div className="flex h-12 items-center justify-around">
         {navItems.map((item) => {
-          const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+          const active = item.href === '/opportunities/latest'
+            ? pathname.startsWith('/opportunities') && pathname !== '/opportunities'
+            : pathname === item.href || pathname.startsWith(`${item.href}/`);
           return (
             <Link
               key={item.href}

@@ -77,12 +77,12 @@ const entryPaths = [
     action: '搜索全部报价',
   },
   {
-    href: '/opportunities',
+    href: '/opportunities/latest',
     icon: BadgeDollarSign,
     eyebrow: 'AI账号卖家',
     title: '从今日商机开始经营',
     description: '把需求、实时可售货源、利润空间和停止条件放在一起，先算清楚再上架。',
-    action: '查看商家经营日报',
+    action: '查看账号商机日报',
   },
 ];
 
@@ -113,7 +113,7 @@ export default async function HomePage() {
         </div>
         <div className="pb-1">
           <p className="max-w-2xl text-base leading-8 text-gray-600 sm:text-lg">为 AI 订阅买家和账号卖家整理公开货源。先找到真正可购买的商品，再核验库存、价格、售后与利润。</p>
-          <div className="mt-7 flex flex-wrap items-center gap-3"><Link href="/card-products" className="market-pill market-pill--primary"><Search className="h-4 w-4" />开始找货</Link><Link href="/opportunities" className="market-pill market-pill--secondary"><Newspaper className="h-4 w-4" />看经营日报</Link></div>
+          <div className="mt-7 flex flex-wrap items-center gap-3"><Link href="/card-products" className="market-pill market-pill--primary"><Search className="h-4 w-4" />开始找货</Link><Link href="/opportunities/latest" className="market-pill market-pill--secondary"><Newspaper className="h-4 w-4" />看今日账号商机日报</Link></div>
         </div>
       </section>
 
@@ -154,7 +154,7 @@ export default async function HomePage() {
       </section>
 
       <section className="market-shell grid gap-8 py-14 lg:grid-cols-[0.8fr_1.2fr] lg:py-16">
-        <div><span className="radar-kicker">Merchant loop</span><h2 className="market-display mt-3 text-3xl sm:text-4xl">日报不是新闻摘要，<br />而是一张经营清单</h2><p className="mt-4 max-w-lg text-sm leading-7 text-gray-600">需求信号只负责告诉你“为什么值得看”。是否能卖，必须回到当天货源、实际成本、售后风险和停止条件。</p><Link href="/opportunities" className="market-pill market-pill--primary mt-6">打开今日经营日报<ArrowRight className="h-4 w-4" /></Link></div>
+        <div><span className="radar-kicker">Merchant daily</span><h2 className="market-display mt-3 text-3xl sm:text-4xl">新手看第一单，<br />老商家看开盘单</h2><p className="mt-4 max-w-lg text-sm leading-7 text-gray-600">日报每天只保留可执行商品、成本口径、停止条件和收盘复盘。完整分类与全部异动继续放在实时商机台。</p><Link href="/opportunities/latest" className="market-pill market-pill--primary mt-6">打开今日账号商机日报<ArrowRight className="h-4 w-4" /></Link></div>
         <ol className="market-card divide-y divide-gray-200 px-5 sm:px-7">
           {[
             [Bot, '确认需求', '看买家是谁、为什么现在需要，以及证据日期。'],

@@ -28,13 +28,16 @@ describe("request isolation", () => {
       SITE_URL: "https://supply.aivora.cn",
     };
 
-    const [home, opportunities] = await Promise.all([
+    const [home, opportunities, latestOpportunity] = await Promise.all([
       app.fetch(new Request(`${env.SITE_URL}/`), env),
       app.fetch(new Request(`${env.SITE_URL}/opportunities`), env),
+      app.fetch(new Request(`${env.SITE_URL}/opportunities/latest`), env),
     ]);
 
     expect(home.status).toBe(200);
     expect(opportunities.status).toBe(200);
+    expect(latestOpportunity.status).toBe(302);
+    expect(latestOpportunity.headers.get("location")).toBe("/opportunities");
     const homeHtml = await home.text();
     expect(homeHtml).toContain("爱窝啦 AI 货源雷达");
     expect(homeHtml).toContain('<link rel="canonical" href="https://supply.aivora.cn/">');

@@ -13,7 +13,7 @@ const NAVIGATION = [
   ["/products", "全部货源"],
   ["/official-prices", "官方价格"],
   ["/changes", "今日异动"],
-  ["/opportunities", "账号商机"],
+  ["/opportunities/latest", "账号商机日报"],
   ["/merchants", "商家渠道"],
   ["/community", "货源社区"],
   ["/submit", "提交货源"],

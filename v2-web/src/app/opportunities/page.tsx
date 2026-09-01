@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 
 import { listCatalogSummaryProducts } from '@/lib/catalog-summary';
+import { latestAccountOpportunityHref } from '@/lib/account-opportunity-navigation';
 import { listAccountOpportunities, listPriceChanges } from '@/lib/legacy-radar';
 import {
   buildSupplyOpportunityDashboard,
@@ -104,6 +105,7 @@ export default async function OpportunitiesPage() {
     listAccountOpportunities(),
   ]);
   const dashboard = buildSupplyOpportunityDashboard(products, changes);
+  const latestDailyHref = latestAccountOpportunityHref(opportunities);
   const statItems = [
     { label: '可购买商品', value: dashboard.stats.availableProductCount, detail: `共 ${dashboard.stats.productCount} 个标准商品` },
     { label: '可购买报价', value: dashboard.stats.availableOfferCount, detail: '按当前在售状态汇总' },
@@ -121,6 +123,11 @@ export default async function OpportunitiesPage() {
             <p className="mt-4 max-w-3xl text-base leading-7 text-gray-600 sm:text-lg">
               先看当前库存、最低价、渠道密度和真实异动，再决定是否采购或上架。这里给的是可核验线索，不把新闻热度、渠道数量或低价冒充销量与利润。
             </p>
+            {opportunities.length > 0 && (
+              <Link href={latestDailyHref} className="mt-6 inline-flex items-center gap-2 rounded-full bg-gray-950 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-gray-800">
+                直接查看今日账号商机日报 <ArrowRight className="h-4 w-4" />
+              </Link>
+            )}
           </div>
           <div className="border-l-2 border-amber-400 bg-white p-4 text-sm leading-6 text-gray-600">
             <strong className="block text-gray-950">最近有效快照</strong>

@@ -299,6 +299,12 @@ app.get("/opportunities", async (c) => {
   });
 });
 
+app.get("/opportunities/latest", async (c) => {
+  const opportunities = await listOpportunities(c.env.DB, 1);
+  const latest = opportunities[0];
+  return c.redirect(latest ? `/opportunities/${latest.report_date}` : "/opportunities", 302);
+});
+
 app.get("/opportunities/:date", async (c) => {
   const opportunity = await getOpportunity(c.env.DB, c.req.param("date"));
   if (!opportunity)
