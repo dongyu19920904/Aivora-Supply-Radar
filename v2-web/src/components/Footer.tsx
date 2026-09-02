@@ -1,8 +1,10 @@
 import React from 'react';
 import Link from 'next/link';
-import { PROJECT_REPOSITORY_URL, STORE_NAME, STORE_URL } from '@/lib/site';
+import { PROJECT_REPOSITORY_URL, STORE_NAME } from '@/lib/site';
+import { getRetailStoreUrl } from '@/lib/seo-geo';
 
 export const Footer = () => {
+  const retailStoreUrl = getRetailStoreUrl({ content: 'footer' });
   return (
     <footer className="mt-auto w-full border-t border-gray-200 bg-white py-10">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -15,7 +17,7 @@ export const Footer = () => {
         </div>
         <div className="mt-8 flex flex-col gap-3 border-t border-gray-200 pt-5 text-xs text-gray-400 sm:flex-row sm:items-center sm:justify-between">
           <span>&copy; {new Date().getFullYear()} 爱窝啦·货源雷达</span>
-          <nav className="flex flex-wrap items-center gap-x-4 gap-y-2" aria-label="项目信息"><Link href="/guide" className="hover:text-emerald-700">卖家指南</Link><Link href="/methodology" className="hover:text-emerald-700">数据方法</Link><Link href="/about" className="hover:text-emerald-700">关于</Link><a href={PROJECT_REPOSITORY_URL} target="_blank" rel="noopener noreferrer" className="hover:text-emerald-700">开源代码</a><a href={STORE_URL} target="_blank" rel="noopener" className="font-semibold text-gray-500 hover:text-emerald-700">{STORE_NAME}</a></nav>
+          <nav className="flex flex-wrap items-center gap-x-4 gap-y-2" aria-label="项目信息"><Link href="/guide" className="hover:text-emerald-700">卖家指南</Link><Link href="/methodology" className="hover:text-emerald-700">数据方法</Link><Link href="/about" className="hover:text-emerald-700">关于</Link><a href={PROJECT_REPOSITORY_URL} target="_blank" rel="noopener noreferrer" className="hover:text-emerald-700">开源代码</a><a href={retailStoreUrl} target="_blank" rel="noopener" data-retail-store-link className="font-semibold text-gray-500 hover:text-emerald-700">个人自用零售入口 · {STORE_NAME}</a></nav>
         </div>
       </div>
     </footer>

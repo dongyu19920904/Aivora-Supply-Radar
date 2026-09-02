@@ -15,6 +15,8 @@ const allCases = [
   { name: 'products-desktop-dark', path: '/card-products', width: 1440, height: 1000, theme: 'dark', mockOffers: false },
   { name: 'products-mobile-light', path: '/card-products', width: 390, height: 844, theme: 'light', mockOffers: false },
   { name: 'products-mobile-dark', path: '/card-products', width: 390, height: 844, theme: 'dark', mockOffers: false },
+  { name: 'platform-chatgpt-desktop-light', path: '/platforms/chatgpt', width: 1440, height: 1000, theme: 'light', mockOffers: false },
+  { name: 'platform-chatgpt-mobile-dark', path: '/platforms/chatgpt', width: 390, height: 844, theme: 'dark', mockOffers: false },
   { name: 'all-products-mobile-light', path: '/card-products/all', width: 390, height: 844, theme: 'light', mockOffers: false },
   { name: 'product-detail-desktop-light', path: '/card-products/chatgpt-plus', width: 1440, height: 1000, theme: 'light', mockOffers: false },
   { name: 'product-detail-mobile-dark', path: '/card-products/chatgpt-plus', width: 390, height: 844, theme: 'dark', mockOffers: false },
@@ -215,6 +217,9 @@ try {
           return { foreground: getComputedStyle(element).color, background };
         })(),
         productDecisionSummary: Boolean(document.querySelector('[data-product-decision-summary]')),
+        platformCanonical: document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.href || '',
+        platformRetailHandoff: Boolean(document.querySelector('[data-retail-handoff]')),
+        retailStoreLinkCount: document.querySelectorAll('[data-retail-store-link]').length,
         };
       })),
       catalogDropdownOptionIds,
@@ -307,6 +312,12 @@ try {
       || (auditCase.theme === 'dark' && accountDailyHeroContrast < 4.5)
       || (auditCase.theme === 'dark' && accountDailyHeadingContrast < 4.5)
     );
+    const platformFailed = auditCase.path.startsWith('/platforms/') && (
+      !diagnostics.platformCanonical.endsWith(auditCase.path)
+      || !diagnostics.platformRetailHandoff
+      || diagnostics.retailStoreLinkCount !== 2
+      || !/货源|核价/.test(diagnostics.title)
+    );
     const caseFailed = status !== 200
       || diagnostics.overflow > 1
       || diagnostics.brokenImages.length > 0
@@ -315,6 +326,7 @@ try {
       || consoleErrors.length > 0
       || catalogFailed
       || detailFailed
+      || platformFailed
       || opportunityFailed
       || aliasRedirectFailed
       || accountDailyFailed;
@@ -326,6 +338,7 @@ try {
       themeMatches,
       catalogFailed,
       detailFailed,
+      platformFailed,
       opportunityFailed,
       aliasRedirectFailed,
       accountDailyFailed,

@@ -25,6 +25,7 @@ import {
   sortCatalogProducts,
 } from '../../lib/product-ranking';
 import { matchesSearchQuery } from '../../lib/search-query';
+import { sellerPlatformTopics } from '../../lib/seo-geo';
 import { CatalogGroupSection } from './CatalogGroupSection';
 
 interface CardProductsClientProps {
@@ -113,6 +114,13 @@ export const CardProductsClient: React.FC<CardProductsClientProps> = ({ initialP
           <Link href="/card-products" aria-current="page" className="whitespace-nowrap rounded-full bg-gray-900 px-4 py-2 text-sm font-bold text-white">标准商品</Link>
           <Link href="/card-products/all" className="whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100 hover:text-gray-950">全部报价</Link>
           <Link href="/channels" className="whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100 hover:text-gray-950">渠道商</Link>
+        </nav>
+        <nav className="mx-auto mt-4 flex max-w-4xl flex-wrap justify-center gap-2" aria-label="热门平台独立核价页">
+          {sellerPlatformTopics.map((topic) => (
+            <Link key={topic.slug} href={`/platforms/${topic.slug}`} className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-blue-700 hover:border-blue-300 hover:bg-blue-50">
+              {topic.name} 货源页
+            </Link>
+          ))}
         </nav>
       </div>
 

@@ -3,7 +3,15 @@ import { GoogleAnalytics } from '@next/third-parties/google';
 import { Noto_Sans_SC, Space_Grotesk } from 'next/font/google';
 import NextTopLoader from 'nextjs-toploader';
 import { JsonLd } from '../components/JsonLd';
-import { DEFAULT_SHARE_IMAGE, SITE_NAME, SITE_URL, absoluteUrl } from '../lib/site';
+import { STORE_ORGANIZATION_ID } from '../lib/seo-geo';
+import {
+  DEFAULT_SHARE_IMAGE,
+  PROJECT_REPOSITORY_URL,
+  SITE_NAME,
+  SITE_URL,
+  STORE_NAME,
+  STORE_URL,
+} from '../lib/site';
 import './globals.css';
 
 import { Metadata } from 'next';
@@ -30,6 +38,17 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: '/icon.svg?v=2',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-snippet': -1,
+      'max-image-preview': 'large',
+      'max-video-preview': -1,
+    },
   },
 };
 
@@ -65,10 +84,12 @@ export default function RootLayout({
           {
             '@context': 'https://schema.org',
             '@type': 'Organization',
-            '@id': `${SITE_URL}/#organization`,
-            name: SITE_NAME,
-            url: SITE_URL,
-            logo: absoluteUrl('/icon.svg'),
+            '@id': STORE_ORGANIZATION_ID,
+            name: STORE_NAME,
+            alternateName: SITE_NAME,
+            url: STORE_URL,
+            sameAs: [SITE_URL, PROJECT_REPOSITORY_URL],
+            description: '爱窝啦·AI账号店提供面向个人自用买家的 AI 工具零售商品，并发布面向 AI 账号卖家的爱窝啦·货源雷达。',
           },
           {
             '@context': 'https://schema.org',
@@ -77,7 +98,12 @@ export default function RootLayout({
             name: SITE_NAME,
             url: SITE_URL,
             inLanguage: 'zh-CN',
-            publisher: { '@id': `${SITE_URL}/#organization` },
+            publisher: { '@id': STORE_ORGANIZATION_ID },
+            audience: {
+              '@type': 'BusinessAudience',
+              audienceType: 'AI账号卖家和数字商品渠道商',
+            },
+            about: ['AI账号货源', '渠道报价', '库存变化', '官方价格', '账号商机日报'],
           },
         ]} />
         <NextTopLoader color="#f5c518" showSpinner={false} shadow="none" />

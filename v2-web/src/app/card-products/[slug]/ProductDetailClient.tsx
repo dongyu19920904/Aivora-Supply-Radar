@@ -291,7 +291,7 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ slug, 
                 )}
               </div>
             )}
-            <YoufenkAffiliateBanner className="mx-auto" />
+            <YoufenkAffiliateBanner className="mx-auto" productSlug={slug} />
           </div>
         </div>
       </div>

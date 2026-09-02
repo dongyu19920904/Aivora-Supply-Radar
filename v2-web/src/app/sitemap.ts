@@ -3,6 +3,7 @@ import { supabaseAdmin as supabase } from '../lib/supabase-admin';
 import { getPublishedBlogPosts } from '../lib/notion';
 import { SITE_URL } from '../lib/site';
 import { listAccountOpportunities } from '../lib/legacy-radar';
+import { sellerPlatformTopics } from '../lib/seo-geo';
 
 export const revalidate = 36000; // 缓存 10 小时 (36000秒)，防止每次请求都去查数据库导致超时
 
@@ -89,8 +90,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: route.priority,
   }));
 
+  const platformUrls = sellerPlatformTopics.map((topic) => ({
+    url: `${baseUrl}/platforms/${topic.slug}`,
+    changeFrequency: 'daily' as const,
+    priority: 0.85,
+  }));
+
   return [
     ...staticUrls,
+    ...platformUrls,
     ...productUrls,
     ...officialAppUrls,
     ...opportunityUrls,

@@ -3,7 +3,6 @@ import { Metadata } from 'next';
 import { supabase } from '../../../lib/supabase';
 import { AllProductsClient, CategoryFilterOption } from './AllProductsClient';
 import { DEFAULT_SHARE_IMAGE } from '@/lib/site';
-import { YoufenkAffiliateAd } from '@/components/YoufenkAffiliateAd';
 
 export const metadata: Metadata = {
   title: '所有渠道商品 - 爱窝啦·货源雷达',
@@ -71,7 +70,6 @@ export default async function AllProductsPage() {
       <React.Suspense fallback={<div className="py-8 text-center text-gray-500">Loading products...</div>}>
         <AllProductsClient initialCategories={initialCategories} />
       </React.Suspense>
-      <YoufenkAffiliateAd className="youfenk-affiliate-rail absolute bottom-0 top-12" />
     </main>
   );
 }

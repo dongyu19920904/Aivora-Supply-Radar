@@ -17,6 +17,7 @@ import {
 import { JsonLd } from '@/components/JsonLd';
 import { supabase } from '@/lib/supabase';
 import { DEFAULT_SHARE_IMAGE } from '@/lib/site';
+import { sellerPlatformTopics } from '@/lib/seo-geo';
 import { listAccountOpportunities } from '@/lib/legacy-radar';
 import { getChannelProviderCount } from './actions';
 
@@ -140,6 +141,22 @@ export default async function HomePage() {
 
           <div className="mt-10 grid gap-px overflow-hidden rounded-2xl border border-gray-200 bg-gray-200 sm:grid-cols-2 lg:grid-cols-4">
             {modules.map((item) => { const Icon = item.icon; return <Link key={item.href} href={item.href} className="group bg-white p-6 hover:bg-emerald-50/40"><Icon className="h-5 w-5 text-emerald-700" /><h3 className="mt-5 font-bold text-gray-950">{item.title}</h3><p className="mt-2 text-sm leading-6 text-gray-500">{item.text}</p><span className="mt-5 inline-flex items-center gap-1 text-xs font-bold text-emerald-700">打开模块 <ArrowRight className="h-3.5 w-3.5" /></span></Link>; })}
+          </div>
+
+          <div className="mt-10 border-t border-gray-200 pt-8">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div><span className="radar-kicker">Platform intelligence</span><h2 className="market-display mt-2 text-2xl sm:text-3xl">热门平台货源核价</h2></div>
+              <Link href="/card-products" className="text-sm font-bold text-blue-700 hover:underline">查看全部标准商品 →</Link>
+            </div>
+            <nav className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5" aria-label="热门平台货源核价">
+              {sellerPlatformTopics.map((topic) => (
+                <Link key={topic.slug} href={`/platforms/${topic.slug}`} className="group rounded-2xl border border-gray-200 bg-white p-4 hover:border-emerald-300 hover:bg-emerald-50/40">
+                  <strong className="text-sm text-gray-950 group-hover:text-emerald-800">{topic.name} 货源</strong>
+                  <span className="mt-2 block text-xs leading-5 text-gray-500">实时商品、库存和卖家核价重点</span>
+                  <span className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-blue-700">打开平台页<ArrowRight className="h-3.5 w-3.5" /></span>
+                </Link>
+              ))}
+            </nav>
           </div>
         </div>
       </section>

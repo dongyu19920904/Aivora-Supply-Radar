@@ -4,7 +4,7 @@ import { getOfficialAppConfig } from '@/lib/official-apps';
 import { getOfficialAppByIdentifier, getOfficialApps, getOfficialPrices } from '@/lib/official-price-data';
 import AppDetailClient from './AppDetailClient';
 import { JsonLd } from '@/components/JsonLd';
-import { YoufenkAffiliateAd, YoufenkAffiliateBanner } from '@/components/YoufenkAffiliateAd';
+import { YoufenkAffiliateBanner } from '@/components/YoufenkAffiliateAd';
 import { DEFAULT_SHARE_IMAGE, absoluteUrl } from '@/lib/site';
 
 export const revalidate = 86400;
@@ -150,7 +150,6 @@ export default async function AppPricesDetailPage({ params }: { params: Promise<
       <div className="relative mx-auto max-w-7xl">
         <AppDetailClient app={appDetails} />
         <YoufenkAffiliateBanner className="mx-auto px-4 pb-8 sm:px-6 lg:px-8" />
-        <YoufenkAffiliateAd className="youfenk-affiliate-rail absolute bottom-0 top-0" />
       </div>
     </div>
   );

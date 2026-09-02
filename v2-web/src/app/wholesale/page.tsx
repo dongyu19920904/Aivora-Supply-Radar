@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowRight, Boxes, Calculator, PackageSearch, Store } from 'lucide-react';
 import { SubmitChannelButton } from '@/components/SubmitChannelButton';
-import { STORE_URL } from '@/lib/site';
+import { getRetailStoreUrl } from '@/lib/seo-geo';
 
 export const metadata: Metadata = {
   title: '批发供需合作 - 爱窝啦·货源雷达',
@@ -18,13 +18,14 @@ const checks = [
 ];
 
 export default function WholesalePage() {
+  const retailStoreUrl = getRetailStoreUrl({ content: 'wholesale_personal_use' });
   return (
     <main className="market-page py-10 sm:py-16">
       <div className="market-shell">
         <header className="mx-auto max-w-3xl text-center"><span className="radar-kicker">Wholesale matching</span><h1 className="market-display mt-3 text-4xl sm:text-6xl">批量补货与货源合作</h1><p className="mt-5 text-base leading-8 text-gray-600">把“账号卖家补货”和“渠道方供货”分成两条清晰路径。平台提供公开信息与核验工具，不代收款、不参与第三方履约。</p></header>
 
         <section className="mt-10 grid gap-4 lg:grid-cols-2">
-          <article className="market-card flex flex-col p-6 sm:p-8"><span className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-50 text-emerald-800"><PackageSearch className="h-5 w-5" /></span><span className="mt-7 text-xs font-bold text-emerald-700">账号卖家补货</span><h2 className="market-display mt-2 text-3xl">先找货，再谈批量补货</h2><p className="mt-4 flex-1 text-sm leading-7 text-gray-600">从标准商品查看当前可采购报价和渠道覆盖，确认规格后计算目标售价、退款与售后成本。需要人工补货支持时再进入爱窝啦主站。</p><div className="mt-6 flex flex-wrap gap-2"><Link href="/card-products" className="market-pill market-pill--primary">查看可采购货源<ArrowRight className="h-4 w-4" /></Link><a href={STORE_URL} target="_blank" rel="noopener" className="market-pill market-pill--secondary">联系补货支持</a></div></article>
+          <article className="market-card flex flex-col p-6 sm:p-8"><span className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-50 text-emerald-800"><PackageSearch className="h-5 w-5" /></span><span className="mt-7 text-xs font-bold text-emerald-700">账号卖家补货</span><h2 className="market-display mt-2 text-3xl">先找货，再谈批量补货</h2><p className="mt-4 flex-1 text-sm leading-7 text-gray-600">从标准商品查看当前可采购报价和渠道覆盖，确认规格后计算目标售价、退款与售后成本。个人自用的零售需求可以进入爱窝啦主站。</p><div className="mt-6 flex flex-wrap gap-2"><Link href="/card-products" className="market-pill market-pill--primary">查看可采购货源<ArrowRight className="h-4 w-4" /></Link><a href={retailStoreUrl} target="_blank" rel="noopener" data-retail-store-link className="market-pill market-pill--secondary">个人自用零售入口</a></div></article>
           <article className="market-card flex flex-col p-6 sm:p-8"><span className="flex h-11 w-11 items-center justify-center rounded-full bg-amber-50 text-amber-700"><Boxes className="h-5 w-5" /></span><span className="mt-7 text-xs font-bold text-emerald-700">我是供应方</span><h2 className="market-display mt-2 text-3xl">提交公开货源渠道</h2><p className="mt-4 flex-1 text-sm leading-7 text-gray-600">提供稳定公开的商品页面、接口与售后说明。系统审核和采集成功后，报价才会进入目录；不要提交卡密、账号密码、订单或客户资料。</p><SubmitChannelButton className="market-pill market-pill--primary mt-6 self-start"><Store className="h-4 w-4" />提交渠道审核</SubmitChannelButton></article>
         </section>
 

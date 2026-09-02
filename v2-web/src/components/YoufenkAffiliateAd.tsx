@@ -1,12 +1,13 @@
 'use client';
 
 import { useSyncExternalStore } from 'react';
-import { ArrowUpRight, Store, X } from 'lucide-react';
-import { STORE_NAME, STORE_URL } from '@/lib/site';
+import { ArrowUpRight, ShoppingBag, X } from 'lucide-react';
+
+import { getRetailStoreUrl } from '@/lib/seo-geo';
+import { STORE_NAME } from '@/lib/site';
 
 const DISMISSED_STORAGE_KEY = 'aivora:supply-promotion-dismissed';
 const DISMISSED_EVENT = 'aivora:supply-promotion-dismissed';
-const AD_SLOTS = [1, 2, 3] as const;
 
 let dismissedInMemory = false;
 
@@ -24,7 +25,7 @@ function subscribeToDismissal(onStoreChange: () => void) {
   };
 }
 
-function isAdVisible() {
+function isPromotionVisible() {
   if (dismissedInMemory) return false;
 
   try {
@@ -36,145 +37,110 @@ function isAdVisible() {
 
 interface YoufenkAffiliateAdProps {
   className?: string;
+  productSlug?: string;
 }
 
-function useAffiliateAdVisibility() {
-  const isVisible = useSyncExternalStore(subscribeToDismissal, isAdVisible, () => true);
+function usePromotionVisibility() {
+  const isVisible = useSyncExternalStore(subscribeToDismissal, isPromotionVisible, () => true);
 
-  const dismissAd = () => {
+  const dismissPromotion = () => {
     dismissedInMemory = true;
     try {
       sessionStorage.setItem(DISMISSED_STORAGE_KEY, 'true');
     } catch {
-      // The in-memory flag still keeps the ad closed if storage is unavailable.
+      // The in-memory flag still keeps the promotion closed if storage is unavailable.
     }
     window.dispatchEvent(new Event(DISMISSED_EVENT));
   };
 
-  return { isVisible, dismissAd };
+  return { isVisible, dismissPromotion };
 }
 
-interface AffiliateCardProps {
-  slot: number;
-  showAction?: boolean;
+interface PromotionCardProps {
+  href: string;
+  compact?: boolean;
 }
 
-function AffiliateCard({ slot, showAction = false }: AffiliateCardProps) {
-  if (slot !== 1) {
-    return (
-      <div
-        aria-label={`广告位 ${slot} 招租`}
-        className="overflow-hidden rounded-xl border border-dashed border-gray-300 bg-gradient-to-br from-gray-50 to-emerald-50/50"
-      >
-        <div className="flex aspect-[3/2] items-center justify-center px-4 text-center">
-          <div>
-            <span className="inline-flex rounded-full bg-white px-2.5 py-1 text-[11px] font-medium text-gray-400 shadow-sm ring-1 ring-gray-200">
-              广告位 {slot}
-            </span>
-            <p className="mt-3 text-base font-semibold text-gray-600">广告位招租</p>
-            <p className="mt-1 text-xs text-gray-400">期待合作伙伴</p>
-          </div>
-        </div>
-        {showAction && (
-          <span className="block border-t border-dashed border-gray-300 px-3 py-2 text-center text-xs font-medium text-gray-400">
-            广告位招租
-          </span>
-        )}
-      </div>
-    );
-  }
-
+function PromotionCard({ href, compact = false }: PromotionCardProps) {
   return (
     <a
-      href={STORE_URL}
+      href={href}
       target="_blank"
       rel="noopener"
-      aria-label={`访问${STORE_NAME}（推荐位 ${slot}，在新窗口打开）`}
-      className="group block overflow-hidden rounded-xl border border-emerald-100 bg-white shadow-sm transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+      data-retail-store-link
+      aria-label={`个人自用时访问${STORE_NAME}，在新窗口打开`}
+      className={`group flex overflow-hidden rounded-2xl border border-amber-200 bg-amber-50 transition-colors hover:border-amber-300 hover:bg-amber-100/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 ${compact ? 'flex-col p-5 text-center' : 'items-center gap-4 p-5 sm:p-6'}`}
     >
-      <span className="flex aspect-[3/2] flex-col items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-amber-50 px-5 text-center">
-        <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-sm">
-          <Store className="h-6 w-6" aria-hidden="true" />
-        </span>
-        <strong className="mt-4 text-base text-gray-900">{STORE_NAME}</strong>
-        <span className="mt-1 text-xs leading-5 text-gray-500">需要现货时查看爱窝啦当前公开商品与服务说明</span>
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-amber-700 ring-1 ring-amber-200">
+        <ShoppingBag className="h-5 w-5" aria-hidden="true" />
       </span>
-      {showAction && (
-        <span className="flex items-center justify-between border-t border-emerald-100 px-3 py-2 text-xs font-semibold text-gray-800 transition-colors group-hover:bg-emerald-50 group-hover:text-emerald-700">
-          查看爱窝啦现货
-          <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
-        </span>
-      )}
+      <span className="min-w-0 flex-1">
+        <span className="block text-xs font-semibold text-amber-800">个人自用零售入口</span>
+        <strong className="mt-1 block text-base text-gray-950">自己使用，可以直接查看爱窝啦零售现货</strong>
+        <span className="mt-1 block text-xs leading-5 text-gray-600">卖家继续在本页核价。个人自用可查看当前商品、交付方式和售后说明。</span>
+      </span>
+      <span className="inline-flex shrink-0 items-center gap-1 text-xs font-bold text-blue-700">
+        进入账号店
+        <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+      </span>
     </a>
   );
 }
 
-interface AffiliateHeaderProps {
-  dismissAd: () => void;
+interface PromotionHeaderProps {
+  dismissPromotion: () => void;
 }
 
-function AffiliateHeader({ dismissAd }: AffiliateHeaderProps) {
+function PromotionHeader({ dismissPromotion }: PromotionHeaderProps) {
   return (
     <div className="mb-2 flex items-center justify-between px-1 text-[11px] font-medium text-gray-400">
-      <span>合作推广</span>
-      <span className="flex items-center gap-1.5">
-        爱窝啦自营入口
-        <button
-          type="button"
-          onClick={dismissAd}
-          aria-label="关闭爱窝啦推荐入口"
-          title="关闭推荐"
-          className="rounded p-0.5 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
-        >
-          <X className="h-3.5 w-3.5" aria-hidden="true" />
-        </button>
-      </span>
+      <span>意图分流</span>
+      <button
+        type="button"
+        onClick={dismissPromotion}
+        aria-label="关闭个人自用零售入口"
+        title="关闭推荐"
+        className="rounded p-0.5 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+      >
+        <X className="h-3.5 w-3.5" aria-hidden="true" />
+      </button>
     </div>
   );
 }
 
-export function YoufenkAffiliateAd({ className = '' }: YoufenkAffiliateAdProps) {
-  const { isVisible, dismissAd } = useAffiliateAdVisibility();
-
+export function YoufenkAffiliateAd({ className = '', productSlug }: YoufenkAffiliateAdProps) {
+  const { isVisible, dismissPromotion } = usePromotionVisibility();
   if (!isVisible) return null;
 
-  return (
-    <aside
-      aria-label="爱窝啦账号店推荐"
-      className={`max-w-[320px] ${className}`}
-    >
-      <div className="sticky top-28">
-        <AffiliateHeader dismissAd={dismissAd} />
-        <div className="flex flex-col gap-3">
-          {AD_SLOTS.map((slot) => (
-            <AffiliateCard key={slot} slot={slot} showAction />
-          ))}
-        </div>
+  const href = getRetailStoreUrl({
+    content: productSlug ? `product_${productSlug}_rail` : 'market_rail',
+    productSlug,
+  });
 
-        <p className="mt-2 px-1 text-center text-[10px] leading-relaxed text-gray-400">
-          自营商品与全网比价数据分开标注，不参与价格排序
-        </p>
+  return (
+    <aside aria-label="个人自用零售入口" className={`max-w-[320px] ${className}`}>
+      <div className="sticky top-28">
+        <PromotionHeader dismissPromotion={dismissPromotion} />
+        <PromotionCard href={href} compact />
+        <p className="mt-2 px-1 text-center text-[10px] leading-relaxed text-gray-400">零售商品不参与第三方货源价格排序</p>
       </div>
     </aside>
   );
 }
 
-export function YoufenkAffiliateBanner({ className = '' }: YoufenkAffiliateAdProps) {
-  const { isVisible, dismissAd } = useAffiliateAdVisibility();
-
+export function YoufenkAffiliateBanner({ className = '', productSlug }: YoufenkAffiliateAdProps) {
+  const { isVisible, dismissPromotion } = usePromotionVisibility();
   if (!isVisible) return null;
 
+  const href = getRetailStoreUrl({
+    content: productSlug ? `product_${productSlug}` : 'market_banner',
+    productSlug,
+  });
+
   return (
-    <aside
-      aria-label="爱窝啦账号店推荐横幅"
-      className={`youfenk-affiliate-banner w-full ${className}`}
-    >
-      <AffiliateHeader dismissAd={dismissAd} />
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        {AD_SLOTS.map((slot) => (
-          <AffiliateCard key={slot} slot={slot} />
-        ))}
-      </div>
+    <aside aria-label="个人自用零售入口" className={`youfenk-affiliate-banner w-full ${className}`}>
+      <PromotionHeader dismissPromotion={dismissPromotion} />
+      <PromotionCard href={href} />
     </aside>
   );
 }

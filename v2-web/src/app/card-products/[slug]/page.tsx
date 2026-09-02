@@ -4,7 +4,6 @@ import { supabase } from '../../../lib/supabase';
 import { ProductDetailClient } from './ProductDetailClient';
 import { JsonLd } from '@/components/JsonLd';
 import { DEFAULT_SHARE_IMAGE, absoluteUrl } from '@/lib/site';
-import { YoufenkAffiliateAd } from '@/components/YoufenkAffiliateAd';
 import {
   productSlugsForCanonical,
   resolveCanonicalProductSlug,
@@ -233,7 +232,6 @@ export default async function ProductDetailPage({ params }: PageProps) {
         initialDetails={mappedDetails}
         initialTotal={initialOfferPage.total}
       />
-      <YoufenkAffiliateAd className="youfenk-affiliate-rail absolute bottom-0 top-12" />
     </div></main>
   );
 }

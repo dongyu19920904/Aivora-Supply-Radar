@@ -8,6 +8,8 @@ import { getAccountOpportunity } from '@/lib/legacy-radar';
 import { publicOpportunityMarkdown } from '@/lib/opportunity-markdown';
 import { findRelatedCatalogProducts, getProfitCalculatorHref } from '@/lib/supply-opportunity';
 import { classifyCatalogProduct, getCatalogCategory } from '@/lib/catalog-taxonomy';
+import { DEFAULT_SHARE_IMAGE, SITE_URL, absoluteUrl } from '@/lib/site';
+import { STORE_ORGANIZATION_ID } from '@/lib/seo-geo';
 
 export const revalidate = 300;
 
@@ -50,8 +52,13 @@ export default async function OpportunityDetailPage({ params }: PageProps) {
     description: opportunity.description,
     datePublished: opportunity.published_at,
     dateModified: opportunity.synced_at || opportunity.published_at,
-    mainEntityOfPage: `https://supply.aivora.cn/opportunities/${opportunity.report_date}`,
-    publisher: { '@type': 'Organization', name: '爱窝啦·AI账号店', url: 'https://www.aivora.cn/' },
+    image: DEFAULT_SHARE_IMAGE,
+    inLanguage: 'zh-CN',
+    mainEntityOfPage: { '@type': 'WebPage', '@id': absoluteUrl(`/opportunities/${opportunity.report_date}`) },
+    author: { '@id': STORE_ORGANIZATION_ID },
+    publisher: { '@id': STORE_ORGANIZATION_ID },
+    isPartOf: { '@id': `${SITE_URL}/#website` },
+    about: ['AI账号货源', '卖家利润', '库存变化', '账号商机'],
   };
 
   return (
@@ -67,7 +74,10 @@ export default async function OpportunityDetailPage({ params }: PageProps) {
             data-account-daily-hero
             className="border-b border-gray-100 bg-gradient-to-br from-emerald-50 via-white to-amber-50 p-6 dark:bg-zinc-900 dark:bg-none sm:p-9"
           >
-            <time dateTime={opportunity.report_date} className="text-sm font-semibold text-emerald-700">{opportunity.report_date} · AI 账号商机日报</time>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-semibold text-emerald-700">
+              <time dateTime={opportunity.published_at}>{opportunity.report_date} · AI 账号商机日报</time>
+              <span className="text-xs font-medium text-gray-500">更新于 <time dateTime={opportunity.synced_at || opportunity.published_at}>{new Intl.DateTimeFormat('zh-CN', { timeZone: 'Asia/Shanghai', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(opportunity.synced_at || opportunity.published_at))}</time></span>
+            </div>
             <h1 className="mt-3 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">{opportunity.title}</h1>
             <p className="mt-4 max-w-3xl text-base leading-7 text-gray-600">{opportunity.description}</p>
             <div className="mt-5 flex flex-wrap gap-3 text-sm font-semibold">
