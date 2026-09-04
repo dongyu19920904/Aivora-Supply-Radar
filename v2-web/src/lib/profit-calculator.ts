@@ -23,6 +23,17 @@ export interface ProfitCalculatorPrefill {
   productName: string;
 }
 
+export type ProfitInputDraft = Record<keyof ProfitInputs, string>;
+
+export function parseCompleteProfitInputs(input: ProfitInputDraft): ProfitInputs | null {
+  const entries = Object.entries(input);
+  if (entries.some(([, value]) => value.trim() === '' || !Number.isFinite(Number(value)))) return null;
+  const parsed = Object.fromEntries(entries.map(([key, value]) => [key, Number(value)])) as unknown as ProfitInputs;
+  if (parsed.unitCost < 0 || parsed.salePrice <= 0 || parsed.quantity <= 0) return null;
+  if ([parsed.paymentFeeRate, parsed.refundReserveRate, parsed.serviceReserveRate, parsed.fixedCost].some((value) => value < 0)) return null;
+  return parsed;
+}
+
 function safeNumber(value: number, min = 0, max = 1_000_000): number {
   return Number.isFinite(value) ? Math.min(max, Math.max(min, value)) : 0;
 }

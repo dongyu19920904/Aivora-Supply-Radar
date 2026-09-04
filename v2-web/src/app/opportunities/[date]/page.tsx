@@ -2,12 +2,10 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
-import { ArrowLeft, Calculator, PackageSearch, Search } from 'lucide-react';
-import { listCatalogSummaryProducts } from '@/lib/catalog-summary';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { AccountOpportunityDaily } from '@/components/AccountOpportunityDaily';
 import { getAccountOpportunity } from '@/lib/legacy-radar';
-import { publicOpportunityMarkdown } from '@/lib/opportunity-markdown';
-import { findRelatedCatalogProducts, getProfitCalculatorHref } from '@/lib/supply-opportunity';
-import { classifyCatalogProduct, getCatalogCategory } from '@/lib/catalog-taxonomy';
+import { parseAccountOpportunityReplayMetadata, parseAccountOpportunitySections } from '@/lib/opportunity-markdown';
 import { DEFAULT_SHARE_IMAGE, SITE_URL, absoluteUrl } from '@/lib/site';
 import { STORE_ORGANIZATION_ID } from '@/lib/seo-geo';
 
@@ -35,16 +33,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function OpportunityDetailPage({ params }: PageProps) {
   const { date } = await params;
-  const [opportunity, products] = await Promise.all([
-    getAccountOpportunity(date),
-    listCatalogSummaryProducts(),
-  ]);
+  const opportunity = await getAccountOpportunity(date);
   if (!opportunity) notFound();
-  const bodyMarkdown = publicOpportunityMarkdown(opportunity.body_markdown);
-  const relatedProducts = findRelatedCatalogProducts(
-    { ...opportunity, body_markdown: bodyMarkdown },
-    products,
-  );
+  const sections = parseAccountOpportunitySections(opportunity.body_markdown);
+  const replay = parseAccountOpportunityReplayMetadata(opportunity.body_markdown);
+  const primaryHref = replay?.productUrl || '/opportunities';
+  const primaryLabel = replay?.decision === 'trial' ? '开始今天的任务' : '检查库存和已有订单';
   const articleSchema = {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
@@ -78,66 +72,37 @@ export default async function OpportunityDetailPage({ params }: PageProps) {
               <time dateTime={opportunity.published_at}>{opportunity.report_date} · AI 账号商机日报</time>
               <span className="text-xs font-medium text-gray-500">更新于 <time dateTime={opportunity.synced_at || opportunity.published_at}>{new Intl.DateTimeFormat('zh-CN', { timeZone: 'Asia/Shanghai', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(opportunity.synced_at || opportunity.published_at))}</time></span>
             </div>
-            <h1 className="mt-3 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">{opportunity.title}</h1>
-            <p className="mt-4 max-w-3xl text-base leading-7 text-gray-600">{opportunity.description}</p>
-            <div className="mt-5 flex flex-wrap gap-3 text-sm font-semibold">
-              <Link href="/opportunities" className="rounded-full bg-gray-950 px-4 py-2.5 text-white hover:bg-gray-800">打开实时商机台</Link>
-              <Link href="/profit-calculator" className="rounded-full border border-gray-300 bg-white px-4 py-2.5 text-blue-700 hover:border-blue-300">打开利润计算器</Link>
-              <Link href="/opportunities/archive" className="px-2 py-2.5 text-blue-700 hover:text-blue-800">查看全部日报归档</Link>
-            </div>
+            <h1 className="mt-3 text-3xl font-bold tracking-tight text-gray-950 dark:text-white sm:text-4xl">{opportunity.title}</h1>
+            {sections.enhanced ? (
+              <>
+                <div className="prose prose-sm mt-5 max-w-3xl break-words prose-a:text-blue-700 prose-strong:text-gray-950 dark:prose-invert dark:prose-a:text-blue-400 dark:prose-strong:text-white">
+                  <ReactMarkdown>{sections.today}</ReactMarkdown>
+                </div>
+                <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <Link href={primaryHref} className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-gray-950 px-5 py-3 text-sm font-semibold text-white hover:bg-gray-800 sm:w-auto dark:bg-white dark:text-gray-950">
+                    {primaryLabel}<ArrowRight className="h-4 w-4" />
+                  </Link>
+                  <p className="text-xs leading-5 text-gray-600 dark:text-zinc-300">
+                    {replay?.decision === 'trial'
+                      ? `已核到 ${replay.verifiedSourceCount} 个不同货源站，付款前仍要再次确认库存。`
+                      : '当前没有商品通过全部新手门槛，不要用低价或缺货商品凑数。'}
+                  </p>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="mt-4 max-w-3xl text-base leading-7 text-gray-600 dark:text-zinc-300">{opportunity.description}</p>
+                <div className="mt-5 flex flex-wrap gap-3 text-sm font-semibold">
+                  <Link href="/opportunities" className="rounded-full bg-gray-950 px-4 py-2.5 text-white hover:bg-gray-800 dark:bg-white dark:text-gray-950">打开实时商机台</Link>
+                  <Link href="/profit-calculator" className="rounded-full border border-gray-300 bg-white px-4 py-2.5 text-blue-700 hover:border-blue-300 dark:border-zinc-700 dark:bg-zinc-900 dark:text-blue-400">打开利润计算器</Link>
+                  <Link href="/opportunities/archive" className="px-2 py-2.5 text-blue-700 hover:text-blue-800 dark:text-blue-400">查看全部日报归档</Link>
+                </div>
+              </>
+            )}
           </header>
 
-          <div className="prose prose-gray max-w-none p-6 prose-a:text-blue-700 prose-headings:scroll-mt-24 prose-strong:text-gray-950 dark:prose-invert dark:prose-a:text-blue-400 dark:prose-strong:text-zinc-100 sm:p-9">
-            <ReactMarkdown>{bodyMarkdown}</ReactMarkdown>
-          </div>
-
-          <section className="border-t border-gray-200 bg-gray-50 p-6 sm:p-9" data-opportunity-related-supply aria-labelledby="related-supply-title">
-            <div className="flex items-start gap-3">
-              <PackageSearch className="mt-1 h-5 w-5 shrink-0 text-amber-500" />
-              <div>
-                <h2 id="related-supply-title" className="text-xl font-bold text-gray-950">复核正文中的当前货源</h2>
-                <p className="mt-1 text-sm leading-6 text-gray-600">下面最多保留三个当前商品入口。价格和库存会变化，今天下单或接单前仍要打开原始页面。</p>
-              </div>
-            </div>
-
-            {relatedProducts.length ? (
-              <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {relatedProducts.slice(0, 3).map((product) => {
-                  const category = getCatalogCategory(classifyCatalogProduct(product));
-                  return (
-                    <article key={product.id} className="border-t-2 border-t-gray-950 bg-white p-4 ring-1 ring-gray-200">
-                      <span className="text-xs font-semibold text-gray-500">{category.name}</span>
-                      <h3 className="mt-1 font-bold text-gray-950">{product.name}</h3>
-                      <dl className="mt-3 grid grid-cols-2 gap-2 text-xs">
-                        <div><dt className="text-gray-500">当前目录最低价</dt><dd className="mt-0.5 font-mono font-semibold tabular-nums text-emerald-700">{product.lowestPrice === null ? '暂无报价' : `¥${product.lowestPrice.toFixed(2)}`}</dd></div>
-                        <div><dt className="text-gray-500">可采购报价</dt><dd className="mt-0.5 font-mono font-semibold tabular-nums text-blue-700">{product.channelCount}</dd></div>
-                      </dl>
-                      <div className="mt-4 flex flex-wrap gap-x-3 gap-y-2 text-xs font-semibold">
-                        <Link href={`/card-products/${product.slug}`} data-opportunity-product-link className="text-emerald-700 hover:underline">核验货源 →</Link>
-                        <Link href={getProfitCalculatorHref(product)} className="text-blue-700 hover:underline">带入成本算利润 →</Link>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="mt-5 border border-dashed border-gray-300 bg-white p-5 text-sm leading-6 text-gray-600">
-                当前无法可靠匹配标准商品。请返回实时商机台，从库存、价格和渠道数据开始判断。
-              </div>
-            )}
-          </section>
+          <AccountOpportunityDaily reportDate={opportunity.report_date} sections={sections} metadata={replay} />
         </article>
-
-        <aside className="mt-6 grid gap-4 border-t border-gray-200 pt-6 sm:grid-cols-2" aria-label="把商机变成行动">
-          <Link href="/profit-calculator" className="radar-action-link">
-            <Calculator className="h-5 w-5 text-amber-500" />
-            <span><strong>先算利润和保本价</strong><small>把进货、支付、退款与售后成本一起算清</small></span>
-          </Link>
-          <Link href="/card-products" className="radar-action-link">
-            <Search className="h-5 w-5 text-blue-600" />
-            <span><strong>再核验当前货源</strong><small>对比在售渠道、库存、更新时间与原始链接</small></span>
-          </Link>
-        </aside>
       </div>
     </main>
   );

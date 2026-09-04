@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { calculateProfit, parseProfitCalculatorPrefill } from './profit-calculator';
+import { calculateProfit, parseCompleteProfitInputs, parseProfitCalculatorPrefill } from './profit-calculator';
 
 test('calculates net profit, margin, and break-even price', () => {
   const result = calculateProfit({
@@ -21,6 +21,28 @@ test('calculates net profit, margin, and break-even price', () => {
     netProfit: 150,
     marginRate: 15,
     breakEvenPrice: 83.33333333333333,
+  });
+});
+
+test('does not calculate profit until the seller supplies a real sale price and every cost field', () => {
+  const draft = {
+    unitCost: '111',
+    salePrice: '',
+    quantity: '1',
+    paymentFeeRate: '0',
+    refundReserveRate: '0',
+    serviceReserveRate: '0',
+    fixedCost: '0',
+  };
+  assert.equal(parseCompleteProfitInputs(draft), null);
+  assert.deepEqual(parseCompleteProfitInputs({ ...draft, salePrice: '150' }), {
+    unitCost: 111,
+    salePrice: 150,
+    quantity: 1,
+    paymentFeeRate: 0,
+    refundReserveRate: 0,
+    serviceReserveRate: 0,
+    fixedCost: 0,
   });
 });
 

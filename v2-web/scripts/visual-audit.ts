@@ -114,6 +114,23 @@ try {
         await page.locator('body').click({ position: { x: 1, y: 1 } });
       }
     }
+    const accountDailyModeChecks: Array<{ mode: string; active: boolean; overflow: number }> = [];
+    if (auditCase.path === '/opportunities/latest') {
+      const modeButtons = page.locator('[data-account-reading-modes] [data-reading-mode]');
+      if (await modeButtons.count()) {
+        for (const mode of ['overview', 'beginner', 'experienced']) {
+          await page.locator(`[data-reading-mode="${mode}"]`).click();
+          await page.waitForFunction((expected) => (
+            document.querySelector('[data-active-reading-mode]')?.getAttribute('data-active-reading-mode') === expected
+          ), mode);
+          accountDailyModeChecks.push(await page.evaluate((expected) => ({
+            mode: expected,
+            active: document.querySelector('[data-active-reading-mode]')?.getAttribute('data-active-reading-mode') === expected,
+            overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+          }), mode));
+        }
+      }
+    }
     const diagnostics = {
       ...(await page.evaluate(() => {
       const visibleCatalogRows = Array.from(
@@ -223,6 +240,7 @@ try {
         };
       })),
       catalogDropdownOptionIds,
+      accountDailyModeChecks,
     };
     const screenshot = fileURLToPath(new URL(`${auditCase.name}.png`, outputDir));
     await page.screenshot({ path: screenshot, fullPage: true, caret: 'initial' });
@@ -309,6 +327,10 @@ try {
       || !diagnostics.accountDailyFirstHeading
       || !diagnostics.accountDailyCanonical.endsWith(new URL(diagnostics.currentUrl).pathname)
       || !diagnostics.accountDailySchema
+      || (diagnostics.accountDailyModeChecks.length > 0 && (
+        diagnostics.accountDailyModeChecks.length !== 3
+        || diagnostics.accountDailyModeChecks.some((item) => !item.active || item.overflow > 1)
+      ))
       || (auditCase.theme === 'dark' && accountDailyHeroContrast < 4.5)
       || (auditCase.theme === 'dark' && accountDailyHeadingContrast < 4.5)
     );
