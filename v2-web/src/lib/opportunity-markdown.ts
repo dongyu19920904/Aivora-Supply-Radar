@@ -51,7 +51,7 @@ function safeIsoDate(value: unknown): string | null {
 
 export function parseAccountOpportunityReplayMetadata(markdown: string): AccountOpportunityReplayMetadata | null {
   const match = markdown.match(REPLAY_METADATA_CAPTURE);
-  if (!match) return null;
+  if (!match) return parseVisibleAccountOpportunityMetadata(markdown);
   try {
     const value = JSON.parse(match[1]) as Record<string, unknown>;
     if (value.businessModel !== 'supply-merchant-daily-v3') return null;
@@ -77,6 +77,48 @@ export function parseAccountOpportunityReplayMetadata(markdown: string): Account
   } catch {
     return null;
   }
+}
+
+function parseVisibleAccountOpportunityMetadata(markdown: string): AccountOpportunityReplayMetadata | null {
+  const sections = parseAccountOpportunitySections(markdown);
+  if (!sections.enhanced) return null;
+  const lead = sections.overview.match(
+    /^###\s+\[([^\]]+)\]\((https:\/\/supply\.aivora\.cn\/card-products\/([a-z0-9-]+))\)/im,
+  );
+  const productUrl = safeSupplyUrl(lead?.[2]);
+  const calculator = `${sections.overview}\n${sections.beginner}`.match(
+    /https:\/\/supply\.aivora\.cn\/profit-calculator\?[^)\s]+/i,
+  );
+  const calculatorUrl = safeSupplyUrl(calculator?.[0]);
+  const costMatch = sections.overview.match(/\*\*当前进货参考\*\*\s*¥\s*([\d.]+)/);
+  const referenceCost = Number(costMatch?.[1]);
+  const sourceMatch = sections.overview.match(/(\d+)\s*个不同货源站/);
+  const verifiedSourceCount = Math.max(0, Math.floor(Number(sourceMatch?.[1]) || 0));
+  const copyBlock = sections.beginner.match(/###\s+可复制商品说明草稿\s*\n+([\s\S]*)$/m)?.[1] || '';
+  const copyDraft = safeText(
+    copyBlock.split(/\r?\n/)
+      .filter((line) => /^\s*>/.test(line))
+      .map((line) => line.replace(/^\s*>\s?/, ''))
+      .join('\n'),
+    2_000,
+  );
+  const trial = Boolean(
+    productUrl && calculatorUrl && Number.isFinite(referenceCost) && referenceCost > 0 &&
+    verifiedSourceCount >= 2 && copyDraft.includes('付款前再次确认库存'),
+  );
+  return {
+    decision: trial ? 'trial' : 'pause',
+    leadProductSlug: trial ? lead?.[3] || null : null,
+    leadProductName: trial ? safeText(lead?.[1], 160) || null : null,
+    referenceCost: trial ? referenceCost : null,
+    verifiedSourceCount: trial ? verifiedSourceCount : 0,
+    verifiedSourceNames: [],
+    productUrl: trial ? productUrl : null,
+    calculatorUrl: trial ? calculatorUrl : null,
+    sourceGeneratedAt: null,
+    sourceObservedAt: null,
+    copyDraft: trial ? copyDraft : '',
+  };
 }
 
 function splitLevelTwoSections(markdown: string): Map<string, string> {

@@ -86,6 +86,25 @@ test('parses only safe v3 replay fields for task and copy actions', () => {
   assert.equal(metadata?.productUrl, 'https://supply.aivora.cn/card-products/chatgpt-plus');
 });
 
+test('recovers safe task fields after the archive sync removes internal replay metadata', () => {
+  const published = publicOpportunityMarkdown(enhancedMarkdown.replace(
+    '只推荐一个商品。',
+    `### [ChatGPT Plus 正价代充](https://supply.aivora.cn/card-products/chatgpt-plus-recharge)
+
+- **当前进货参考** ¥116.15。付款前再次确认。
+- **为什么只选它** 同规格组核到 5 个不同货源站。
+- **开始按钮** [带入成本](https://supply.aivora.cn/profit-calculator?product=ChatGPT+Plus&cost=116.15)。`,
+  ));
+  const metadata = parseAccountOpportunityReplayMetadata(published);
+
+  assert.equal(metadata?.decision, 'trial');
+  assert.equal(metadata?.leadProductSlug, 'chatgpt-plus-recharge');
+  assert.equal(metadata?.referenceCost, 116.15);
+  assert.equal(metadata?.verifiedSourceCount, 5);
+  assert.match(metadata?.copyDraft || '', /付款前再次确认库存/);
+  assert.equal(metadata?.sourceGeneratedAt, null);
+});
+
 test('keeps historical daily markdown in the legacy readable mode', () => {
   const legacy = parseAccountOpportunitySections('## 今日能不能做\n\n保留旧正文。');
   assert.equal(legacy.enhanced, false);
