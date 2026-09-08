@@ -26,11 +26,22 @@ const allCases = [
   { name: 'account-daily-desktop-dark', path: '/opportunities/latest', width: 1440, height: 1000, theme: 'dark', mockOffers: false },
   { name: 'account-daily-mobile-light', path: '/opportunities/latest', width: 390, height: 844, theme: 'light', mockOffers: false },
   { name: 'account-daily-mobile-dark', path: '/opportunities/latest', width: 390, height: 844, theme: 'dark', mockOffers: false },
+  { name: 'first-sale-guide-desktop-light', path: '/guide/first-sale', width: 1440, height: 1000, theme: 'light', mockOffers: false },
+  { name: 'first-sale-guide-desktop-dark', path: '/guide/first-sale', width: 1440, height: 1000, theme: 'dark', mockOffers: false },
+  { name: 'first-sale-guide-mobile-light', path: '/guide/first-sale', width: 390, height: 844, theme: 'light', mockOffers: false },
+  { name: 'first-sale-guide-mobile-dark', path: '/guide/first-sale', width: 390, height: 844, theme: 'dark', mockOffers: false },
   { name: 'changes-desktop-dark', path: '/changes', width: 1440, height: 1000, theme: 'dark', mockOffers: false },
 ] as const;
-const requestedCase = process.env.AUDIT_CASE?.trim();
-const cases = requestedCase ? allCases.filter((auditCase) => auditCase.name === requestedCase) : allCases;
-if (!cases.length) throw new Error(`Unknown visual audit case: ${requestedCase}`);
+const requestedCases = (process.env.AUDIT_CASE || '')
+  .split(',')
+  .map((value) => value.trim())
+  .filter(Boolean);
+const cases = requestedCases.length
+  ? allCases.filter((auditCase) => requestedCases.includes(auditCase.name))
+  : allCases;
+if (requestedCases.length && cases.length !== requestedCases.length) {
+  throw new Error(`Unknown visual audit case: ${requestedCases.filter((name) => !allCases.some((auditCase) => auditCase.name === name)).join(', ')}`);
+}
 
 const browser = await chromium.launch({ headless: true });
 const results: Array<Record<string, unknown>> = [];
@@ -201,6 +212,10 @@ try {
         accountDailyFirstHeading: document.querySelector<HTMLElement>('article .prose h2')?.textContent?.trim() || '',
         accountDailyCanonical: document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.href || '',
         accountDailySchema: Boolean(document.querySelector('script[type="application/ld+json"]')),
+        firstSaleGuide: Boolean(document.querySelector('main article ol')),
+        firstSaleStepCount: document.querySelectorAll('main article ol > li').length,
+        firstSaleDailyLink: Boolean(document.querySelector('main article a[href="/opportunities/latest"]')),
+        firstSaleCalculatorLink: Boolean(document.querySelector('main article a[href="/profit-calculator"]')),
         accountDailyHeroColors: (() => {
           const element = document.querySelector<HTMLElement>('[data-account-daily-hero] h1');
           if (!element) return { foreground: '', background: '' };
@@ -340,6 +355,12 @@ try {
       || diagnostics.retailStoreLinkCount !== 2
       || !/货源|核价/.test(diagnostics.title)
     );
+    const firstSaleGuideFailed = auditCase.path === '/guide/first-sale' && (
+      !diagnostics.firstSaleGuide
+      || diagnostics.firstSaleStepCount !== 6
+      || !diagnostics.firstSaleDailyLink
+      || !diagnostics.firstSaleCalculatorLink
+    );
     const caseFailed = status !== 200
       || diagnostics.overflow > 1
       || diagnostics.brokenImages.length > 0
@@ -351,7 +372,8 @@ try {
       || platformFailed
       || opportunityFailed
       || aliasRedirectFailed
-      || accountDailyFailed;
+      || accountDailyFailed
+      || firstSaleGuideFailed;
     failed ||= caseFailed;
     results.push({
       name: auditCase.name,
@@ -364,6 +386,7 @@ try {
       opportunityFailed,
       aliasRedirectFailed,
       accountDailyFailed,
+      firstSaleGuideFailed,
       accountDailyHeroContrast,
       accountDailyHeadingContrast,
       consoleErrors,
