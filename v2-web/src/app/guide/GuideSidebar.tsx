@@ -3,12 +3,13 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BookOpen, CheckCircle, Star, ChevronRight, Scale } from 'lucide-react';
+import { BookOpen, CheckCircle, Star, ChevronRight, PackageCheck, Scale } from 'lucide-react';
 
 const NAV_SECTIONS = [
   {
     name: '卖家进货指南',
     items: [
+      { name: '第一单试卖', href: '/guide/first-sale', icon: PackageCheck },
       { name: '官方成本与第三方货源', href: '/guide/official-vs-card-products', icon: Scale },
     ],
   },

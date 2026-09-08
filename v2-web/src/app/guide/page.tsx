@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import { ArrowRight, BriefcaseBusiness, CheckCircle, Scale, Star, Store } from 'lucide-react';
+import { ArrowRight, BriefcaseBusiness, CheckCircle, PackageCheck, Scale, Star, Store } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: '爱窝啦·货源雷达 指南｜卖家进货核验与渠道商接入',
@@ -15,6 +15,12 @@ const sections = [
     icon: BriefcaseBusiness,
     tone: 'emerald',
     links: [
+      {
+        title: '第一单怎样安全试卖？',
+        description: '六步核对货源、计算真实成本、发布和收盘复盘。',
+        href: '/guide/first-sale',
+        icon: PackageCheck,
+      },
       {
         title: '官方成本与第三方货源怎样比较？',
         description: '核对进货来源、账号归属、售后和常见风险。',
