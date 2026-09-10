@@ -7,7 +7,7 @@ import { parseAccountOpportunityReplayMetadata, parseAccountOpportunitySections,
 test('real reviewed editorial fixture remains readable and exposes its copy material after metadata removal', () => {
   const sections = parseAccountOpportunitySections(fixture.body);
   assert.equal(sections.enhanced, true);
-  assert.equal(splitBeginnerSteps(sections.beginner).steps.length, 3);
+  assert.equal(splitBeginnerSteps(sections.beginner).steps.length, 5);
   assert.match(parseAccountOpportunityReplayMetadata(fixture.body)?.copyDraft || '', /付款前再次确认库存/);
   assert.doesNotMatch(sections.evidence, /profit-calculator\?product=Claude%20Max/);
 });
