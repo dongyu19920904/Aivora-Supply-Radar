@@ -13,7 +13,7 @@ export default function EditorialPreview() {
   if (SITE_URL !== 'https://aivora-supply-radar-v2-preview.sabrinamisan090.workers.dev') notFound();
   const sections = parseAccountOpportunitySections(fixture.body);
   return <main className="min-h-screen bg-gray-50/60 py-10 sm:py-14"><div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ '@context': 'https://schema.org', '@type': 'BlogPosting', headline: fixture.title, datePublished: '2026-09-10T14:23:00+08:00' }) }} />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ '@context': 'https://schema.org', '@type': 'BlogPosting', headline: fixture.title, datePublished: `${fixture.date}T00:00:00+08:00` }) }} />
     <article className="mt-5 overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
       <header data-account-daily-hero className="border-b border-gray-100 bg-gradient-to-br from-emerald-50 via-white to-amber-50 p-6 dark:bg-zinc-900 dark:bg-none sm:p-9">
         <p className="text-sm text-gray-600 dark:text-zinc-300">仅预览验收 · 不写生产归档</p>
