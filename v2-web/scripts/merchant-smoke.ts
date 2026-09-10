@@ -2,11 +2,12 @@ import assert from 'node:assert/strict';
 import { chromium } from '@playwright/test';
 
 const base = process.env.AUDIT_BASE_URL || 'https://supply.aivora.cn';
+const dailyPath = process.env.AUDIT_DAILY_PATH || '/opportunities/latest';
 const browser = await chromium.launch({ headless: true });
 try {
   const noJs = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 390, height: 844 } });
   const page = await noJs.newPage();
-  const response = await page.goto(`${base}/opportunities/latest`, { waitUntil: 'domcontentloaded' });
+  const response = await page.goto(`${base}${dailyPath}`, { waitUntil: 'domcontentloaded' });
   assert.equal(response?.status(), 200);
   assert.ok(await page.getByText('浏览器未启用 JavaScript，下面显示完整日报。', { exact: true }).isVisible());
   for (const heading of ['新手今天照着做', '老商家今天看这三项', '数据和判断依据', '收盘填写结果']) {
@@ -16,7 +17,7 @@ try {
   console.log(JSON.stringify({ base, noJavascriptReadable: true }));
   const context = await browser.newContext({ permissions: ['clipboard-read', 'clipboard-write'], viewport: { width: 390, height: 844 } });
   const interactive = await context.newPage();
-  await interactive.goto(`${base}/opportunities/latest`, { waitUntil: 'networkidle' });
+  await interactive.goto(`${base}${dailyPath}`, { waitUntil: 'networkidle' });
   await interactive.locator('[data-reading-mode="beginner"]').click();
   const copy = interactive.getByRole('button', { name: '复制今天的经营材料', exact: true });
   await copy.waitFor({ state: 'visible', timeout: 10000 });

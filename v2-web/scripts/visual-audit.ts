@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { chromium } from '@playwright/test';
 
 const baseUrl = process.env.AUDIT_BASE_URL || 'http://127.0.0.1:3001';
+const dailyPath = process.env.AUDIT_DAILY_PATH || '/opportunities/latest';
 const outputDir = new URL('../artifacts/visual-audit/', import.meta.url);
 await mkdir(outputDir, { recursive: true });
 
@@ -103,7 +104,7 @@ try {
       if (message.type() === 'error') consoleErrors.push(message.text().slice(0, 6_000));
     });
 
-    const response = await page.goto(`${baseUrl}${auditCase.path}`, {
+    const response = await page.goto(`${baseUrl}${auditCase.path === '/opportunities/latest' ? dailyPath : auditCase.path}`, {
       waitUntil: 'networkidle',
       timeout: 45_000,
     });
@@ -352,7 +353,7 @@ try {
     const aliasRedirectFailed = auditCase.path === '/card-products/chatgpt-plus-trial'
       && !diagnostics.currentUrl.endsWith('/card-products/chatgpt-plus');
     const accountDailyFailed = auditCase.path === '/opportunities/latest' && (
-      !/\/opportunities\/\d{4}-\d{2}-\d{2}$/.test(new URL(diagnostics.currentUrl).pathname)
+      !(dailyPath === '/opportunities/latest' ? /\/opportunities\/\d{4}-\d{2}-\d{2}$/.test(new URL(diagnostics.currentUrl).pathname) : new URL(diagnostics.currentUrl).pathname === dailyPath)
       || !diagnostics.accountDailyNavVisible
       || !diagnostics.accountDailyBodyBeforeSupply
       || !diagnostics.accountDailyFirstHeading
