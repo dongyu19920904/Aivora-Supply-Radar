@@ -3,11 +3,21 @@ import test from 'node:test';
 
 import {
   buildLegacyOfferTags,
+  reconcileLegacyOffers,
   buildLegacySearchKeywords,
   normalizeLegacyOpportunity,
   normalizeLegacyPriceChange,
   normalizeLegacyStockStatus,
 } from './legacy-baseline-import';
+
+test('retains a renamed item as offline history only when source ID, target and URL match', () => {
+  const current = { target_id: 'shop', product_title: 'Cursor Free', url: 'https://shop.example/item', tags: ['source:legacy-v1', 'legacyOfferId:11'] };
+  const old = { ...current, id: 'old', product_title: 'Cursor Auto' };
+  assert.deepEqual(reconcileLegacyOffers([current], [current, old]).superseded, [old]);
+  assert.equal(reconcileLegacyOffers([current], [old]).unresolved.length, 1);
+  assert.equal(reconcileLegacyOffers([current], [current, { ...old, url: 'https://else.example/item' }]).unresolved.length, 1);
+  assert.equal(reconcileLegacyOffers([current], [current, { ...old, tags: [...old.tags, 'legacy:superseded'] }]).superseded.length, 0);
+});
 
 test('normalizes unsupported legacy stock values to offline', () => {
   assert.equal(normalizeLegacyStockStatus('in_stock'), 'in_stock');

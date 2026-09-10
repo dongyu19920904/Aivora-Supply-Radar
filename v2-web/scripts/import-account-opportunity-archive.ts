@@ -124,11 +124,25 @@ async function main() {
     if (error) throw error;
   }
 
+  for (let index = 0; index < changedRows.length; index += 50) {
+    const batch = changedRows.slice(index, index + 50);
+    const { data, error } = await supabase.from('account_opportunities')
+      .select('report_date,source_sha,body_markdown').in('report_date', batch.map((row) => row.report_date));
+    if (error) throw error;
+    for (const row of batch) {
+      const saved = data?.find((item) => item.report_date === row.report_date);
+      if (saved?.source_sha !== row.source_sha || saved?.body_markdown !== row.body_markdown) {
+        throw new Error(`archive_readback_mismatch:${row.report_date}`);
+      }
+    }
+  }
+
   console.log(JSON.stringify({
     discovered: rows.length,
     imported: changedRows.length,
     skipped: rows.length - changedRows.length,
     rejected: 0,
+    readbackVerified: changedRows.length,
     validation: 'passed',
   }));
 }

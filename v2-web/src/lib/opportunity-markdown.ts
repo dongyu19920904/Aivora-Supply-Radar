@@ -94,7 +94,7 @@ function parseVisibleAccountOpportunityMetadata(markdown: string): AccountOpport
   const referenceCost = Number(costMatch?.[1]);
   const sourceMatch = sections.overview.match(/(\d+)\s*个不同货源站/);
   const verifiedSourceCount = Math.max(0, Math.floor(Number(sourceMatch?.[1]) || 0));
-  const copyBlock = sections.beginner.match(/###\s+可复制商品说明草稿\s*\n+([\s\S]*)$/m)?.[1] || '';
+  const copyBlock = sections.beginner.match(/###\s+可复制(?:商品说明草稿|经营材料)\s*\n+([\s\S]*)$/m)?.[1] || '';
   const copyDraft = safeText(
     copyBlock.split(/\r?\n/)
       .filter((line) => /^\s*>/.test(line))
@@ -117,7 +117,7 @@ function parseVisibleAccountOpportunityMetadata(markdown: string): AccountOpport
     calculatorUrl: trial ? calculatorUrl : null,
     sourceGeneratedAt: null,
     sourceObservedAt: null,
-    copyDraft: trial ? copyDraft : '',
+    copyDraft: copyDraft.includes('付款前再次确认库存') ? copyDraft : '',
   };
 }
 

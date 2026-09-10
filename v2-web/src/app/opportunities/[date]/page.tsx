@@ -37,8 +37,8 @@ export default async function OpportunityDetailPage({ params }: PageProps) {
   if (!opportunity) notFound();
   const sections = parseAccountOpportunitySections(opportunity.body_markdown);
   const replay = parseAccountOpportunityReplayMetadata(opportunity.body_markdown);
-  const primaryHref = replay?.productUrl || '/opportunities';
-  const primaryLabel = replay?.decision === 'trial' ? '开始今天的任务' : '检查库存和已有订单';
+  const primaryHref = sections.enhanced ? '#merchant-task' : '/opportunities';
+  const primaryLabel = '开始今天的任务';
   const articleSchema = {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',

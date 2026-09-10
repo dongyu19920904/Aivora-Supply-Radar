@@ -18,6 +18,11 @@ defaults:
 
 jobs:
   sync:
+    name: Sync ${{ matrix.feed }}
+    strategy:
+      fail-fast: false
+      matrix:
+        feed: [legacy, account-opportunity-archive, priceai]
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
@@ -38,14 +43,27 @@ jobs:
           cache: pnpm
           cache-dependency-path: v2-web/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
-      - name: Sync verified Aivora V1 baseline
-        run: pnpm import:legacy
-      - name: Sync account opportunity archive
-        continue-on-error: true
-        run: pnpm import:account-opportunity-archive
-      - name: Sync authorized PriceAI snapshot
-        run: pnpm import:priceai
+      - name: Sync independent feed
+        run: pnpm import:${{ matrix.feed }}
         env:
           PRICEAI_SNAPSHOT_CACHE_DIR: ${{ runner.temp }}/aivora-priceai-snapshot
-      - name: Audit the published dataset
-        run: pnpm audit:data
+  audit:
+    needs: sync
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.34.5
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm audit:data

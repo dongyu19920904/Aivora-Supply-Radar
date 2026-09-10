@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Check, Clipboard, Eye, ListChecks, Store } from 'lucide-react';
+import { MerchantDailyRecord } from './MerchantDailyRecord';
 
 import {
   type AccountOpportunityMode,
@@ -13,7 +14,7 @@ import {
 
 const modes: Array<{ id: AccountOpportunityMode; label: string; hint: string; icon: typeof Eye }> = [
   { id: 'overview', label: '一眼看懂', hint: '只看今天能不能做', icon: Eye },
-  { id: 'beginner', label: '新手照做', hint: '最多六步完成试卖', icon: ListChecks },
+  { id: 'beginner', label: '新手照做', hint: '做完得到一份经营材料', icon: ListChecks },
   { id: 'experienced', label: '老手看盘', hint: '先处理库存和价格变化', icon: Store },
 ];
 
@@ -37,6 +38,17 @@ export function AccountOpportunityDaily({ reportDate, sections, metadata }: Acco
   const [copied, setCopied] = useState(false);
   const beginner = useMemo(() => splitBeginnerSteps(sections.beginner), [sections.beginner]);
   const storageKey = `aivora-account-daily-progress:${reportDate}`;
+
+  useEffect(() => {
+    const openTask = () => { if (window.location.hash === '#merchant-task') setMode('beginner'); };
+    const timer = window.setTimeout(openTask, 0);
+    const onTaskClick = (event: MouseEvent) => {
+      if ((event.target as Element)?.closest?.('a[href="#merchant-task"]')) setMode('beginner');
+    };
+    window.addEventListener('hashchange', openTask);
+    document.addEventListener('click', onTaskClick);
+    return () => { window.clearTimeout(timer); window.removeEventListener('hashchange', openTask); document.removeEventListener('click', onTaskClick); };
+  }, []);
 
   useEffect(() => {
     let saved: unknown = [];
@@ -107,7 +119,7 @@ export function AccountOpportunityDaily({ reportDate, sections, metadata }: Acco
         })}
       </nav>
 
-      <section className="mt-8" aria-live="polite" data-active-reading-mode={mode}>
+      <section id="merchant-task" className="mt-8 scroll-mt-24" aria-live="polite" data-active-reading-mode={mode}>
         {mode === 'overview' && <><h2>一眼看懂</h2><Markdown>{sections.overview}</Markdown></>}
         {mode === 'beginner' && (
           <>
@@ -130,7 +142,7 @@ export function AccountOpportunityDaily({ reportDate, sections, metadata }: Acco
             {metadata?.copyDraft && (
               <button type="button" onClick={copyDescription} className="not-prose mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-gray-950 px-4 py-3 text-sm font-semibold text-white hover:bg-gray-800 sm:w-auto dark:bg-white dark:text-gray-950 dark:hover:bg-zinc-200">
                 {copied ? <Check className="h-4 w-4" /> : <Clipboard className="h-4 w-4" />}
-                {copied ? '已复制，发布前请补全待填写项' : '复制商品说明草稿'}
+                {copied ? '已复制，请核对后使用' : '复制今天的经营材料'}
               </button>
             )}
           </>
@@ -147,7 +159,7 @@ export function AccountOpportunityDaily({ reportDate, sections, metadata }: Acco
         </details>
       </section>
 
-      <section className="mt-10 border-t border-gray-200 pt-7 dark:border-zinc-700"><h2>收盘填写结果</h2><Markdown>{sections.closing}</Markdown></section>
+      <section className="mt-10 border-t border-gray-200 pt-7 dark:border-zinc-700"><h2>收盘填写结果</h2><Markdown>{sections.closing}</Markdown><MerchantDailyRecord reportDate={reportDate} /></section>
 
       <noscript>
         <div className="mt-10 border-t border-gray-200 pt-8">

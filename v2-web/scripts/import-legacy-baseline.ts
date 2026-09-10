@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 
 import {
   buildLegacyOfferTags,
+  reconcileLegacyOffers,
   buildLegacySearchKeywords,
   normalizeLegacyOpportunity,
   normalizeLegacyPriceChange,
@@ -288,6 +289,21 @@ async function main() {
     if (offerError) throw offerError;
   }
 
+  const { data: storedOffers, error: reconciliationError } = await supabase.from('market_offers')
+    .select('id,target_id,product_title,url,tags')
+    .contains('tags', ['source:legacy-v1']).limit(1000);
+  if (reconciliationError) throw reconciliationError;
+  if ((storedOffers || []).length >= 1000) throw new Error('legacy_reconciliation_truncated');
+  const reconciliation = reconcileLegacyOffers(offerRows, storedOffers || []);
+  if (reconciliation.unresolved.length) throw new Error(`legacy_reconciliation_unresolved:${reconciliation.unresolved.map((row) => row.id).join(',')}`);
+  for (const row of reconciliation.superseded) {
+    const { error } = await supabase.from('market_offers')
+      .update({ status: 'offline', tags: [...(row.tags || []), 'legacy:superseded'] })
+      .eq('id', row.id).eq('target_id', row.target_id).eq('product_title', row.product_title)
+      .contains('tags', ['source:legacy-v1']);
+    if (error) throw error;
+  }
+
   const [opportunityResult, changeResult] = await optionalFeeds;
   let opportunityCount = 0;
   let changeCount = 0;
@@ -335,7 +351,7 @@ async function main() {
   const [catalogCount, targetCount, offerCount] = await Promise.all([
     supabase.from('product_catalog').select('id', { count: 'exact', head: true }),
     supabase.from('crawler_targets').select('id', { count: 'exact', head: true }),
-    supabase.from('market_offers').select('id', { count: 'exact', head: true }).contains('tags', ['source:legacy-v1']),
+    supabase.from('market_offers').select('id', { count: 'exact', head: true }).contains('tags', ['source:legacy-v1']).not('tags', 'cs', '{legacy:superseded}'),
   ]);
   if (catalogCount.error) throw catalogCount.error;
   if (targetCount.error) throw targetCount.error;
@@ -356,6 +372,7 @@ async function main() {
     priceChanges: changeCount,
     reconciledTargets,
     removedDuplicateTargets,
+    supersededOffersRetained: reconciliation.superseded.length,
     validation: 'passed',
   }));
 }

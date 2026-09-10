@@ -22,6 +22,8 @@ interface OfferRow {
   tags: string[] | null;
   inventory_level: number | null;
   updated_at: string;
+  scraped_at: string | null;
+  last_crawled_at: string | null;
   canonical_product_id: string | null;
   crawler_targets: { name: string; scraper_type: string | null; created_at: string } | { name: string; scraper_type: string | null; created_at: string }[] | null;
 }
@@ -67,7 +69,7 @@ export async function GET(request: Request, context: { params: Promise<{ slug: s
     let query = supabase
       .from('market_offers')
       .select(
-        'id, product_title, price, status, url, tags, inventory_level, updated_at, canonical_product_id, target_id, crawler_targets(name, scraper_type, created_at)',
+        'id, product_title, price, status, url, tags, inventory_level, updated_at, scraped_at, last_crawled_at, canonical_product_id, target_id, crawler_targets(name, scraper_type, created_at)',
         { count: 'exact' },
       )
       .in('canonical_product_id', productIds)
@@ -112,6 +114,13 @@ export async function GET(request: Request, context: { params: Promise<{ slug: s
         price: Number(row.price || 0),
         url: row.url,
         updateTime: row.updated_at,
+        sourceObservedAt: row.scraped_at,
+        lastCrawledAt: row.last_crawled_at,
+        currency: tagValue(row.tags, 'currency', 'unknown'),
+        deliveryType: tagValue(row.tags, 'deliveryType', 'unknown'),
+        warranty: tagValue(row.tags, 'warranty', 'unknown'),
+        provenance: tagValue(row.tags, 'source', 'unknown'),
+        originalPageVerified: false,
         includedTime: channel?.created_at || tagValue(row.tags, 'includedTime', ''),
         operateTime: tagValue(row.tags, 'operateTime', '1年'),
         risk: tagValue(row.tags, 'risk', 'medium'),

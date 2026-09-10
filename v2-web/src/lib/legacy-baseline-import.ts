@@ -6,6 +6,31 @@ export interface LegacyProductForImport {
   product_type?: string | null;
 }
 
+interface ReconcileOffer {
+  id?: string;
+  target_id: string | null;
+  product_title: string;
+  url: string;
+  tags: string[] | null;
+}
+
+// A renamed source item is not a new offer. Retain old titles as offline history.
+export function reconcileLegacyOffers(current: ReconcileOffer[], stored: ReconcileOffer[]) {
+  const sourceId = (row: ReconcileOffer) => row.tags?.find((tag) => /^legacyOfferId:\d+$/.test(tag));
+  const superseded: ReconcileOffer[] = [];
+  const unresolved: ReconcileOffer[] = [];
+  const active = stored.filter((row) => !row.tags?.includes('legacy:superseded'));
+  for (const row of active) {
+    const match = current.find((item) => item.target_id === row.target_id && sourceId(item) && sourceId(item) === sourceId(row));
+    if (!match) { unresolved.push(row); continue; }
+    if (match.product_title === row.product_title && match.url === row.url) continue;
+    const replacementExists = active.some((item) => item.target_id === match.target_id && item.product_title === match.product_title && item.url === match.url && sourceId(item) === sourceId(match));
+    if (replacementExists && row.url === match.url) superseded.push(row);
+    else unresolved.push(row);
+  }
+  return { superseded, unresolved };
+}
+
 export interface LegacyOfferForImport {
   id: number;
   currency?: string | null;
