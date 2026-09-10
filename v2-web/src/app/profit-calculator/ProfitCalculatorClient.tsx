@@ -86,9 +86,9 @@ export function ProfitCalculatorClient({ initialUnitCost = null, productName = '
               ))}
             </dl>
             <div className={`m-5 border border-t-2 p-4 ${profitable ? 'border-emerald-300 border-t-emerald-500 bg-emerald-50' : 'border-red-300 border-t-red-500 bg-red-50'}`}>
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-600">预计净利润</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-600">按已填费用估算的结余</p>
               <p className={`mt-1 font-mono text-3xl font-bold ${profitable ? 'text-emerald-700' : 'text-red-700'}`}>{money(result.netProfit)}</p>
-              <p className="mt-2 text-sm text-gray-700">净利率 {result.marginRate.toFixed(1)}% · 不亏钱所需的最低售价 {result.breakEvenPrice === null ? '无法计算' : money(result.breakEvenPrice)}</p>
+              <p className="mt-2 text-sm text-gray-700">结余占售价 {result.marginRate.toFixed(1)}% · 覆盖已填成本的售价 {result.breakEvenPrice === null ? '无法计算' : money(result.breakEvenPrice)}</p>
             </div>
           </>
         ) : (
@@ -97,7 +97,7 @@ export function ProfitCalculatorClient({ initialUnitCost = null, productName = '
             售价、数量和各项费用全部填写后，才会显示利润和不亏钱所需的最低售价。页面不会替你猜售价。
           </div>
         )}
-        <p className="mx-5 mb-5 flex gap-2 text-xs leading-5 text-gray-500 dark:text-zinc-400"><CircleAlert className="mt-0.5 h-4 w-4 shrink-0" />结果只用于把成本项算全，不代表销量、售后或平台规则承诺；报价前仍需核验货源稳定性。</p>
+        <p className="mx-5 mb-5 flex gap-2 text-xs leading-5 text-gray-500 dark:text-zinc-400"><CircleAlert className="mt-0.5 h-4 w-4 shrink-0" />这不是已实现的净利润。未填写的税费、固定开支和损失仍需另算；退款补发与采购支出不要重复计入。结果不代表一定成交或盈利，付款前再次确认库存。</p>
       </aside>
     </div>
   );
