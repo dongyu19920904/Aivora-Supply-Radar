@@ -140,6 +140,22 @@ try {
             overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
           }), mode));
         }
+        await page.getByRole('link', { name: '开始今天的任务', exact: true }).first().click();
+        await page.waitForFunction(() => document.querySelector('[data-active-reading-mode]')?.getAttribute('data-active-reading-mode') === 'beginner');
+        const taskField = page.getByLabel('今天完成的任务或材料', { exact: true });
+        await taskField.fill('浏览器验收记录，不是真实经营数据');
+        await page.getByRole('button', { name: '保存本地记录', exact: true }).click();
+        await page.reload({ waitUntil: 'networkidle' });
+        await page.waitForFunction(() => document.querySelector<HTMLTextAreaElement>('[data-merchant-record] textarea')?.value === '浏览器验收记录，不是真实经营数据');
+        const downloaded = page.waitForEvent('download');
+        await page.getByRole('button', { name: '导出记录', exact: true }).click();
+        const download = await downloaded;
+        if (!download.suggestedFilename().startsWith('merchant-record-')) throw new Error('record_export_failed');
+        page.once('dialog', (dialog) => dialog.accept());
+        await page.getByRole('button', { name: '删除当天记录', exact: true }).click();
+        await page.waitForFunction(() => document.querySelector<HTMLTextAreaElement>('[data-merchant-record] textarea')?.value === '');
+        await page.locator('[data-reading-mode="overview"]').click();
+        await page.evaluate(() => window.scrollTo(0, 0));
       }
     }
     const diagnostics = {
