@@ -18,14 +18,19 @@ try {
       const context = await browser.newContext({ viewport: { width, height: 900 }, colorScheme: theme });
       await context.addInitScript((value) => localStorage.setItem('aivora-supply-theme', value), theme);
       const page = await context.newPage();
-      const response = await page.goto(`${base}${productPath}`, { waitUntil: 'networkidle', timeout: 60_000 });
+      const response = await page.goto(`${base}${productPath}`, { waitUntil: 'domcontentloaded', timeout: 60_000 });
       assert.equal(response?.status(), 200);
       assert.equal(await page.locator('#offer-spec').inputValue(), spec);
       assert.match(await page.locator('[data-active-specification]').innerText(), /卡密充值/);
       assert.equal(await page.locator('link[rel="canonical"]').getAttribute('href'), `${base}/card-products/chatgpt-plus-recharge`);
-      const api = await context.request.get(`${base}/api/products/chatgpt-plus-recharge/offers?${new URLSearchParams({ spec, limit: '50', offset: '0' })}`);
-      assert.equal(api.status(), 200);
-      const payload = await api.json();
+      // Use the page's network path (including the system browser proxy), not
+      // Node's separate APIRequestContext resolver on Windows.
+      const api = await page.evaluate(async (href) => {
+        const response = await fetch(href);
+        return { status: response.status, payload: await response.json() };
+      }, `/api/products/chatgpt-plus-recharge/offers?${new URLSearchParams({ spec, limit: '50', offset: '0' })}`);
+      assert.equal(api.status, 200);
+      const payload = api.payload;
       assert.ok(payload.items.length > 0);
       assert.ok(payload.items.every((item: { originalName: string }) => offerSpecification(item.originalName) === spec));
       const layout = await page.evaluate(() => ({ overflow: document.documentElement.scrollWidth - innerWidth, dark: document.documentElement.classList.contains('dark') }));
@@ -33,8 +38,9 @@ try {
       assert.equal(layout.dark, theme === 'dark');
       const screenshot = `${output}/product-${width}-${theme}.png`;
       await page.screenshot({ path: screenshot, fullPage: true });
+      await page.screenshot({ path: `${output}/product-${width}-${theme}-viewport.png` });
       results.push({ width, theme, ...layout, total: payload.pageInfo.total, screenshot });
-      await page.goto(`${base}/opportunities/2026-09-20`, { waitUntil: 'networkidle', timeout: 60_000 });
+      await page.goto(`${base}/opportunities/2026-09-20`, { waitUntil: 'domcontentloaded', timeout: 60_000 });
       const sameSpecLink = page.locator('a[href*="/card-products/chatgpt-plus-recharge?"][href*="spec="]').first();
       assert.ok(await sameSpecLink.count());
       const url = new URL((await sameSpecLink.getAttribute('href'))!);

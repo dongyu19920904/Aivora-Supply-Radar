@@ -105,7 +105,7 @@ try {
     });
 
     const response = await page.goto(`${baseUrl}${auditCase.path === '/opportunities/latest' ? dailyPath : auditCase.path}`, {
-      waitUntil: 'networkidle',
+      waitUntil: 'domcontentloaded',
       timeout: 45_000,
     });
     await page.waitForFunction(
@@ -146,7 +146,7 @@ try {
         const taskField = page.getByLabel('今天完成的任务或材料', { exact: true });
         await taskField.fill('浏览器验收记录，不是真实经营数据');
         await page.getByRole('button', { name: '保存本地记录', exact: true }).click();
-        await page.reload({ waitUntil: 'networkidle' });
+        await page.reload({ waitUntil: 'domcontentloaded' });
         await page.waitForFunction(() => document.querySelector<HTMLTextAreaElement>('[data-merchant-record] textarea')?.value === '浏览器验收记录，不是真实经营数据');
         const downloaded = page.waitForEvent('download');
         await page.getByRole('button', { name: '导出记录', exact: true }).click();
