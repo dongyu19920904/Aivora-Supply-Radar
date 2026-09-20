@@ -5,7 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { AccountOpportunityDaily } from '@/components/AccountOpportunityDaily';
 import { getAccountOpportunity } from '@/lib/legacy-radar';
-import { parseAccountOpportunityReplayMetadata, parseAccountOpportunitySections } from '@/lib/opportunity-markdown';
+import { parseAccountOpportunityReplayMetadata, parseAccountOpportunitySections, withOpportunityLinkContext } from '@/lib/opportunity-markdown';
 import { DEFAULT_SHARE_IMAGE, SITE_URL, absoluteUrl } from '@/lib/site';
 import { STORE_ORGANIZATION_ID } from '@/lib/seo-geo';
 
@@ -35,7 +35,7 @@ export default async function OpportunityDetailPage({ params }: PageProps) {
   const { date } = await params;
   const opportunity = await getAccountOpportunity(date);
   if (!opportunity) notFound();
-  const sections = parseAccountOpportunitySections(opportunity.body_markdown);
+  const sections = parseAccountOpportunitySections(withOpportunityLinkContext(opportunity.body_markdown, opportunity.report_date));
   const replay = parseAccountOpportunityReplayMetadata(opportunity.body_markdown);
   const primaryHref = sections.enhanced ? '#merchant-task' : '/opportunities';
   const primaryLabel = '开始今天的任务';

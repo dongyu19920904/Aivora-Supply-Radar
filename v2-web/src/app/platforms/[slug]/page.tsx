@@ -82,10 +82,6 @@ export default async function SellerPlatformPage({ params }: PageProps) {
   );
   const availableProducts = products.filter(hasActiveCatalogOffer);
   const offerCount = products.reduce((sum, product) => sum + Math.max(0, product.channelCount || 0), 0);
-  const lowestPrice = products
-    .map((product) => product.lowestPrice)
-    .filter((price): price is number => typeof price === 'number' && Number.isFinite(price) && price > 0)
-    .sort((left, right) => left - right)[0] || null;
   const updatedAt = latestTimestamp(products.map((product) => product.updatedAt));
   const pageUrl = absoluteUrl(`/platforms/${topic.slug}`);
   const retailUrl = getRetailStoreUrl({
@@ -153,7 +149,7 @@ export default async function SellerPlatformPage({ params }: PageProps) {
             <div className="bg-white p-4"><dt className="text-xs text-gray-500">标准商品</dt><dd className="mt-2 font-mono text-2xl font-bold tabular-nums text-gray-950">{products.length}</dd></div>
             <div className="bg-white p-4"><dt className="text-xs text-gray-500">当前可采购</dt><dd className="mt-2 font-mono text-2xl font-bold tabular-nums text-emerald-700">{availableProducts.length}</dd></div>
             <div className="bg-white p-4"><dt className="text-xs text-gray-500">公开报价</dt><dd className="mt-2 font-mono text-2xl font-bold tabular-nums text-blue-700">{offerCount}</dd></div>
-            <div className="bg-white p-4"><dt className="text-xs text-gray-500">当前最低参考</dt><dd className="mt-2 font-mono text-xl font-bold tabular-nums text-gray-950">{lowestPrice === null ? '暂无' : `¥${lowestPrice.toFixed(2)}`}</dd></div>
+            <div className="bg-white p-4"><dt className="text-xs text-gray-500">核价方式</dt><dd className="mt-2 text-base font-bold text-gray-950">按套餐分别比较</dd></div>
           </dl>
         </header>
 
@@ -165,7 +161,7 @@ export default async function SellerPlatformPage({ params }: PageProps) {
             </div>
             <time dateTime={updatedAt || undefined} className="inline-flex items-center gap-2 text-xs text-gray-500">
               <Clock3 className="h-4 w-4" aria-hidden="true" />
-              最近报价 {formatShanghaiDateTime(updatedAt)}
+              聚合记录更新 {formatShanghaiDateTime(updatedAt)}
             </time>
           </div>
 
@@ -185,7 +181,7 @@ export default async function SellerPlatformPage({ params }: PageProps) {
                     <h3 className="mt-4 text-lg font-bold text-gray-950">{product.name}</h3>
                     <p className="mt-2 flex-1 text-sm leading-6 text-gray-600">{product.shortDesc || `查看 ${product.name} 的公开货源、库存和更新时间。`}</p>
                     <div className="mt-5 flex items-end justify-between gap-3 border-t border-gray-200 pt-4">
-                      <div><span className="block text-xs text-gray-500">有货最低参考</span><strong className="mt-1 block font-mono text-xl tabular-nums text-emerald-700">{product.lowestPrice === null ? '暂无报价' : `¥${product.lowestPrice.toFixed(2)}`}</strong></div>
+                      <div><span className="block text-xs text-gray-500">可能包含多个规格</span><strong className="mt-1 block text-sm text-emerald-700">进入商品页按规格核价</strong></div>
                       <Link href={`/card-products/${product.slug}`} className="inline-flex items-center gap-1 text-sm font-bold text-blue-700 hover:underline">核验全部货源<ArrowRight className="h-4 w-4" /></Link>
                     </div>
                   </article>

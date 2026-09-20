@@ -10,6 +10,7 @@ export interface AccountOpportunityReplayMetadata {
   referenceCost: number | null;
   verifiedSourceCount: number;
   verifiedSourceNames: string[];
+  verifiedSpecLabel?: string;
   productUrl: string | null;
   calculatorUrl: string | null;
   sourceGeneratedAt: string | null;
@@ -63,6 +64,7 @@ export function parseAccountOpportunityReplayMetadata(markdown: string): Account
       leadProductName: safeText(value.leadProductName, 160) || null,
       referenceCost: Number.isFinite(referenceCost) && referenceCost > 0 ? referenceCost : null,
       verifiedSourceCount: Math.max(0, Math.floor(Number(value.verifiedSourceCount) || 0)),
+      verifiedSpecLabel: parseSpecification(value.verifiedSpecLabel || copy.match(/已核验分组\s+([^\n]+)/)?.[1]?.trim()),
       verifiedSourceNames: [...new Set(
         (Array.isArray(value.verifiedSourceNames) ? value.verifiedSourceNames : [])
           .map((item) => safeText(item, 100))
@@ -83,7 +85,7 @@ function parseVisibleAccountOpportunityMetadata(markdown: string): AccountOpport
   const sections = parseAccountOpportunitySections(markdown);
   if (!sections.enhanced) return null;
   const lead = sections.overview.match(
-    /^###\s+\[([^\]]+)\]\((https:\/\/supply\.aivora\.cn\/card-products\/([a-z0-9-]+))\)/im,
+    /^###\s+\[([^\]]+)\]\((https:\/\/supply\.aivora\.cn\/card-products\/([a-z0-9-]+)(?:\?[^\s)]*)?)\)/im,
   );
   const productUrl = safeSupplyUrl(lead?.[2]);
   const calculator = `${sections.overview}\n${sections.beginner}`.match(
@@ -113,6 +115,7 @@ function parseVisibleAccountOpportunityMetadata(markdown: string): AccountOpport
     referenceCost: trial ? referenceCost : null,
     verifiedSourceCount: trial ? verifiedSourceCount : 0,
     verifiedSourceNames: [],
+    verifiedSpecLabel: parseSpecification(copyDraft.match(/已核验分组\s+([^\n]+)/)?.[1]?.trim()),
     productUrl: trial ? productUrl : null,
     calculatorUrl: trial ? calculatorUrl : null,
     sourceGeneratedAt: null,
@@ -184,3 +187,20 @@ export function splitBeginnerSteps(markdown: string): { intro: string; steps: st
 export function publicOpportunityMarkdown(markdown: string): string {
   return markdown.replace(INTERNAL_REPLAY_METADATA, '').trim();
 }
+
+// Upgrade navigation on old reports without rewriting their historical prices,
+// dates or stored body. SSR and the no-script view use the same links.
+export function withOpportunityLinkContext(markdown: string, reportDate: string): string {
+  const replay = parseAccountOpportunityReplayMetadata(markdown);
+  const spec = parseSpecification(replay?.verifiedSpecLabel);
+  if (!replay?.productUrl || !spec || !/^\d{4}-\d{2}-\d{2}$/.test(reportDate)) return markdown;
+  const productPath = new URL(replay.productUrl).pathname;
+  return markdown.replace(/\]\((https:\/\/supply\.aivora\.cn\/[^\s)]+)\)/g, (match, href: string) => {
+    const url = new URL(href);
+    if (url.pathname !== productPath && href !== replay.calculatorUrl) return match;
+    url.searchParams.set('spec', spec);
+    url.searchParams.set('report', reportDate);
+    return `](${url.toString()})`;
+  });
+}
+import { parseSpecification } from './offer-specification';

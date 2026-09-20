@@ -21,6 +21,10 @@ interface ProductDetailClientProps {
   initialProduct: ProductType;
   initialDetails: ProductDetail[];
   initialTotal: number;
+  specification: string;
+  specifications: string[];
+  reportDate: string;
+  groupingAvailable: boolean;
 }
 
 interface ProductOfferPageResponse {
@@ -28,7 +32,7 @@ interface ProductOfferPageResponse {
   pageInfo: { total: number; hasMore: boolean; nextOffset: number };
 }
 
-export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ slug, initialProduct, initialDetails, initialTotal }) => {
+export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ slug, initialProduct, initialDetails, initialTotal, specification, specifications, reportDate, groupingAvailable }) => {
   const [feedbackModalItem, setFeedbackModalItem] = useState<ProductDetail | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
   const { isBuyModalOpen, handleBuyClick, handleBuyConfirm, handleBuyCancel } = useBuyAction();
@@ -63,6 +67,7 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ slug, 
 
   const buildRequestUrl = useCallback((offset: number) => {
     const params = new URLSearchParams({ limit: '50', offset: String(offset) });
+    if (specification) params.set('spec', specification);
     if (searchQuery.trim()) params.set('q', searchQuery.trim());
     if (customMinPrice) params.set('min', customMinPrice);
     if (customMaxPrice) params.set('max', customMaxPrice);
@@ -70,7 +75,7 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ slug, 
     if (minInventory !== null) params.set('inventory', String(minInventory));
     if (updatedWithinHours !== null) params.set('hours', String(updatedWithinHours));
     return `/api/products/${encodeURIComponent(slug)}/offers?${params.toString()}`;
-  }, [availability, customMaxPrice, customMinPrice, minInventory, searchQuery, slug, updatedWithinHours]);
+  }, [availability, customMaxPrice, customMinPrice, minInventory, searchQuery, slug, updatedWithinHours, specification]);
 
   useEffect(() => {
     if (availability === 'all' && !searchQuery.trim() && !customMinPrice && !customMaxPrice && minInventory === null && updatedWithinHours === null) {
@@ -136,12 +141,6 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ slug, 
     { value: 'available', label: '可采购', count: availableTotal },
     { value: 'unavailable', label: '缺货 / 下架', count: unavailableTotal },
   ];
-  const lowestPrice = selectedProduct.lowestPrice && selectedProduct.lowestPrice > 0
-    ? `¥${selectedProduct.lowestPrice.toFixed(2)}`
-    : '暂无报价';
-  const warrantyPrice = selectedProduct.warrantyPrice && selectedProduct.warrantyPrice > 0
-    ? `¥${selectedProduct.warrantyPrice.toFixed(2)}`
-    : null;
 
   return (
     <>
@@ -157,7 +156,7 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ slug, 
             <p className="text-sm text-gray-500 max-w-2xl leading-relaxed">
               {selectedProduct.shortDesc || '暂无详细描述'}
             </p>
-            <div className="mt-4 flex flex-wrap gap-2"><Link href={getProfitCalculatorHref(selectedProduct)} className="market-pill market-pill--primary">带入进货价算利润</Link><Link href="/opportunities" className="market-pill market-pill--secondary">查看今日经营建议</Link></div>
+            <div className="mt-4 flex flex-wrap gap-2"><Link href={getProfitCalculatorHref(selectedProduct)} className="market-pill market-pill--primary">输入核实后的成本算利润</Link><Link href="/opportunities" className="market-pill market-pill--secondary">查看今日经营建议</Link></div>
           </div>
         </div>
 
@@ -168,8 +167,8 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ slug, 
             aria-label="商品市场摘要"
           >
             <div className="rounded-xl border border-emerald-100 bg-emerald-50/70 p-3 sm:p-4">
-              <p className="text-xs font-medium text-emerald-700">当前最低进货价</p>
-              <p className="mt-1 font-mono text-lg font-bold tabular-nums text-emerald-800">{lowestPrice}</p>
+              <p className="text-xs font-medium text-emerald-700">比较价格前</p>
+              <p className="mt-1 text-sm font-bold text-emerald-800">{specification ? '核对所选规格' : '请先选择规格'}</p>
             </div>
             <div className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4">
               <p className="text-xs font-medium text-gray-500">可采购报价</p>
@@ -180,15 +179,29 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ slug, 
               <p className="mt-1 font-mono text-lg font-bold tabular-nums text-gray-950">{unavailableTotal}</p>
             </div>
             <div className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4">
-              <p className="text-xs font-medium text-gray-500">{warrantyPrice ? '明确质保最低价' : '最近报价更新'}</p>
+              <p className="text-xs font-medium text-gray-500">聚合记录更新</p>
               <p suppressHydrationWarning className="mt-1 text-sm font-bold text-gray-950 sm:text-base">
-                {warrantyPrice || (selectedProduct.updatedAt ? getRelativeTime(selectedProduct.updatedAt) : '待首次采集')}
+                {selectedProduct.updatedAt ? getRelativeTime(selectedProduct.updatedAt) : '更新时间未知'}
               </p>
             </div>
           </section>
           <p className="mb-3 text-xs leading-5 text-gray-500">
-            已合并同一标准商品的授权聚合与爱窝啦来源；自营报价不固定置顶，默认按可采购优先、价格从低到高排列。
+            此目录可能包含不同期限、地区和交付方式，不能把全部报价的最低价当作你的进货成本。库存是聚合记录，更新时间不代表刚刚核验原站；付款前请打开来源重新确认。
           </p>
+          <form action={`/card-products/${slug}`} className="mb-4 rounded-xl border border-gray-200 bg-white p-4" aria-label="按规格核价">
+            <label htmlFor="offer-spec" className="mb-2 block text-sm font-semibold">按交付方式、期限和地区分开看</label>
+            <div className="flex flex-wrap gap-2">
+              <select id="offer-spec" name="spec" defaultValue={specification} className="min-w-0 max-w-full flex-1 rounded-lg border border-gray-300 bg-transparent p-2 text-sm">
+                <option value="">全部原始报价（包含未明确规格）</option>
+                {[...new Set([...specifications, ...(specification ? [specification] : [])])].map((label) => <option key={label} value={label}>{label}</option>)}
+              </select>
+              <button type="submit" className="market-pill market-pill--primary">查看所选规格</button>
+            </div>
+            <p className="mt-2 text-xs leading-5 text-gray-500">分组仅根据来源标题识别；“标准商品”表示交付方式未写清，不能直接当作同规格采购。其他未写清或互相冲突的记录保留在“全部原始报价”。同组仍需核对交付、售后和当前库存，不等于推荐购买。</p>
+            {specification && <p className="mt-2 text-sm" data-active-specification>正在核对：{specification}。{initialTotal === 0 ? '目前没有匹配记录，请勿用其他规格替代。' : `共 ${initialTotal} 条匹配记录。`}</p>}
+            {reportDate && <p className="mt-2 text-sm">来自 <Link href={`/opportunities/${reportDate}`} className="text-blue-700 underline">{reportDate} 日报</Link>；下面是当前聚合记录，不是该日历史快照，价格可能已变化。</p>}
+            {!groupingAvailable && <p role="alert" className="mt-2 text-sm text-amber-700">暂时无法完整核对规格数据，请稍后刷新。不展示不完整的最低价结论。</p>}
+          </form>
           <div className="mb-3 flex flex-wrap items-center gap-2" aria-label="快捷筛选">
             <span className="mr-1 text-xs font-semibold text-gray-500">快捷筛选</span>
             <button type="button" aria-pressed={minInventory === 50} onClick={() => { setMinInventory((value) => value === 50 ? null : 50); setAvailability('available'); }} className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${minInventory === 50 ? 'border-emerald-700 bg-emerald-700 text-white' : 'border-gray-200 bg-white text-gray-600 hover:border-emerald-300'}`}>库存 ≥ 50</button>

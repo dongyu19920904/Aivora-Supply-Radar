@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 
 import { supabase } from '@/lib/supabase';
 import { parseProductOfferQuery } from '@/lib/product-offer-query';
+import { collectOfferPool, offerSpecification, parseSpecification } from '@/lib/offer-specification';
 import {
   productSlugsForCanonical,
   resolveCanonicalProductSlug,
@@ -59,6 +60,9 @@ export async function GET(request: Request, context: { params: Promise<{ slug: s
     const productIds = products.map((product) => product.id);
 
     const params = parseProductOfferQuery(new URL(request.url).searchParams);
+    const rawSpec = new URL(request.url).searchParams.get('spec');
+    const spec = parseSpecification(rawSpec);
+    if (rawSpec && !spec) return NextResponse.json({ error: 'Invalid specification' }, { status: 400 });
     const allTerms = [...new Set([...params.searchTerms, ...params.excludedTerms])];
     const targetMatches = new Map(await Promise.all(
       allTerms.map(async (term) => [term, await findTargetIds(term)] as const),
@@ -93,12 +97,27 @@ export async function GET(request: Request, context: { params: Promise<{ slug: s
       if (targetIds.length) query = query.not('target_id', 'in', `(${targetIds.join(',')})`);
     }
 
-    const { data, error, count } = await query
+    const orderedQuery = query
       .order('status', { ascending: true })
       .order('price', { ascending: true, nullsFirst: false })
-      .order('id', { ascending: true })
-      .range(params.offset, params.offset + params.limit - 1);
-    if (error) throw error;
+      .order('id', { ascending: true });
+    let data: OfferRow[];
+    let count: number;
+    if (spec) {
+      const pool = await collectOfferPool<OfferRow>(async (offset, limit) => {
+        const page = await orderedQuery.range(offset, offset + limit - 1);
+        if (page.error) throw page.error;
+        return { rows: (page.data || []) as unknown as OfferRow[], total: page.count || 0 };
+      });
+      const matching = pool.filter((row) => offerSpecification(row.product_title) === spec);
+      data = matching.slice(params.offset, params.offset + params.limit);
+      count = matching.length;
+    } else {
+      const page = await orderedQuery.range(params.offset, params.offset + params.limit - 1);
+      if (page.error) throw page.error;
+      data = (page.data || []) as unknown as OfferRow[];
+      count = page.count || 0;
+    }
 
     const items = ((data || []) as unknown as OfferRow[]).map((row) => {
       const channel = firstRelation(row.crawler_targets);

@@ -46,7 +46,7 @@ export function ProfitCalculatorClient({ initialUnitCost = null, productName = '
         </div>
         {initialUnitCost !== null && (
           <div className="mx-5 mt-5 border-l-2 border-blue-500 bg-blue-50 px-4 py-3 text-sm leading-6 text-blue-950 dark:bg-blue-950/40 dark:text-blue-100">
-            已从货源日报带入{productName ? `「${productName}」` : '商品'}进货参考 ¥{initialUnitCost.toFixed(2)}。这是公开快照，不是最终采购成本，请先复核原始页面。
+            已从链接带入{productName ? `「${productName}」` : '商品'}参考 ¥{initialUnitCost.toFixed(2)}。链接参数可被修改，不代表本站已核验的当前进货价，请先复核原始页面。
           </div>
         )}
         <div className="grid gap-4 p-5 sm:grid-cols-2">

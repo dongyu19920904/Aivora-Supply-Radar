@@ -10,9 +10,11 @@ import {
 } from '@/lib/product-canonicalization';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { ProductType, ProductDetail } from '../../../data';
+import { collectOfferPool, offerSpecification, parseSpecification, specificationGroups } from '@/lib/offer-specification';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ spec?: string; report?: string }>;
 }
 
 interface ProductOfferRow {
@@ -60,9 +62,10 @@ async function getProductSummary(productIds: string[]): Promise<ProductSummaryRo
   }
 }
 
-async function listInitialProductOffers(productIds: string[]): Promise<{ rows: ProductOfferRow[]; total: number }> {
+async function listInitialProductOffers(productIds: string[]): Promise<{ rows: ProductOfferRow[]; total: number; complete: boolean }> {
   try {
-    const { data, error, count } = await supabase
+    const rows = await collectOfferPool<ProductOfferRow>(async (offset, limit) => {
+      const { data, error, count } = await supabase
       .from('market_offers')
       .select(
         'id, product_title, price, status, url, tags, inventory_level, updated_at, canonical_product_id, crawler_targets(name, scraper_type, created_at)',
@@ -73,12 +76,24 @@ async function listInitialProductOffers(productIds: string[]): Promise<{ rows: P
       .order('status', { ascending: true })
       .order('price', { ascending: true, nullsFirst: false })
       .order('id', { ascending: true })
-      .range(0, 49);
+      .range(offset, offset + limit - 1);
     if (error) throw error;
-    return { rows: (data || []) as unknown as ProductOfferRow[], total: count || 0 };
+      return { rows: (data || []) as unknown as ProductOfferRow[], total: count || 0 };
+    });
+    return { rows, total: rows.length, complete: true };
   } catch (error) {
     console.warn('Initial product offers unavailable:', error instanceof Error ? error.message : 'unknown');
-    return { rows: [], total: 0 };
+    // Spec analysis failure must not hide the ordinary paginated catalog.
+    try {
+      const fallback = await supabase.from('market_offers')
+        .select('id, product_title, price, status, url, tags, inventory_level, updated_at, canonical_product_id, crawler_targets(name, scraper_type, created_at)', { count: 'exact' })
+        .in('canonical_product_id', productIds).neq('status', 'blacklisted')
+        .order('status', { ascending: true }).order('price', { ascending: true, nullsFirst: false }).order('id', { ascending: true }).range(0, 49);
+      if (fallback.error) throw fallback.error;
+      return { rows: (fallback.data || []) as unknown as ProductOfferRow[], total: fallback.count || 0, complete: false };
+    } catch {
+      return { rows: [], total: 0, complete: false };
+    }
   }
 }
 
@@ -106,14 +121,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const summary = await getProductSummary(productRows.map((row) => row.id));
-  const lowestPrice = Number(summary?.lowest_price || 0);
   const channelCount = Number(summary?.channel_count || 0);
   const shortDesc = String(product.short_desc || '').trim();
   const descriptionSubject = (shortDesc || `查看 ${product.name} 的实时渠道报价`).replace(/[。.!！]+$/, '');
 
   const title = `${product.name}价格对比｜AI订阅卡网渠道比价 - 爱窝啦·货源雷达`;
-  const description = channelCount > 0 && lowestPrice > 0
-    ? `${descriptionSubject}。爱窝啦·货源雷达当前收录 ${channelCount} 条可采购报价，最低价约 ¥${lowestPrice}，可采购优先并展示库存和更新时间，不参与交易。`
+  const description = channelCount > 0
+    ? `${descriptionSubject}。当前收录 ${channelCount} 条标记有货的公开报价。先按交付方式、期限和地区核对规格，再比较价格、库存与售后；聚合记录不代表原站实时可购买。`
     : `${descriptionSubject}。爱窝啦·货源雷达 聚合公开渠道价格，支持 AI 订阅和数字产品多渠道比价，不参与交易。`;
 
   return {
@@ -143,10 +157,19 @@ const extractTagValue = (tags: string[] | null, prefix: string, defaultValue: st
   return tag ? tag.split(':')[1] : defaultValue;
 };
 
-export default async function ProductDetailPage({ params }: PageProps) {
+export default async function ProductDetailPage({ params, searchParams }: PageProps) {
   const { slug } = await params;
+  const context = await searchParams;
+  const spec = parseSpecification(context.spec);
+  if (context.spec && !spec) notFound();
+  const report = typeof context.report === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(context.report) ? context.report : '';
   const canonicalSlug = resolveCanonicalProductSlug(slug);
-  if (slug !== canonicalSlug) permanentRedirect(`/card-products/${canonicalSlug}`);
+  if (slug !== canonicalSlug) {
+    const query = new URLSearchParams();
+    if (spec) query.set('spec', spec);
+    if (report) query.set('report', report);
+    permanentRedirect(`/card-products/${canonicalSlug}${query.size ? `?${query}` : ''}`);
+  }
 
   // 1. Fetch Product
   let productRows: any[] = [];
@@ -172,7 +195,9 @@ export default async function ProductDetailPage({ params }: PageProps) {
     getProductSummary(productIds),
   ]);
 
-  const marketQuotes = initialOfferPage.rows;
+  const groups = initialOfferPage.complete ? specificationGroups(initialOfferPage.rows) : [];
+  const matching = spec ? (initialOfferPage.complete ? initialOfferPage.rows.filter((row) => offerSpecification(row.product_title) === spec) : []) : initialOfferPage.rows;
+  const marketQuotes = matching.slice(0, 50);
 
   // 3. Map to ProductDetail
   const mappedDetails: ProductDetail[] = marketQuotes.map((row: any) => ({
@@ -194,8 +219,8 @@ export default async function ProductDetailPage({ params }: PageProps) {
   // 4. Map ProductType
   const lowestPrice = Number(summary?.lowest_price || 0);
   const warrantyPrice = Number(summary?.warranty_price || 0);
-  const channelCount = Number(summary?.channel_count || 0);
-  const updatedAt = summary?.latest_offer_at || new Date().toISOString();
+  const channelCount = spec ? matching.filter((row) => row.status === 'in_stock').length : Number(summary?.channel_count || 0);
+  const updatedAt = summary?.latest_offer_at || null;
 
   // Type workaround for Supabase relation inference
   const platformData: any = productRow.product_platforms;
@@ -230,7 +255,11 @@ export default async function ProductDetailPage({ params }: PageProps) {
         slug={canonicalSlug}
         initialProduct={product}
         initialDetails={mappedDetails}
-        initialTotal={initialOfferPage.total}
+        initialTotal={spec ? matching.length : initialOfferPage.total}
+        specification={spec}
+        specifications={groups}
+        reportDate={report}
+        groupingAvailable={initialOfferPage.complete}
       />
     </div></main>
   );

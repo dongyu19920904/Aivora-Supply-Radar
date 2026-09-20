@@ -6,6 +6,7 @@ import {
   parseAccountOpportunitySections,
   publicOpportunityMarkdown,
   splitBeginnerSteps,
+  withOpportunityLinkContext,
 } from './opportunity-markdown';
 
 test('removes internal replay metadata from merchant reports', () => {
@@ -109,4 +110,20 @@ test('keeps historical daily markdown in the legacy readable mode', () => {
   const legacy = parseAccountOpportunitySections('## 今日能不能做\n\n保留旧正文。');
   assert.equal(legacy.enhanced, false);
   assert.match(legacy.full, /保留旧正文/);
+});
+
+test('old published daily gets same-spec navigation without changing historical cost', () => {
+  const published = publicOpportunityMarkdown(enhancedMarkdown.replace('只推荐一个商品。', `### [ChatGPT Plus](https://supply.aivora.cn/card-products/chatgpt-plus-recharge)
+- **当前进货参考** ¥116.15。
+- 核到 4 个不同货源站。
+[计算](https://supply.aivora.cn/profit-calculator?cost=116.15)`)
+    .replace('> 付款前再次确认库存', '> 已核验分组　卡密充值 · 1个月 · 菲律宾\n> 付款前再次确认库存'));
+  const transformed = withOpportunityLinkContext(published, '2026-09-20');
+  assert.match(transformed, /spec=/);
+  assert.match(transformed, /report=2026-09-20/);
+  assert.match(transformed, /cost=116.15/);
+  assert.match(transformed, /当前进货参考\*\* ¥116.15/);
+  assert.equal(parseAccountOpportunityReplayMetadata(transformed)?.leadProductSlug, 'chatgpt-plus-recharge');
+  assert.equal(withOpportunityLinkContext(published, '../invalid'), published);
+  assert.equal(withOpportunityLinkContext('旧正文，无已核验规格', '2026-09-20'), '旧正文，无已核验规格');
 });

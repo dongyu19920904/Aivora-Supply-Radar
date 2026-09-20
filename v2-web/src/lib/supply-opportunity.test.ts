@@ -87,10 +87,10 @@ test('relates an old industry report to the current matching supply category', (
   );
 });
 
-test('builds a prefilled profit calculator link from the current lowest price', () => {
+test('catalog calculator link leaves mixed-spec procurement cost for the seller to confirm', () => {
   assert.equal(
     getProfitCalculatorHref(products[1]),
-    '/profit-calculator?product=Claude+Pro&cost=120.00',
+    '/profit-calculator?product=Claude+Pro',
   );
 });
 

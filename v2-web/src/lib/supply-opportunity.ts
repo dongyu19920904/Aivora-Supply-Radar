@@ -143,7 +143,9 @@ function calculatorHref(product: ProductType): string {
 }
 
 export function getProfitCalculatorHref(product: ProductType): string {
-  return calculatorHref(product);
+  // Catalog minima mix durations, regions and fulfilment types. Only an
+  // explicitly checked offer/daily snapshot may prefill procurement cost.
+  return `/profit-calculator?${new URLSearchParams({ product: product.name })}`;
 }
 
 function publicProduct(product: ProductType): PublicSupplyProductSnapshot {

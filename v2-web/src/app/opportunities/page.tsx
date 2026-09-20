@@ -86,7 +86,7 @@ function SignalCard({ signal, index }: { signal: SupplyOpportunitySignal; index:
           核验 {signal.product.name} 货源 <Search className="h-4 w-4" />
         </Link>
         <Link href={getProfitCalculatorHref(signal.product)} className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-950 hover:border-gray-500">
-          带入 {formatPrice(signal.product.lowestPrice)} 算利润 <Calculator className="h-4 w-4" />
+          填写核实后的成本算利润 <Calculator className="h-4 w-4" />
         </Link>
         {signal.sourceUrl && (
           <a href={signal.sourceUrl} target="_blank" rel="noopener nofollow" className="inline-flex items-center gap-1.5 px-1 py-2.5 text-sm font-semibold text-blue-700 hover:underline">
