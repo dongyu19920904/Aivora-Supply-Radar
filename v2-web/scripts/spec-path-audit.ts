@@ -41,6 +41,9 @@ try {
       await page.screenshot({ path: `${output}/product-${width}-${theme}-viewport.png` });
       results.push({ width, theme, ...layout, total: payload.pageInfo.total, screenshot });
       await page.goto(`${base}/opportunities/2026-09-20`, { waitUntil: 'domcontentloaded', timeout: 60_000 });
+      await page.waitForLoadState('load');
+      await page.evaluate(() => document.fonts.ready);
+      await page.waitForLoadState('networkidle', { timeout: 8_000 }).catch(() => undefined);
       const sameSpecLink = page.locator('a[href*="/card-products/chatgpt-plus-recharge?"][href*="spec="]').first();
       assert.ok(await sameSpecLink.count());
       const url = new URL((await sameSpecLink.getAttribute('href'))!);

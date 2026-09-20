@@ -29,7 +29,7 @@ export default async function ProfitCalculatorPage({ searchParams }: PageProps) 
           <h1>利润计算器</h1>
           <p>不要只看“进货价减售价”。把支付费、退款、售后和获客成本一起放进来，先算清保本线，再决定这条货源值不值得卖。</p>
         </header>
-        {prefill.unitCost !== null && <p className="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">链接带入的参考成本为 ¥{prefill.unitCost.toFixed(2)}{spec ? `，规格：${spec}` : '，规格未提供'}。{report ? <Link href={`/opportunities/${report}`} className="text-blue-700 underline">返回 {report} 日报核对</Link> : null} 这不是当前成交价或报价保证；请先核对原始来源，将当前实际进货成本填入，再填写你自己的售价和费用。</p>}
+        {prefill.unitCost !== null && <p className="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200">链接带入的参考成本为 ¥{prefill.unitCost.toFixed(2)}{spec ? `，规格：${spec}` : '，规格未提供'}。{report ? <Link href={`/opportunities/${report}`} className="text-blue-700 underline dark:text-blue-400">返回 {report} 日报核对</Link> : null} 这不是当前成交价或报价保证；请先核对原始来源，将当前实际进货成本填入，再填写你自己的售价和费用。</p>}
         <ProfitCalculatorClient initialUnitCost={prefill.unitCost} productName={prefill.productName} />
       </div>
     </main>

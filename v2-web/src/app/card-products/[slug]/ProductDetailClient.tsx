@@ -166,9 +166,9 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ slug, 
             className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3"
             aria-label="商品市场摘要"
           >
-            <div className="rounded-xl border border-emerald-100 bg-emerald-50/70 p-3 sm:p-4">
-              <p className="text-xs font-medium text-emerald-700">比较价格前</p>
-              <p className="mt-1 text-sm font-bold text-emerald-800">{specification ? '核对所选规格' : '请先选择规格'}</p>
+            <div className="rounded-xl border border-emerald-100 bg-emerald-50/70 p-3 dark:border-emerald-900 dark:bg-emerald-950/30 sm:p-4">
+              <p className="text-xs font-medium text-emerald-700 dark:text-emerald-300">比较价格前</p>
+              <p className="mt-1 text-sm font-bold text-emerald-800 dark:text-emerald-200">{specification ? '核对所选规格' : '请先选择规格'}</p>
             </div>
             <div className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4">
               <p className="text-xs font-medium text-gray-500">可采购报价</p>
@@ -199,7 +199,7 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ slug, 
             </div>
             <p className="mt-2 text-xs leading-5 text-gray-500">分组仅根据来源标题识别；“标准商品”表示交付方式未写清，不能直接当作同规格采购。其他未写清或互相冲突的记录保留在“全部原始报价”。同组仍需核对交付、售后和当前库存，不等于推荐购买。</p>
             {specification && <p className="mt-2 text-sm" data-active-specification>正在核对：{specification}。{initialTotal === 0 ? '目前没有匹配记录，请勿用其他规格替代。' : `共 ${initialTotal} 条匹配记录。`}</p>}
-            {reportDate && <p className="mt-2 text-sm">来自 <Link href={`/opportunities/${reportDate}`} className="text-blue-700 underline">{reportDate} 日报</Link>；下面是当前聚合记录，不是该日历史快照，价格可能已变化。</p>}
+            {reportDate && <p className="mt-2 text-sm">来自 <Link href={`/opportunities/${reportDate}`} className="text-blue-700 underline dark:text-blue-400">{reportDate} 日报</Link>；下面是当前聚合记录，不是该日历史快照，价格可能已变化。</p>}
             {!groupingAvailable && <p role="alert" className="mt-2 text-sm text-amber-700">暂时无法完整核对规格数据，请稍后刷新。不展示不完整的最低价结论。</p>}
           </form>
           <div className="mb-3 flex flex-wrap items-center gap-2" aria-label="快捷筛选">
