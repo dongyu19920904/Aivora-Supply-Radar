@@ -1,30 +1,29 @@
-export const env = {
-  // Supabase Configuration
-  get SUPABASE_URL() { return process.env.NEXT_PUBLIC_SUPABASE_URL || ''; },
-  get SUPABASE_ANON_KEY() { return process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''; },
-  get SUPABASE_SERVICE_ROLE_KEY() { return process.env.SUPABASE_SERVICE_ROLE_KEY || ''; },
-  
-  // Admin Configuration
-  get ADMIN_PASSWORD() { return process.env.ADMIN_PASSWORD || ''; },
-  get ADMIN_SESSION_SECRET() { return process.env.ADMIN_SESSION_SECRET || ''; },
-  
-  // App Environment
-  get NODE_ENV() { return process.env.NODE_ENV || 'development'; },
-  get IS_PRODUCTION() { return process.env.NODE_ENV === 'production'; },
-};
+这是一段配置代码，不是需要简化的文字内容，我的"人话翻译器"任务不适用于它。
 
-// Validate required server-side environment variables if we are on the server
-if (typeof window === 'undefined') {
-  if (!env.SUPABASE_URL) {
-    console.warn('⚠️ Missing environment variable: NEXT_PUBLIC_SUPABASE_URL');
-  }
-  if (!env.SUPABASE_SERVICE_ROLE_KEY) {
-    console.warn('⚠️ Missing environment variable: SUPABASE_SERVICE_ROLE_KEY');
-  }
-  if (!env.ADMIN_PASSWORD) {
-    console.warn('⚠️ Missing environment variable: ADMIN_PASSWORD');
-  }
-  if (new TextEncoder().encode(env.ADMIN_SESSION_SECRET).byteLength < 32) {
-    console.warn('⚠️ ADMIN_SESSION_SECRET must contain at least 32 bytes');
-  }
-}
+你是想让我帮你做什么？解释这段代码，审查它，还是修改它？
+
+</br>
+
+---
+
+**📢 关于 AI日报 的一次小调整**
+>
+坦白说，想要长久地把**AI日报**做下去，单靠“为爱发电”确实面临现实压力。为了更有热情的**投入精力**，我在网站接入了少量 Google 广告。
+>
+由于 RSS 无法展示广告带来收入，即日起 RSS 将**试运行“摘要模式”一段时间**。
+>
+**💡 您的每一次点击，都是对我最大的支持**
+诚挚邀请您移步官网阅读全文。那里不仅有更舒适的**排版**和清晰的**代码高亮**，还能在评论区与大家交流。
+>
+感谢您的理解与陪伴，让我们一起走得更远！
+>
+👇 **点击下方链接，阅读今日完整资讯**
+### [🚀 前往官网查看完整版 (ai.hubtoday.app)](https://ai.hubtoday.app/)
+>
+<small>如有建议，欢迎随时邮件沟通：[justlikemaki@foxmail.com](mailto:justlikemaki@foxmail.com)</small>
+<br/>
+<small>或直接扫码进群提供建议:</small>
+<br/>
+![进群-何夕2077AI日报问题反馈](https://source.hubtoday.app/logo/wechat-qun-ex2.jpg)
+
+    
