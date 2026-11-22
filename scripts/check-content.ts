@@ -1,51 +1,29 @@
-import { AIVORA_OFFERS, OFFICIAL_PRICES, PRODUCT_CATALOG } from "../src/domain/catalog";
-import { isSafePublicHttpsUrl } from "../src/security/url";
+这是一段数据校验脚本，不是需要简化的文章段落。
 
-const failures: string[] = [];
-const productSlugs = new Set<string>();
-const offerIds = new Set<string>();
+如果你想让我做别的事，比如解释这段代码、帮你找 bug、或者改写它，告诉我你想要什么。
 
-for (const product of PRODUCT_CATALOG) {
-  if (productSlugs.has(product.slug)) failures.push(`duplicate_product:${product.slug}`);
-  productSlugs.add(product.slug);
-  if (!/^[a-z0-9-]+$/.test(product.slug)) failures.push(`invalid_product_slug:${product.slug}`);
-  if (product.aliases.length === 0) failures.push(`missing_aliases:${product.slug}`);
-}
+</br>
 
-for (const offer of AIVORA_OFFERS) {
-  if (offerIds.has(offer.sourceOfferId)) failures.push(`duplicate_offer:${offer.sourceOfferId}`);
-  offerIds.add(offer.sourceOfferId);
-  if (!productSlugs.has(offer.productSlug)) failures.push(`orphan_offer:${offer.sourceOfferId}`);
-  if (
-    !isSafePublicHttpsUrl(offer.url) ||
-    !offer.url.startsWith("https://www.aivora.cn/products/")
-  ) {
-    failures.push(`invalid_offer_url:${offer.sourceOfferId}`);
-  }
-  if (!isSafePublicHttpsUrl(offer.imageUrl))
-    failures.push(`invalid_image_url:${offer.sourceOfferId}`);
-  if (offer.highPrice !== undefined && offer.highPrice < offer.price) {
-    failures.push(`inverted_price_range:${offer.sourceOfferId}`);
-  }
-}
+---
 
-for (const price of OFFICIAL_PRICES) {
-  if (!productSlugs.has(price.productSlug)) failures.push(`orphan_official_price:${price.slug}`);
-  if (!isSafePublicHttpsUrl(price.officialUrl)) failures.push(`invalid_official_url:${price.slug}`);
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(price.lastChecked))
-    failures.push(`invalid_checked_date:${price.slug}`);
-}
+**📢 关于 AI日报 的一次小调整**
+>
+坦白说，想要长久地把**AI日报**做下去，单靠“为爱发电”确实面临现实压力。为了更有热情的**投入精力**，我在网站接入了少量 Google 广告。
+>
+由于 RSS 无法展示广告带来收入，即日起 RSS 将**试运行“摘要模式”一段时间**。
+>
+**💡 您的每一次点击，都是对我最大的支持**
+诚挚邀请您移步官网阅读全文。那里不仅有更舒适的**排版**和清晰的**代码高亮**，还能在评论区与大家交流。
+>
+感谢您的理解与陪伴，让我们一起走得更远！
+>
+👇 **点击下方链接，阅读今日完整资讯**
+### [🚀 前往官网查看完整版 (ai.hubtoday.app)](https://ai.hubtoday.app/)
+>
+<small>如有建议，欢迎随时邮件沟通：[justlikemaki@foxmail.com](mailto:justlikemaki@foxmail.com)</small>
+<br/>
+<small>或直接扫码进群提供建议:</small>
+<br/>
+![进群-何夕2077AI日报问题反馈](https://source.hubtoday.app/logo/wechat-qun-ex2.jpg)
 
-console.log(
-  JSON.stringify(
-    {
-      status: failures.length === 0 ? "publishable" : "blocked",
-      products: productSlugs.size,
-      offers: offerIds.size,
-      failures,
-    },
-    null,
-    2,
-  ),
-);
-if (failures.length > 0) process.exitCode = 1;
+    
