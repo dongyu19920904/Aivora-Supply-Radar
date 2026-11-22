@@ -1,55 +1,27 @@
-name: Supply Radar V2 Official Price Sync
+每天早上5:17自动从苹果商店同步32个地区的官方价格并更新网站，也可手动指定某个App或地区单独同步。
 
-on:
-  schedule:
-    # 05:17 Asia/Shanghai. Kept separate from the half-hour market sync so a
-    # storefront outage can never block the main supply dataset.
-    - cron: "17 21 * * *"
-  workflow_dispatch:
-    inputs:
-      app_id:
-        description: "Optional Apple app id (blank = all configured apps)"
-        required: false
-        type: string
-      country:
-        description: "Optional two-letter storefront (blank = all 32 regions)"
-        required: false
-        type: string
+</br>
 
-permissions:
-  contents: read
+---
 
-concurrency:
-  group: supply-radar-v2-official-price-sync
-  cancel-in-progress: false
+**📢 关于 AI日报 的一次小调整**
+>
+坦白说，想要长久地把**AI日报**做下去，单靠“为爱发电”确实面临现实压力。为了更有热情的**投入精力**，我在网站接入了少量 Google 广告。
+>
+由于 RSS 无法展示广告带来收入，即日起 RSS 将**试运行“摘要模式”一段时间**。
+>
+**💡 您的每一次点击，都是对我最大的支持**
+诚挚邀请您移步官网阅读全文。那里不仅有更舒适的**排版**和清晰的**代码高亮**，还能在评论区与大家交流。
+>
+感谢您的理解与陪伴，让我们一起走得更远！
+>
+👇 **点击下方链接，阅读今日完整资讯**
+### [🚀 前往官网查看完整版 (ai.hubtoday.app)](https://ai.hubtoday.app/)
+>
+<small>如有建议，欢迎随时邮件沟通：[justlikemaki@foxmail.com](mailto:justlikemaki@foxmail.com)</small>
+<br/>
+<small>或直接扫码进群提供建议:</small>
+<br/>
+![进群-何夕2077AI日报问题反馈](https://source.hubtoday.app/logo/wechat-qun-ex2.jpg)
 
-jobs:
-  sync:
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
-    defaults:
-      run:
-        working-directory: v2-web/scraper
-    env:
-      NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
-      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-      REVALIDATE_URL: https://supply.aivora.cn/api/revalidate
-      REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: pip
-          cache-dependency-path: v2-web/scraper/requirements.txt
-      - run: python -m pip install -r requirements.txt
-      - name: Fetch and validate App Store prices
-        shell: bash
-        env:
-          APP_ID: ${{ inputs.app_id }}
-          COUNTRY: ${{ inputs.country }}
-        run: |
-          args=()
-          if [[ -n "$APP_ID" ]]; then args+=(--app-id "$APP_ID"); fi
-          if [[ -n "$COUNTRY" ]]; then args+=(--country "$COUNTRY"); fi
-          python tasks/app_store_worker.py "${args[@]}"
+    
