@@ -1,97 +1,32 @@
-const SESSION_VERSION = 'v1';
+我是"人话翻译器"，但这段是代码，不是需要简化的文字内容。
 
-export const ADMIN_SESSION_COOKIE = 'admin_session';
-export const ADMIN_SESSION_MAX_AGE = 60 * 60 * 24;
+你想要什么？比如：
+- 解释这段代码是做什么的
+- 找其中的 bug 或安全问题
+- 翻译成另一种语言
 
-function getSessionSecret() {
-  const secret = process.env.ADMIN_SESSION_SECRET || '';
+</br>
 
-  if (new TextEncoder().encode(secret).byteLength < 32) {
-    return null;
-  }
+---
 
-  return secret;
-}
+**📢 关于 AI日报 的一次小调整**
+>
+坦白说，想要长久地把**AI日报**做下去，单靠“为爱发电”确实面临现实压力。为了更有热情的**投入精力**，我在网站接入了少量 Google 广告。
+>
+由于 RSS 无法展示广告带来收入，即日起 RSS 将**试运行“摘要模式”一段时间**。
+>
+**💡 您的每一次点击，都是对我最大的支持**
+诚挚邀请您移步官网阅读全文。那里不仅有更舒适的**排版**和清晰的**代码高亮**，还能在评论区与大家交流。
+>
+感谢您的理解与陪伴，让我们一起走得更远！
+>
+👇 **点击下方链接，阅读今日完整资讯**
+### [🚀 前往官网查看完整版 (ai.hubtoday.app)](https://ai.hubtoday.app/)
+>
+<small>如有建议，欢迎随时邮件沟通：[justlikemaki@foxmail.com](mailto:justlikemaki@foxmail.com)</small>
+<br/>
+<small>或直接扫码进群提供建议:</small>
+<br/>
+![进群-何夕2077AI日报问题反馈](https://source.hubtoday.app/logo/wechat-qun-ex2.jpg)
 
-function bytesToBase64Url(bytes: Uint8Array) {
-  let binary = '';
-  for (let index = 0; index < bytes.length; index += 1) {
-    binary += String.fromCharCode(bytes[index]);
-  }
-  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
-}
-
-function base64UrlToBytes(value: string) {
-  const normalized = value.replace(/-/g, '+').replace(/_/g, '/');
-  const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=');
-  const binary = atob(padded);
-  return Uint8Array.from(binary, character => character.charCodeAt(0));
-}
-
-async function importSigningKey(secret: string) {
-  return crypto.subtle.importKey(
-    'raw',
-    new TextEncoder().encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign', 'verify'],
-  );
-}
-
-export function isAdminSessionConfigured() {
-  return getSessionSecret() !== null;
-}
-
-export async function createAdminSession() {
-  const secret = getSessionSecret();
-  if (!secret) {
-    throw new Error('ADMIN_SESSION_SECRET must contain at least 32 bytes');
-  }
-
-  const expiresAt = Math.floor(Date.now() / 1000) + ADMIN_SESSION_MAX_AGE;
-  const nonce = new Uint8Array(16);
-  crypto.getRandomValues(nonce);
-
-  const payload = `${SESSION_VERSION}.${expiresAt}.${bytesToBase64Url(nonce)}`;
-  const key = await importSigningKey(secret);
-  const signature = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(payload));
-
-  return `${payload}.${bytesToBase64Url(new Uint8Array(signature))}`;
-}
-
-export async function verifyAdminSession(session: string | undefined) {
-  const secret = getSessionSecret();
-  if (!secret || !session) return false;
-
-  try {
-    const parts = session.split('.');
-    if (parts.length !== 4) return false;
-
-    const [version, expiresAtRaw, nonce, signatureRaw] = parts;
-    if (version !== SESSION_VERSION || !/^\d+$/.test(expiresAtRaw) || !nonce || !signatureRaw) {
-      return false;
-    }
-
-    const expiresAt = Number(expiresAtRaw);
-    const now = Math.floor(Date.now() / 1000);
-    if (
-      !Number.isSafeInteger(expiresAt) ||
-      expiresAt <= now ||
-      expiresAt > now + ADMIN_SESSION_MAX_AGE + 60
-    ) {
-      return false;
-    }
-
-    const payload = `${version}.${expiresAtRaw}.${nonce}`;
-    const key = await importSigningKey(secret);
-
-    return await crypto.subtle.verify(
-      'HMAC',
-      key,
-      base64UrlToBytes(signatureRaw),
-      new TextEncoder().encode(payload),
-    );
-  } catch {
-    return false;
-  }
-}
+    
