@@ -1,40 +1,27 @@
-# Cloudflare Worker configuration for OpenNext
-name = "aivora-supply-radar-v2-preview"
-main = "cloudflare-worker.mjs"
-compatibility_date = "2026-08-28"
-compatibility_flags = ["nodejs_compat"]
-assets = { directory = ".open-next/assets", binding = "ASSETS" }
-minify = true
-keep_vars = true
+用 Cloudflare Worker 部署 Next.js，R2 存缓存，密钥在 Dashboard 里配置。
 
-# Cloudflare Images transforms Notion/R2 source images into WebP variants
-# before the immutable results are uploaded to the public R2 bucket.
-[images]
-binding = "IMAGES"
+</br>
 
-# OpenNext ISR/data cache. Create once with:
-# pnpm exec wrangler r2 bucket create aivora-supply-radar-v2-next-cache
-[[r2_buckets]]
-binding = "NEXT_INC_CACHE_R2_BUCKET"
-bucket_name = "aivora-supply-radar-v2-next-cache"
+---
 
-# OpenNext uses a self-reference to perform background revalidation.
-[[services]]
-binding = "WORKER_SELF_REFERENCE"
-service = "aivora-supply-radar-v2-preview"
+**📢 关于 AI日报 的一次小调整**
+>
+坦白说，想要长久地把**AI日报**做下去，单靠“为爱发电”确实面临现实压力。为了更有热情的**投入精力**，我在网站接入了少量 Google 广告。
+>
+由于 RSS 无法展示广告带来收入，即日起 RSS 将**试运行“摘要模式”一段时间**。
+>
+**💡 您的每一次点击，都是对我最大的支持**
+诚挚邀请您移步官网阅读全文。那里不仅有更舒适的**排版**和清晰的**代码高亮**，还能在评论区与大家交流。
+>
+感谢您的理解与陪伴，让我们一起走得更远！
+>
+👇 **点击下方链接，阅读今日完整资讯**
+### [🚀 前往官网查看完整版 (ai.hubtoday.app)](https://ai.hubtoday.app/)
+>
+<small>如有建议，欢迎随时邮件沟通：[justlikemaki@foxmail.com](mailto:justlikemaki@foxmail.com)</small>
+<br/>
+<small>或直接扫码进群提供建议:</small>
+<br/>
+![进群-何夕2077AI日报问题反馈](https://source.hubtoday.app/logo/wechat-qun-ex2.jpg)
 
-[[durable_objects.bindings]]
-name = "NEXT_CACHE_DO_QUEUE"
-class_name = "DOQueueHandler"
-
-[[durable_objects.bindings]]
-name = "NEXT_TAG_CACHE_DO_SHARDED"
-class_name = "DOShardedTagCache"
-
-[[migrations]]
-tag = "v1"
-new_sqlite_classes = ["DOQueueHandler", "DOShardedTagCache"]
-
-# 提示: 本地开发与生产环境相关的秘钥及参数，如:
-# NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, NOTION_API_KEY, CLOUDFLARE_R2_* 等
-# 请在 Cloudflare Dashboard 对应的 Worker 详情页 -> Settings -> Variables and Secrets 中统一配置。
+    
