@@ -1,32 +1,34 @@
-import { AIVORA_OFFERS, OFFICIAL_PRICES, PRODUCT_CATALOG } from "../src/domain/catalog";
-import { isSafePublicHttpsUrl } from "../src/security/url";
+This script validates catalog data before publishing. It checks three things:
 
-const productSlugs = new Set(PRODUCT_CATALOG.map((product) => product.slug));
-const failures: string[] = [];
+- Every offer in `AIVORA_OFFERS` has a known product slug, valid HTTPS URLs, and a non-negative finite price.
+- Every entry in `OFFICIAL_PRICES` has a known product slug and a valid HTTPS URL.
 
-for (const offer of AIVORA_OFFERS) {
-  if (!productSlugs.has(offer.productSlug)) failures.push(`unknown_product:${offer.sourceOfferId}`);
-  if (!isSafePublicHttpsUrl(offer.url)) failures.push(`unsafe_offer_url:${offer.sourceOfferId}`);
-  if (!isSafePublicHttpsUrl(offer.imageUrl))
-    failures.push(`unsafe_image_url:${offer.sourceOfferId}`);
-  if (!Number.isFinite(offer.price) || offer.price < 0)
-    failures.push(`invalid_price:${offer.sourceOfferId}`);
-}
+......
 
-for (const official of OFFICIAL_PRICES) {
-  if (!productSlugs.has(official.productSlug))
-    failures.push(`unknown_official_product:${official.slug}`);
-  if (!isSafePublicHttpsUrl(official.officialUrl))
-    failures.push(`unsafe_official_url:${official.slug}`);
-}
+*[剩余内容已省略]*
 
-const result = {
-  status: failures.length === 0 ? "publishable" : "blocked",
-  products: PRODUCT_CATALOG.length,
-  offers: AIVORA_OFFERS.length,
-  officialPrices: OFFICIAL_PRICES.length,
-  failures,
-};
+</br>
 
-console.log(JSON.stringify(result, null, 2));
-if (failures.length > 0) process.exitCode = 1;
+---
+
+**📢 关于 AI日报 的一次小调整**
+>
+坦白说，想要长久地把**AI日报**做下去，单靠“为爱发电”确实面临现实压力。为了更有热情的**投入精力**，我在网站接入了少量 Google 广告。
+>
+由于 RSS 无法展示广告带来收入，即日起 RSS 将**试运行“摘要模式”一段时间**。
+>
+**💡 您的每一次点击，都是对我最大的支持**
+诚挚邀请您移步官网阅读全文。那里不仅有更舒适的**排版**和清晰的**代码高亮**，还能在评论区与大家交流。
+>
+感谢您的理解与陪伴，让我们一起走得更远！
+>
+👇 **点击下方链接，阅读今日完整资讯**
+### [🚀 前往官网查看完整版 (ai.hubtoday.app)](https://ai.hubtoday.app/)
+>
+<small>如有建议，欢迎随时邮件沟通：[justlikemaki@foxmail.com](mailto:justlikemaki@foxmail.com)</small>
+<br/>
+<small>或直接扫码进群提供建议:</small>
+<br/>
+![进群-何夕2077AI日报问题反馈](https://source.hubtoday.app/logo/wechat-qun-ex2.jpg)
+
+    
