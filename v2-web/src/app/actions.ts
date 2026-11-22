@@ -1,99 +1,27 @@
-'use server';
+这是代码，不是需要简化的文章内容。请提供要压缩的中文段落。
 
-import { supabaseAdmin } from '@/lib/supabase-admin';
-import { validateChannelSubmission } from '@/lib/submission-validation';
+</br>
 
-export async function getChannelProviderCount() {
-  try {
-    const { count, error } = await Promise.race([
-      supabaseAdmin.from('crawler_targets').select('*', { count: 'exact', head: true }).eq('is_active', true),
-      new Promise<never>((_, reject) => setTimeout(() => reject(new Error('channel_count_timeout')), 5_000)),
-    ]);
+---
+
+**📢 关于 AI日报 的一次小调整**
+>
+坦白说，想要长久地把**AI日报**做下去，单靠“为爱发电”确实面临现实压力。为了更有热情的**投入精力**，我在网站接入了少量 Google 广告。
+>
+由于 RSS 无法展示广告带来收入，即日起 RSS 将**试运行“摘要模式”一段时间**。
+>
+**💡 您的每一次点击，都是对我最大的支持**
+诚挚邀请您移步官网阅读全文。那里不仅有更舒适的**排版**和清晰的**代码高亮**，还能在评论区与大家交流。
+>
+感谢您的理解与陪伴，让我们一起走得更远！
+>
+👇 **点击下方链接，阅读今日完整资讯**
+### [🚀 前往官网查看完整版 (ai.hubtoday.app)](https://ai.hubtoday.app/)
+>
+<small>如有建议，欢迎随时邮件沟通：[justlikemaki@foxmail.com](mailto:justlikemaki@foxmail.com)</small>
+<br/>
+<small>或直接扫码进群提供建议:</small>
+<br/>
+![进群-何夕2077AI日报问题反馈](https://source.hubtoday.app/logo/wechat-qun-ex2.jpg)
+
     
-    if (error) {
-      console.error('Error fetching channel provider count:', error);
-      return 0;
-    }
-    return count || 0;
-  } catch (err) {
-    console.error('Exception fetching channel provider count:', err);
-    return 0;
-  }
-}
-
-
-export async function submitChannel(formData: FormData) {
-  try {
-    const validation = validateChannelSubmission(formData);
-    if (validation.ok === false) return { success: false, error: validation.error };
-    const { name, siteUrl, contact, remarks, honeypot } = validation.value;
-    if (honeypot) return { success: true };
-
-    const [{ data: existingSubmission, error: submissionLookupError }, { data: existingTarget, error: targetLookupError }] = await Promise.all([
-      supabaseAdmin.from('user_target_submissions').select('id').eq('site_url', siteUrl).limit(1).maybeSingle(),
-      supabaseAdmin.from('crawler_targets').select('id').eq('site_url', siteUrl).limit(1).maybeSingle(),
-    ]);
-    if (submissionLookupError || targetLookupError) {
-      console.error('Error checking channel submission duplicates:', submissionLookupError || targetLookupError);
-      return { success: false, error: '暂时无法校验渠道，请稍后重试' };
-    }
-    if (existingSubmission || existingTarget) {
-      return { success: false, error: '该渠道已收录或正在审核，请勿重复提交' };
-    }
-
-    const { error } = await supabaseAdmin
-      .from('user_target_submissions')
-      .insert([
-        {
-          name,
-          site_url: siteUrl,
-          contact,
-          remarks,
-          status: 'pending'
-        }
-      ]);
-
-    if (error) {
-      console.error('Error submitting channel:', error);
-      return { success: false, error: '提交失败，请稍后重试' };
-    }
-
-    return { success: true };
-  } catch (err: any) {
-    console.error('Exception submitting channel:', err);
-    return { success: false, error: '系统异常，请稍后重试' };
-  }
-}
-
-export async function submitFeedback(formData: FormData) {
-  try {
-    const offer_id = formData.get('offer_id') as string;
-    const issue_type = formData.get('issue_type') as string;
-    const description = formData.get('description') as string;
-
-    if (!offer_id || !issue_type || !description) {
-      return { success: false, error: '请填写所有必填项' };
-    }
-
-    const { error } = await supabaseAdmin
-      .from('user_feedbacks')
-      .insert([
-        {
-          offer_id,
-          issue_type,
-          description,
-          status: 'pending'
-        }
-      ]);
-
-    if (error) {
-      console.error('Error submitting feedback:', error);
-      return { success: false, error: '提交失败，请稍后重试' };
-    }
-
-    return { success: true };
-  } catch (err: any) {
-    console.error('Exception submitting feedback:', err);
-    return { success: false, error: '系统异常，请稍后重试' };
-  }
-}
