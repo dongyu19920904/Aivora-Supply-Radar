@@ -1,5 +1,4 @@
-1. **Supply Radar CI**
-推代码或提PR时用Node22自动跑检查、测试、内容校验和打包，限时15分钟
+1. **Supply Radar CI**：推代码时用 Node22 自动跑测试和打包，限时 15 分钟。
 
 </br>
 
